@@ -1,4 +1,28 @@
+/*
+ * aes128.c
+ *
+ * Lõi thuật toán AES-128 (S-box, key expansion, encrypt/decrypt block,
+ * GF(2^8) multiply) giữ nguyên từ bản triển khai gốc của thành viên
+ * phụ trách Issue #1/#2 — đã xác minh đúng chuẩn FIPS-197.
+ *
+ * Thay đổi trong bản sửa cho Issue #3 (để khớp Interface Contract):
+ *   - Các hàm nội bộ (key_expansion, encrypt_block, decrypt_block,
+ *     gmul) chuyển thành `static` -> không xuất hiện trong nm -D,
+ *     chỉ dùng nội bộ trong file này.
+ *   - Loại bỏ derive_128bit_key(): API bây giờ nhận đúng key 16 byte
+ *     (đã được unwrap qua RSA-OAEP ở tầng engine/Python - Issue #5),
+ *     không tự "nén" key nữa.
+ *   - Chuyển từ chế độ ECB sang CBC thật (có IV, có chaining) —
+ *     đúng thiết kế "Lõi Mật mã Lai" trong CONTRIBUTING.md.
+ *   - Tách riêng pkcs7_pad() / pkcs7_unpad() thành 2 hàm public độc
+ *     lập, không nhúng trong encrypt/decrypt nữa.
+ *
+ * Public API (đúng 4 hàm theo DoD của Issue #3):
+ *   aes128_cbc_encrypt, aes128_cbc_decrypt, pkcs7_pad, pkcs7_unpad
+ */
+
 #include "aes128.h"
+#include <stdlib.h>
 #include <string.h>
 
 static const uint8_t SBOX[256] = {
@@ -53,7 +77,7 @@ static inline uint8_t gmul(uint8_t a, uint8_t b) {
     return p;
 }
 
-void aes128_key_expansion(const uint8_t key[16], uint8_t round_keys[176]) {
+static void aes128_key_expansion(const uint8_t key[16], uint8_t round_keys[176]) {
     memcpy(round_keys, key, 16);
     int bytes_gen = 16;
     int rcon_iter = 1;
@@ -75,7 +99,7 @@ void aes128_key_expansion(const uint8_t key[16], uint8_t round_keys[176]) {
     }
 }
 
-void aes128_encrypt_block(const uint8_t in[16], uint8_t out[16], const uint8_t round_keys[176]) {
+static void aes128_encrypt_block(const uint8_t in[16], uint8_t out[16], const uint8_t round_keys[176]) {
     uint8_t state[16];
     for (int i = 0; i < 16; i++) state[i] = in[i] ^ round_keys[i];
 
@@ -105,7 +129,7 @@ void aes128_encrypt_block(const uint8_t in[16], uint8_t out[16], const uint8_t r
     memcpy(out, state, 16);
 }
 
-void aes128_decrypt_block(const uint8_t in[16], uint8_t out[16], const uint8_t round_keys[176]) {
+static void aes128_decrypt_block(const uint8_t in[16], uint8_t out[16], const uint8_t round_keys[176]) {
     uint8_t state[16];
     for (int i = 0; i < 16; i++) state[i] = in[i] ^ round_keys[160 + i];
 
@@ -135,52 +159,84 @@ void aes128_decrypt_block(const uint8_t in[16], uint8_t out[16], const uint8_t r
     memcpy(out, state, 16);
 }
 
-static void derive_128bit_key(const uint8_t *key_in, size_t len, uint8_t key_out[16]) {
-    memset(key_out, 0, 16);
-    for (size_t i = 0; i < len; i++) {
-        key_out[i % 16] ^= key_in[i];
-    }
-}
+/* ---------------------------------------------------------------- */
+/* API public - đúng 4 hàm theo Interface Contract của Issue #3      */
+/* ---------------------------------------------------------------- */
 
-size_t aes128_encrypt(const uint8_t *in, size_t in_len, uint8_t *out, const uint8_t *key, size_t key_len) {
-    uint8_t formatted_key[16];
-    derive_128bit_key(key, key_len, formatted_key);
+uint8_t *pkcs7_pad(const uint8_t *in, size_t in_len, size_t *out_len) {
+    if (!in || !out_len) return NULL;
 
-    uint8_t round_keys[176];
-    aes128_key_expansion(formatted_key, round_keys);
-
-    uint8_t pad = 16 - (in_len % 16);
+    uint8_t pad = (uint8_t)(16 - (in_len % 16));
     size_t total_len = in_len + pad;
 
-    uint8_t block[16];
-    for (size_t i = 0; i < total_len; i += 16) {
-        for (int j = 0; j < 16; j++) {
-            size_t idx = i + j;
-            if (idx < in_len) block[j] = in[idx];
-            else block[j] = pad;
-        }
-        aes128_encrypt_block(block, out + i, round_keys);
-    }
-    return total_len;
+    uint8_t *out = (uint8_t *)malloc(total_len);
+    if (!out) return NULL;
+
+    memcpy(out, in, in_len);
+    for (size_t i = in_len; i < total_len; i++) out[i] = pad;
+
+    *out_len = total_len;
+    return out;
 }
 
-size_t aes128_decrypt(const uint8_t *in, size_t in_len, uint8_t *out, const uint8_t *key, size_t key_len) {
-    if (in_len == 0 || (in_len % 16) != 0) return 0;
+int pkcs7_unpad(const uint8_t *in, size_t in_len, size_t *out_len) {
+    if (!in || !out_len) return -1;
+    if (in_len == 0 || (in_len % 16) != 0) return -1;
 
-    uint8_t formatted_key[16];
-    derive_128bit_key(key, key_len, formatted_key);
+    uint8_t pad = in[in_len - 1];
+    if (pad < 1 || pad > 16 || (size_t)pad > in_len) return -1;
+
+    for (size_t i = in_len - pad; i < in_len; i++) {
+        if (in[i] != pad) return -1;
+    }
+
+    *out_len = in_len - pad;
+    return 0;
+}
+
+int aes128_cbc_encrypt(const uint8_t *plaintext, size_t len,
+                        const uint8_t key[AES128_KEY_SIZE],
+                        const uint8_t iv[AES128_BLOCK_SIZE],
+                        uint8_t *out) {
+    if (!plaintext || !key || !iv || !out) return -1;
+    if (len == 0 || (len % 16) != 0) return -1;
 
     uint8_t round_keys[176];
-    aes128_key_expansion(formatted_key, round_keys);
+    aes128_key_expansion(key, round_keys);
 
-    for (size_t i = 0; i < in_len; i += 16) {
-        aes128_decrypt_block(in + i, out + i, round_keys);
-    }
+    uint8_t prev[16];
+    memcpy(prev, iv, 16);
 
-    uint8_t pad = out[in_len - 1];
-    if (pad < 1 || pad > 16) return 0;
-    for (size_t i = in_len - pad; i < in_len; i++) {
-        if (out[i] != pad) return 0;
+    for (size_t i = 0; i < len; i += 16) {
+        uint8_t block[16];
+        for (int j = 0; j < 16; j++) block[j] = plaintext[i + j] ^ prev[j];
+
+        aes128_encrypt_block(block, out + i, round_keys);
+        memcpy(prev, out + i, 16);
     }
-    return in_len - pad;
+    return 0;
+}
+
+int aes128_cbc_decrypt(const uint8_t *ciphertext, size_t len,
+                        const uint8_t key[AES128_KEY_SIZE],
+                        const uint8_t iv[AES128_BLOCK_SIZE],
+                        uint8_t *out) {
+    if (!ciphertext || !key || !iv || !out) return -1;
+    if (len == 0 || (len % 16) != 0) return -1;
+
+    uint8_t round_keys[176];
+    aes128_key_expansion(key, round_keys);
+
+    uint8_t prev[16];
+    memcpy(prev, iv, 16);
+
+    for (size_t i = 0; i < len; i += 16) {
+        uint8_t decrypted[16];
+        aes128_decrypt_block(ciphertext + i, decrypted, round_keys);
+
+        for (int j = 0; j < 16; j++) out[i + j] = decrypted[j] ^ prev[j];
+
+        memcpy(prev, ciphertext + i, 16);
+    }
+    return 0;
 }
