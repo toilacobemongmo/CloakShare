@@ -4,9 +4,9 @@ import ctypes
 from pathlib import Path
 from typing import Tuple
 
+
 def get_lib_path() -> str:
     """Tự động xác định đường dẫn file thư viện động theo hệ điều hành."""
-    # Lùi 2 cấp thư mục từ engine/wrappers/ về thư mục gốc của project
     base_dir = Path(__file__).resolve().parent.parent.parent
     core_dir = base_dir / "core"
 
@@ -27,11 +27,6 @@ def get_lib_path() -> str:
     return str(full_path)
 
 
-# Định nghĩa Struct Context tương ứng với struct trong aes128.h
-class AES128_Context(ctypes.Structure):
-    _fields_ = [("round_keys", ctypes.c_uint8 * 176)]
-
-
 class AESWrapper:
     def __init__(self, lib_path: str = None) -> None:
         self.lib_path = lib_path or get_lib_path()
@@ -39,7 +34,7 @@ class AESWrapper:
         self._bind_c_functions()
 
     def _bind_c_functions(self) -> None:
-        """Khai báo kiểu tham số (argtypes) và kiểu trả về (restype) cho các hàm C."""
+        """Khai báo chữ ký hàm C theo đúng core/padding.h và core/aes128.h"""
         # 1. int pkcs7_pad(const uint8_t *in, size_t in_len, uint8_t *out, size_t block_size)
         self._c_lib.pkcs7_pad.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
@@ -58,32 +53,25 @@ class AESWrapper:
         ]
         self._c_lib.pkcs7_unpad.restype = ctypes.c_int
 
-        # 3. void aes128_init(AES128_Context *ctx, const uint8_t *key)
-        self._c_lib.aes128_init.argtypes = [
-            ctypes.POINTER(AES128_Context),
-            ctypes.POINTER(ctypes.c_uint8)
-        ]
-        self._c_lib.aes128_init.restype = None
-
-        # 4. void aes128_cbc_encrypt(const AES128_Context *ctx, const uint8_t *iv, const uint8_t *in, size_t len, uint8_t *out)
+        # 3. int aes128_cbc_encrypt(const uint8_t *plaintext, size_t len, const uint8_t key[16], const uint8_t iv[16], uint8_t *out)
         self._c_lib.aes128_cbc_encrypt.argtypes = [
-            ctypes.POINTER(AES128_Context),
-            ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8)
         ]
-        self._c_lib.aes128_cbc_encrypt.restype = None
+        self._c_lib.aes128_cbc_encrypt.restype = ctypes.c_int
 
-        # 5. void aes128_cbc_decrypt(const AES128_Context *ctx, const uint8_t *iv, const uint8_t *in, size_t len, uint8_t *out)
+        # 4. int aes128_cbc_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t key[16], const uint8_t iv[16], uint8_t *out)
         self._c_lib.aes128_cbc_decrypt.argtypes = [
-            ctypes.POINTER(AES128_Context),
-            ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8)
         ]
-        self._c_lib.aes128_cbc_decrypt.restype = None
+        self._c_lib.aes128_cbc_decrypt.restype = ctypes.c_int
 
     def encrypt(self, plaintext: bytes, key: bytes) -> Tuple[bytes, bytes]:
         """Mã hóa plaintext bằng AES-128-CBC với padding PKCS#7."""
@@ -93,7 +81,7 @@ class AESWrapper:
         # 1. Sinh IV ngẫu nhiên 16 bytes
         iv = os.urandom(16)
 
-        # 2. Thực hiện PKCS#7 Padding
+        # 2. Đệm PKCS#7 qua core/padding.c
         block_size = 16
         pad_buffer_len = len(plaintext) + block_size
         padded_buffer = (ctypes.c_uint8 * pad_buffer_len)()
@@ -103,14 +91,14 @@ class AESWrapper:
         if new_len < 0:
             raise ValueError(f"Lỗi khi thực hiện padding, mã lỗi: {new_len}")
 
-        # 3. Khởi tạo Context và mã hóa CBC
-        ctx = AES128_Context()
+        # 3. Mã hóa CBC qua core/aes128.c
         key_buf = (ctypes.c_uint8 * 16).from_buffer_copy(key)
         iv_buf = (ctypes.c_uint8 * 16).from_buffer_copy(iv)
         ciphertext_buffer = (ctypes.c_uint8 * new_len)()
 
-        self._c_lib.aes128_init(ctypes.byref(ctx), key_buf)
-        self._c_lib.aes128_cbc_encrypt(ctypes.byref(ctx), iv_buf, padded_buffer, new_len, ciphertext_buffer)
+        ret = self._c_lib.aes128_cbc_encrypt(padded_buffer, new_len, key_buf, iv_buf, ciphertext_buffer)
+        if ret != 0:
+            raise ValueError(f"Lỗi khi thực hiện aes128_cbc_encrypt, mã lỗi: {ret}")
 
         return iv, bytes(ciphertext_buffer)
 
@@ -123,19 +111,20 @@ class AESWrapper:
         if len(ciphertext) == 0 or len(ciphertext) % 16 != 0:
             raise ValueError("Ciphertext phải là bội số của 16 bytes")
 
-        # 1. Khởi tạo Context và giải mã CBC
-        ctx = AES128_Context()
+        # 1. Giải mã CBC qua core/aes128.c
+        cipher_len = len(ciphertext)
+        in_buf = (ctypes.c_uint8 * cipher_len).from_buffer_copy(ciphertext)
         key_buf = (ctypes.c_uint8 * 16).from_buffer_copy(key)
         iv_buf = (ctypes.c_uint8 * 16).from_buffer_copy(iv)
-        in_buf = (ctypes.c_uint8 * len(ciphertext)).from_buffer_copy(ciphertext)
-        decrypted_buffer = (ctypes.c_uint8 * len(ciphertext))()
+        decrypted_buffer = (ctypes.c_uint8 * cipher_len)()
 
-        self._c_lib.aes128_init(ctypes.byref(ctx), key_buf)
-        self._c_lib.aes128_cbc_decrypt(ctypes.byref(ctx), iv_buf, in_buf, len(ciphertext), decrypted_buffer)
+        ret = self._c_lib.aes128_cbc_decrypt(in_buf, cipher_len, key_buf, iv_buf, decrypted_buffer)
+        if ret != 0:
+            raise ValueError(f"Lỗi khi thực hiện aes128_cbc_decrypt, mã lỗi: {ret}")
 
-        # 2. Bỏ PKCS#7 Padding
-        unpadded_buffer = (ctypes.c_uint8 * len(ciphertext))()
-        actual_len = self._c_lib.pkcs7_unpad(decrypted_buffer, len(ciphertext), unpadded_buffer, 16)
+        # 2. Gỡ bỏ PKCS#7 Padding qua core/padding.c
+        unpadded_buffer = (ctypes.c_uint8 * cipher_len)()
+        actual_len = self._c_lib.pkcs7_unpad(decrypted_buffer, cipher_len, unpadded_buffer, 16)
         if actual_len < 0:
             raise ValueError("Dữ liệu padding PKCS#7 không hợp lệ hoặc sai khóa/IV!")
 

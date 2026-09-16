@@ -1,0 +1,17 @@
+# Tầng Mật mã & Wrapper (Engine)
+cryptography>=42.0.0
+
+# Tầng Máy chủ trung chuyển (Zero-Log Broker)
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+httpx>=0.27.0
+pydantic>=2.6.0
+psutil>=5.9.0
+
+# Tầng Web3 & Blockchain (Auth & Contract)
+web3>=6.15.0
+eth-account>=0.11.0
+
+# Kiểm thử tự động (Testing)
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

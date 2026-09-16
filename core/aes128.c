@@ -22,6 +22,7 @@
  */
 
 #include "aes128.h"
+#include "padding.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -163,36 +164,11 @@ static void aes128_decrypt_block(const uint8_t in[16], uint8_t out[16], const ui
 /* API public - đúng 4 hàm theo Interface Contract của Issue #3      */
 /* ---------------------------------------------------------------- */
 
-uint8_t *pkcs7_pad(const uint8_t *in, size_t in_len, size_t *out_len) {
-    if (!in || !out_len) return NULL;
 
-    uint8_t pad = (uint8_t)(16 - (in_len % 16));
-    size_t total_len = in_len + pad;
 
-    uint8_t *out = (uint8_t *)malloc(total_len);
-    if (!out) return NULL;
-
-    memcpy(out, in, in_len);
-    for (size_t i = in_len; i < total_len; i++) out[i] = pad;
-
-    *out_len = total_len;
-    return out;
-}
-
-int pkcs7_unpad(const uint8_t *in, size_t in_len, size_t *out_len) {
-    if (!in || !out_len) return -1;
-    if (in_len == 0 || (in_len % 16) != 0) return -1;
-
-    uint8_t pad = in[in_len - 1];
-    if (pad < 1 || pad > 16 || (size_t)pad > in_len) return -1;
-
-    for (size_t i = in_len - pad; i < in_len; i++) {
-        if (in[i] != pad) return -1;
-    }
-
-    *out_len = in_len - pad;
-    return 0;
-}
+/* ---------------------------------------------------------------- */
+/* API public - Triển khai CBC Mode                                 */
+/* ---------------------------------------------------------------- */
 
 int aes128_cbc_encrypt(const uint8_t *plaintext, size_t len,
                         const uint8_t key[AES128_KEY_SIZE],
