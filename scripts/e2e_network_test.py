@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-# Đảm bảo Python tìm thấy thư mục gốc
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -9,47 +8,43 @@ if str(ROOT_DIR) not in sys.path:
 import os
 import uuid
 import httpx
+from eth_account import Account
 from engine.wrappers.aes_wrapper import AESWrapper
 from engine.rsa_envelope import RSAEnvelope
 from engine.signer import IntegritySigner
+from engine.wallet_auth import Web3Auth
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
 BROKER_URL = "http://127.0.0.1:8000"
 
-# 1. Sinh cặp khóa RSA
-def gen_keypair():
+# 1. Sinh cặp khóa RSA và ví Web3 cho Buyer
+buyer_eth = Account.create()
+buyer_wallet_address = buyer_eth.address
+buyer_wallet_private_key = buyer_eth.key.hex()
+
+def gen_rsa_pair():
     k = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    priv = k.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        serialization.NoEncryption()
-    ).decode()
-    pub = k.public_key().public_bytes(
-        serialization.Encoding.PEM,
-        serialization.PublicFormat.SubjectPublicKeyInfo
-    ).decode()
+    priv = k.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()).decode()
+    pub = k.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo).decode()
     return priv, pub
 
-seller_priv, seller_pub = gen_keypair()
-buyer_priv, buyer_pub = gen_keypair()
+seller_priv, seller_pub = gen_rsa_pair()
+buyer_priv, buyer_pub = gen_rsa_pair()
 
-# 2. Seller chuẩn bị và mã hóa dữ liệu
-raw_data = b"CloakShare E2E Network Payload: Zero-Log Staging verified."
+# 2. Seller mã hóa & Stage payload
+raw_data = b"CloakShare Protected by Web3 Sign-in Auth."
 session_key = os.urandom(16)
 aes = AESWrapper()
 
 iv, ciphertext = aes.encrypt(raw_data, session_key)
 wrapped_key = RSAEnvelope.wrap_key(session_key, buyer_pub)
 signature = IntegritySigner.sign_file(ciphertext, seller_priv)
-
 tx_id = f"0x{uuid.uuid4().hex}"
-recipient_wallet = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
 
-# Chuẩn bị payload đúng schema của broker/schemas.py
 payload = {
     "tx_id": tx_id,
-    "recipient": recipient_wallet,
+    "recipient": buyer_wallet_address,
     "iv": iv.hex(),
     "wrapped_key": wrapped_key.hex(),
     "ciphertext": ciphertext.hex(),
@@ -57,31 +52,35 @@ payload = {
     "ttl_seconds": 60
 }
 
-# 3. Kết nối qua HTTP tới RAM Broker
 with httpx.Client(base_url=BROKER_URL) as client:
-    # POST lên /api/v1/stage
     res_stage = client.post("/api/v1/stage", json=payload)
-    print("1. Stage status:", res_stage.status_code, res_stage.json())
+    print("1. Stage:", res_stage.status_code)
     assert res_stage.status_code == 201
 
-    # GET từ /api/v1/retrieve/{tx_id}
-    res_retrieve = client.get(f"/api/v1/retrieve/{tx_id}")
-    print("2. Retrieve status:", res_retrieve.status_code)
-    assert res_retrieve.status_code == 200
-    retrieved = res_retrieve.json()
+    # 3. Thử lấy khi KHÔNG có chữ ký ví (Kỳ vọng lỗi 422 hoặc 401)
+    res_unauth = client.get(f"/api/v1/retrieve/{tx_id}")
+    print("2. Unauthenticated retrieve status:", res_unauth.status_code)
+    assert res_unauth.status_code in (401, 422)
 
-# 4. Buyer xác thực và giải mã
+    # 4. Buyer ký thông điệp xác thực bằng Private Key ví Web3
+    ts, sig_hex = Web3Auth.sign_retrieve_request(tx_id, buyer_wallet_private_key)
+    auth_headers = {
+        "X-Wallet-Address": buyer_wallet_address,
+        "X-Timestamp": str(ts),
+        "X-Signature": sig_hex
+    }
+
+    # 5. Buyer rút payload hợp lệ
+    res_auth = client.get(f"/api/v1/retrieve/{tx_id}", headers=auth_headers)
+    print("3. Authenticated retrieve status:", res_auth.status_code)
+    assert res_auth.status_code == 200
+    retrieved = res_auth.json()
+
+# 6. Giải mã
 recv_cipher = bytes.fromhex(retrieved["ciphertext"])
 recv_sig = bytes.fromhex(retrieved["signature"])
-recv_key_bytes = bytes.fromhex(retrieved["wrapped_key"])
-recv_iv = bytes.fromhex(retrieved["iv"])
+assert IntegritySigner.verify_file(recv_cipher, recv_sig, seller_pub)
 
-# Xác thực chữ ký số bằng Public Key của Seller
-assert IntegritySigner.verify_file(recv_cipher, recv_sig, seller_pub), "Chữ ký không hợp lệ!"
-print("3. Chữ ký số toàn vẹn: Hợp lệ.")
-
-# Giải bọc Session Key và giải mã AES
-recovered_key = RSAEnvelope.unwrap_key(recv_key_bytes, buyer_priv)
-plaintext = aes.decrypt(recv_cipher, recovered_key, recv_iv)
-
-print(f"4. Giải mã thành công: {plaintext.decode()}")
+recovered_key = RSAEnvelope.unwrap_key(bytes.fromhex(retrieved["wrapped_key"]), buyer_priv)
+plaintext = aes.decrypt(recv_cipher, recovered_key, bytes.fromhex(retrieved["iv"]))
+print(f"4. Giai ma thanh cong sau xac thuc vi Web3: '{plaintext.decode()}'")
