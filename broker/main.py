@@ -22,13 +22,13 @@ Chạy đúng chế độ Zero-Log (tắt access log):
 """
 
 from __future__ import annotations
-
+from engine.wallet_auth import Web3Auth
 import asyncio
 import contextlib
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status,Header
 
 from broker.memory_store import store
 from broker.schemas import (
@@ -104,22 +104,6 @@ async def stage_payload(payload: StagePayload) -> StageResponse:
     )
 
 
-@app.get("/api/v1/retrieve/{tx_id}", response_model=RetrieveResponse)
-async def retrieve_payload(tx_id: str) -> RetrieveResponse:
-    """
-    Buyer lấy toàn bộ payload theo tx_id (ticket).
-
-    404 nếu tx_id không tồn tại hoặc đã quá hạn TTL.
-    """
-    data = store.retrieve(tx_id)
-
-    if data is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payload khong ton tai hoac da het han TTL.",
-        )
-
-    return RetrieveResponse(**data)
 
 
 @app.get("/api/v1/stats", response_model=StatsResponse)
@@ -131,3 +115,44 @@ async def get_stats() -> StatsResponse:
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+@app.get("/api/v1/retrieve/{tx_id}", response_model=RetrieveResponse)
+async def retrieve_payload(
+    tx_id: str,
+    x_wallet_address: str = Header(..., alias="X-Wallet-Address"),
+    x_timestamp: int = Header(..., alias="X-Timestamp"),
+    x_signature: str = Header(..., alias="X-Signature"),
+) -> RetrieveResponse:
+    """
+    Buyer lấy toàn bộ payload theo tx_id.
+    Bắt buộc phải có chữ ký ví Web3 hợp lệ từ đúng địa chỉ recipient.
+    """
+    # 1. Kiểm tra tồn tại trong RAM
+    data = store.retrieve(tx_id)
+    if data is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payload khong ton tai hoac da het han TTL.",
+        )
+
+    # 2. Kiểm tra chữ ký ví và time drift (chống Replay Attack)
+    is_valid_sig = Web3Auth.verify_retrieve_request(
+        tx_id=tx_id,
+        address=x_wallet_address,
+        timestamp=x_timestamp,
+        signature_hex=x_signature,
+    )
+    if not is_valid_sig:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Chu ky xac thuc vi Web3 khong hop le hoac da qua han.",
+        )
+
+    # 3. Kiểm tra địa chỉ ví có đúng là người nhận (recipient) không
+    if data["recipient"].lower() != x_wallet_address.lower():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vi nay khong phai la nguoi nhan duoc chi dinh cho payload.",
+        )
+
+    return RetrieveResponse(**data)
