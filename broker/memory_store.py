@@ -212,6 +212,24 @@ class InMemoryStore:
                 "total_purged_expired": self.total_purged_expired,
                 "disk_writes": 0,
             }
+    def get_inbox(self, recipient: str) -> list[dict[str, str]]:
+        """
+        Lấy danh sách toàn bộ payload còn hạn trên RAM dành riêng cho địa chỉ ví recipient.
+        """
+        now = time.time()
+        inbox_items = []
+        with self._lock:
+            for tx_id, entry in self._data.items():
+                if now < entry["expires_at"] and entry["recipient"].lower() == recipient.lower():
+                    inbox_items.append({
+                        "tx_id": tx_id,
+                        "recipient": entry["recipient"],
+                        "iv": entry["iv"].decode("utf-8"),
+                        "wrapped_key": entry["wrapped_key"].decode("utf-8"),
+                        "ciphertext": entry["ciphertext"].decode("utf-8"),
+                        "signature": entry["signature"].decode("utf-8"),
+                    })
+        return inbox_items
 
 
 # Instance dùng chung toàn ứng dụng (singleton đơn giản).

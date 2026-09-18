@@ -156,3 +156,34 @@ async def retrieve_payload(
         )
 
     return RetrieveResponse(**data)
+@app.get("/api/v1/inbox", response_model=list[RetrieveResponse])
+async def get_inbox(
+    x_wallet_address: str = Header(..., alias="X-Wallet-Address"),
+    x_timestamp: int = Header(..., alias="X-Timestamp"),
+    x_signature: str = Header(..., alias="X-Signature"),
+) -> list[RetrieveResponse]:
+    """
+    Lấy danh sách các payload đang chờ trong hòm thư của địa chỉ ví.
+    Bắt buộc phải có chữ ký ví Web3 hợp lệ từ chính chủ ví đó.
+    """
+    # 1. Kiểm tra chữ ký ví và time drift (chống Replay Attack dựa trên timestamp chung)
+    # Ta có thể dùng hàm verify hoặc tạo một message chuẩn cho inbox request.
+    # Để đơn giản và an toàn, ta tái sử dụng cơ chế tạo message với một định danh cố định hoặc timestamp.
+    msg = f"CloakShare Inbox Access:{x_timestamp}"
+    is_valid_sig = Web3Auth.verify_signature(
+        address=x_wallet_address,
+        message=msg,
+        signature_hex=x_signature,
+    )
+    
+    # Kiểm tra time drift chống replay
+    import time
+    if not is_valid_sig or abs(int(time.time()) - x_timestamp) > Web3Auth.MAX_CLOCK_DRIFT:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Chu ky xac thuc hòm thư khong hop le hoac da qua han.",
+        )
+
+    # 2. Lấy danh sách từ RAM store theo recipient address
+    items = store.get_inbox(x_wallet_address)
+    return [RetrieveResponse(**item) for item in items]
