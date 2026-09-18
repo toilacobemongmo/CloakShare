@@ -1,5 +1,6 @@
 import time
 from eth_account import Account
+from eth_account import Account
 from eth_account.messages import encode_defunct
 from web3 import Web3
 
@@ -54,3 +55,9 @@ class Web3Auth:
 
         msg = cls.create_retrieve_message(tx_id, timestamp)
         return cls.verify_signature(address, msg, signature_hex)
+
+def sign_payload(private_key: str, message_text: str) -> str:
+    """Ký thông điệp xác thực ví theo chuẩn EIP-191."""
+    message = encode_defunct(text=message_text)
+    signed_message = Account.sign_message(message, private_key=private_key)
+    return signed_message.signature.hex()

@@ -1,55 +1,64 @@
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.backends import default_backend
 
-class RSAEnvelope:
-    @staticmethod
-    def wrap_key(aes_key: bytes, receiver_public_pem: str) -> bytes:
-        """
-        Bọc (mã hóa) khóa AES 16 bytes bằng Public Key RSA-2048 của người nhận.
-        Sử dụng chuẩn OAEP với MGF1(SHA-256).
-        """
-        if len(aes_key) != 16:
-            raise ValueError("Khóa AES cần bọc phải có độ dài chính xác 16 bytes")
+def generate_rsa_key_pair():
+    """Tạo cặp khóa RSA 2048-bit (Private Key và Public Key dưới dạng PEM bytes)."""
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+    pem_private = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    pem_public = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    return pem_private, pem_public
 
-        # Nạp Public Key từ chuỗi định dạng PEM
-        public_key = serialization.load_pem_public_key(
-            receiver_public_pem.encode('utf-8'),
+def encrypt_aes_key_with_rsa(receiver_public_pem: bytes, aes_key: bytes) -> bytes:
+    """Mã hóa khóa AES/IV bằng RSA Public Key chuẩn OAEP (SHA-256)."""
+    public_key = serialization.load_pem_public_key(
+        receiver_public_pem,
+        backend=default_backend()
+    )
+    return public_key.encrypt(
+        aes_key,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+
+def decrypt_aes_key_with_rsa(receiver_private_pem: bytes, wrapped_key: bytes) -> bytes:
+    """Giải mã khóa AES/IV bằng RSA Private Key."""
+    try:
+        private_key = serialization.load_pem_private_key(
+            receiver_private_pem,
+            password=None,
             backend=default_backend()
         )
-
-        # Mã hóa khóa AES bằng thuật toán RSA-OAEP
-        wrapped_key = public_key.encrypt(
-            aes_key,
+        return private_key.decrypt(
+            wrapped_key,
             padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                 algorithm=hashes.SHA256(),
                 label=None
             )
         )
-        return wrapped_key
+    except Exception:
+        raise ValueError("Decryption failed: Private Key không khớp hoặc dữ liệu bọc bị hỏng!")
+
+class RSAEnvelope:
+    @staticmethod
+    def wrap_key(aes_key: bytes, receiver_public_pem: str) -> bytes:
+        return encrypt_aes_key_with_rsa(receiver_public_pem.encode('utf-8'), aes_key)
 
     @staticmethod
     def unwrap_key(wrapped_key: bytes, receiver_private_pem: str) -> bytes:
-        """
-        Mở phong bì (giải mã) lấy lại khóa AES bằng Private Key RSA của người nhận.
-        """
-        try:
-            private_key = serialization.load_pem_private_key(
-                receiver_private_pem.encode('utf-8'),
-                password=None,
-                backend=default_backend()
-            )
-
-            aes_key = private_key.decrypt(
-                wrapped_key,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )
-            return aes_key
-        except Exception:
-            # Bắt toàn bộ lỗi Padding/Decryption Error và quy về lỗi chuẩn
-            raise ValueError("Decryption failed: Khóa Private Key không khớp hoặc dữ liệu bọc bị hỏng!")
+        return decrypt_aes_key_with_rsa(receiver_private_pem.encode('utf-8'), wrapped_key)
