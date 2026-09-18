@@ -59,3 +59,40 @@ git checkout main
 git pull origin main
 # Đặt tên nhánh theo cấu trúc: feature/issue-[số issue]-[tên ngắn]
 git checkout -b feature/issue-1-pkcs7-padding
+
+### Bước 3: Phát triển và tuân thủ Zero-Log Code Style
+* Viết code kèm theo Unit Test trong thư mục `tests/`.
+* **Quy tắc tuyệt đối:** 
+  - Không được dùng lệnh `open()` hay `Path.write_text()` ghi dữ liệu payload/file nhạy cảm ra ổ đĩa (ngoại trừ cấu hình hệ thống hoặc file test tạm phải được xóa ngay sau đó).
+  - Không được bật Uvicorn access log nếu code liên quan đến Broker.
+
+### Bước 4: Kiểm tra cục bộ (Local Testing)
+Trước khi tạo Pull Request, bắt buộc phải chạy các bài test tích hợp để không làm gãy hệ thống của người khác:
+```bash
+# Kiểm tra lỗi cú pháp toàn dự án
+python -m compileall .
+
+# Chạy test suite
+python -m unittest discover -s tests -p "test_*.py" -v
+
+# Chạy kịch bản test luồng E2E
+python demo_full_flow.py
+Bước 5: Đẩy code và tạo Pull Request (PR)
+Đẩy nhánh của bạn lên Remote Repository:
+
+Bash
+git push origin feature/issue-[số issue]-[tên ngắn]
+Truy cập vào GitHub, tạo Pull Request trỏ vào nhánh main.
+
+Cấu trúc tiêu đề Commit chuẩn:
+
+feat: [Issue #X] mô tả ngắn tính năng mới
+
+fix: [Issue #X] sửa lỗi phát sinh
+
+Gắn thẻ (Reviewer) ít nhất 1 thành viên khác trong nhóm để code review và merge vào main.
+
+4. Lưu ý quan trọng khi cấu hình môi trường (.env & Keys)
+Tuyệt đối không commit các thư mục chứa khóa (my_keys/, *.pem, *.key) hoặc file dữ liệu mã hóa (*.enc) lên Git.
+
+Kiểm tra kỹ file .gitignore của nhóm trước khi chạy lệnh git add ..
