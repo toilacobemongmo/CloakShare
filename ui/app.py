@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from eth_account import Account
 from eth_account.messages import encode_defunct
+from web3 import Web3
 
 from engine.cli_adapter import CLIAdapter
 from engine.dpki_client import DPKIClient
@@ -24,7 +25,6 @@ DEFAULT_RPC = "http://127.0.0.1:8545"
 DEFAULT_CONTRACT = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
 BROKER_URL = "http://127.0.0.1:8000"
 
-# CSS căn lề tin nhắn bong bóng chuẩn không bị vỡ layout
 st.markdown("""
 <style>
     .bubble-wrapper-left {
@@ -65,7 +65,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Khởi tạo trạng thái phiên làm việc
 if "accounts" not in st.session_state:
     st.session_state.accounts = {
         "Alice": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
@@ -91,8 +90,15 @@ if "processed_tx_ids" not in st.session_state:
     st.session_state.processed_tx_ids = set()
 
 
+def to_checksum(addr: str) -> str:
+    try:
+        return Web3.to_checksum_address(addr.strip())
+    except Exception:
+        return addr.strip()
+
+
 def get_or_create_keys(wallet_address: str) -> tuple[str, str]:
-    key_store_id = f"rsa_{wallet_address.lower()}"
+    key_store_id = f"rsa_{to_checksum(wallet_address).lower()}"
     if key_store_id not in st.session_state:
         priv_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         priv_pem = priv_key.private_bytes(
@@ -112,18 +118,19 @@ def get_or_create_keys(wallet_address: str) -> tuple[str, str]:
     return st.session_state[key_store_id]
 
 
-def ensure_dpki_registered(wallet_pk: str, pub_pem: str):
+def fund_and_register_dpki(wallet_pk: str, pub_pem: str) -> bool:
     try:
-        dpki = DPKIClient(contract_address=DEFAULT_CONTRACT, rpc_url=DEFAULT_RPC)
         account = Account.from_key(wallet_pk)
+        c_addr = to_checksum(account.address)
 
+        # 1. Nạp 10 ETH gas ảo qua Anvil
         try:
             requests.post(
                 DEFAULT_RPC,
                 json={
                     "jsonrpc": "2.0",
                     "method": "anvil_setBalance",
-                    "params": [account.address, hex(10**19)],
+                    "params": [c_addr, hex(10**19)],
                     "id": 1,
                 },
                 timeout=1,
@@ -131,39 +138,43 @@ def ensure_dpki_registered(wallet_pk: str, pub_pem: str):
         except Exception:
             pass
 
+        # 2. Kiểm tra xem contract đã có khóa chưa
+        dpki = DPKIClient(contract_address=to_checksum(DEFAULT_CONTRACT), rpc_url=DEFAULT_RPC)
         has_key = False
         try:
-            val = dpki.get_public_key(account.address)
-            if val:
+            existing = dpki.get_public_key(c_addr)
+            if existing and len(existing.strip()) > 0:
                 has_key = True
         except Exception:
             has_key = False
 
+        # 3. Đăng ký nếu chưa có
         if not has_key:
             dpki.register_public_key(wallet_pk, pub_pem)
+        return True
     except Exception:
-        pass
+        return False
 
 
-# Tự động đăng ký dPKI cho tất cả tài khoản
-for acc_pk in st.session_state.accounts.values():
+# Đồng bộ tất cả tài khoản
+for acc_pk in list(st.session_state.accounts.values()):
     acc_obj = Account.from_key(acc_pk)
     _, p_pem = get_or_create_keys(acc_obj.address)
-    ensure_dpki_registered(acc_pk, p_pem)
+    fund_and_register_dpki(acc_pk, p_pem)
 
 my_pk = st.session_state.accounts[st.session_state.active_user]
 my_account = Account.from_key(my_pk)
-my_address = my_account.address
+my_address = to_checksum(my_account.address)
 my_priv_pem, my_pub_pem = get_or_create_keys(my_address)
 
 
 # ==========================================
-# HEADER & POPUP TÀI KHOẢN GÓC PHẢI
+# HEADER & POPOVER CÀI ĐẶT
 # ==========================================
 head_col1, head_col2 = st.columns([3, 1])
 with head_col1:
     st.title("💬 CloakShare Messenger")
-    st.caption(f"Đang đăng nhập: **{st.session_state.active_user}** (`{my_address}`)")
+    st.caption(f"Tài khoản hiện tại: **{st.session_state.active_user}** (`{my_address}`)")
 
 with head_col2:
     st.markdown("<div style='text-align: right;'>", unsafe_allow_html=True)
@@ -182,13 +193,19 @@ with head_col2:
         new_user_name = st.text_input("Tên tài khoản mới:", placeholder="VD: Charlie...", key="pop_new_user")
         if st.button("🚀 Tạo ví ngay", type="primary", use_container_width=True):
             if new_user_name.strip() and new_user_name not in st.session_state.accounts:
-                new_wallet = Account.create()
-                pk_hex = new_wallet._private_key.hex()
-                st.session_state.accounts[new_user_name] = pk_hex
-                st.session_state.contacts[new_user_name] = new_wallet.address
-                st.session_state.active_user = new_user_name
-                st.success(f"Đã tạo & chuyển sang '{new_user_name}'!")
-                st.rerun()
+                with st.spinner("Đang tạo ví và đăng ký dPKI..."):
+                    new_wallet = Account.create()
+                    pk_hex = new_wallet._private_key.hex()
+                    new_addr = to_checksum(new_wallet.address)
+
+                    _, new_pub = get_or_create_keys(new_addr)
+                    fund_and_register_dpki(pk_hex, new_pub)
+
+                    st.session_state.accounts[new_user_name] = pk_hex
+                    st.session_state.contacts[new_user_name] = new_addr
+                    st.session_state.active_user = new_user_name
+                    st.success(f"Đã tạo ví thành công cho {new_user_name}!")
+                    st.rerun()
             else:
                 st.warning("Tên không hợp lệ hoặc đã tồn tại.")
 
@@ -198,7 +215,8 @@ with head_col2:
         contact_addr = st.text_input("Địa chỉ ví (0x...):", key="pop_contact_addr")
         if st.button("Lưu liên hệ", use_container_width=True):
             if contact_name and contact_addr.startswith("0x"):
-                st.session_state.contacts[contact_name] = contact_addr
+                c_addr = to_checksum(contact_addr)
+                st.session_state.contacts[contact_name] = c_addr
                 st.success("Đã thêm liên hệ!")
                 st.rerun()
             else:
@@ -209,7 +227,7 @@ st.divider()
 
 
 # ==========================================
-# ĐỒNG BỘ TIN NHẮN TỪ BROKER (POLLING)
+# INBOX POLLING
 # ==========================================
 def poll_inbox():
     now_ts = int(time.time())
@@ -223,9 +241,10 @@ def poll_inbox():
     try:
         res = requests.get(f"{BROKER_URL}/api/v1/inbox", headers=req_headers, timeout=2)
         if res.status_code == 200:
+            existing_ids = {m["id"] for m in st.session_state.messages}
             for item in res.json():
                 tx_id = item["tx_id"]
-                if tx_id in st.session_state.processed_tx_ids:
+                if tx_id in existing_ids:
                     continue
 
                 try:
@@ -252,7 +271,7 @@ def poll_inbox():
 
                     st.session_state.messages.append({
                         "id": tx_id,
-                        "from": sender_addr,
+                        "from": to_checksum(sender_addr),
                         "to": my_address,
                         "text": content_text,
                         "is_file": is_file,
@@ -260,7 +279,6 @@ def poll_inbox():
                         "filename": file_name,
                         "time": time.strftime("%H:%M"),
                     })
-                    st.session_state.processed_tx_ids.add(tx_id)
                 except Exception:
                     pass
     except Exception:
@@ -270,18 +288,19 @@ poll_inbox()
 
 
 # ==========================================
-# GIAO DIỆN CHÍNH 2 CỘT (DANH SÁCH & KHUNG CHAT)
+# KHUNG GIAO DIỆN CHAT 2 CỘT
 # ==========================================
 col_list, col_chat = st.columns([1, 2.5])
 
-# Cột trái: Danh sách đoạn chat
 with col_list:
     st.subheader("💬 Đoạn chat")
-
-    available_peers = [name for name, addr in st.session_state.contacts.items() if addr.lower() != my_address.lower()]
+    available_peers = [
+        name for name, addr in st.session_state.contacts.items()
+        if to_checksum(addr) != my_address
+    ]
 
     if not available_peers:
-        st.info("Chưa có người liên hệ nào khác.")
+        st.info("Chưa có liên hệ nào khác.")
     else:
         for peer_name in available_peers:
             is_active = (st.session_state.selected_peer == peer_name)
@@ -293,15 +312,13 @@ with col_list:
     if st.button("🔄 Làm mới tin nhắn", use_container_width=True):
         st.rerun()
 
-# Cột phải: Khung chat và Gửi tin
 with col_chat:
     active_peer_name = st.session_state.selected_peer
-    active_peer_addr = st.session_state.contacts.get(active_peer_name, "")
+    active_peer_addr = to_checksum(st.session_state.contacts.get(active_peer_name, ""))
 
     st.subheader(f"💬 {active_peer_name}")
     st.caption(f"Địa chỉ ví: `{active_peer_addr}`")
 
-    # Lọc lịch sử tin nhắn 2 chiều
     conversation = []
     for msg in st.session_state.messages:
         from_me = (msg["from"].lower() == my_address.lower() and msg["to"].lower() == active_peer_addr.lower())
@@ -309,7 +326,6 @@ with col_chat:
         if from_me or from_peer:
             conversation.append((msg, "right" if from_me else "left"))
 
-    # KHUNG CHAT STREAMLIT CHÍNH CHỦ: Không bao giờ bị tràn ra ngoài
     with st.container(height=480):
         if not conversation:
             st.markdown('<div style="color: #888; text-align: center; margin-top: 190px;">Chưa có tin nhắn nào. Hãy gửi lời chào đầu tiên!</div>', unsafe_allow_html=True)
@@ -329,7 +345,6 @@ with col_chat:
                 '''
                 st.markdown(bubble_html, unsafe_allow_html=True)
 
-                # Nút tải tệp đính kèm đặt ngay dưới bong bóng nhận tin
                 if m.get("is_file") and m.get("file_data"):
                     btn_col1, btn_col2 = st.columns([1, 4]) if side == "left" else st.columns([4, 1])
                     target_col = btn_col1 if side == "left" else btn_col2
@@ -341,7 +356,6 @@ with col_chat:
                             key=f"dl_{m['id']}",
                         )
 
-    # Khung soạn thảo tin nhắn
     with st.form("send_form", clear_on_submit=True):
         send_col1, send_col2 = st.columns([4, 1])
         with send_col1:
@@ -354,14 +368,27 @@ with col_chat:
         if not msg_input and not attached_file:
             st.warning("Vui lòng nhập nội dung hoặc đính kèm tệp.")
         else:
-            with st.spinner("Đang mã hóa E2E và gửi đi..."):
+            with st.spinner("Đang tra cứu khóa dPKI và mã hóa E2E..."):
+                peer_pub_key = None
                 try:
-                    dpki = DPKIClient(contract_address=DEFAULT_CONTRACT, rpc_url=DEFAULT_RPC)
+                    dpki = DPKIClient(contract_address=to_checksum(DEFAULT_CONTRACT), rpc_url=DEFAULT_RPC)
                     peer_pub_key = dpki.get_public_key(active_peer_addr)
+                except Exception as err:
+                    # Nếu contract revert do chưa tìm thấy khóa, thử tự động đăng ký nếu ví đó nằm trong session
+                    target_pk = None
+                    for name, pk in st.session_state.accounts.items():
+                        if to_checksum(Account.from_key(pk).address) == active_peer_addr:
+                            target_pk = pk
+                            break
+                    if target_pk:
+                        _, t_pub = get_or_create_keys(active_peer_addr)
+                        if fund_and_register_dpki(target_pk, t_pub):
+                            peer_pub_key = t_pub
 
-                    if not peer_pub_key:
-                        st.error("Ví đối phương chưa được đăng ký khóa trên dPKI.")
-                    else:
+                if not peer_pub_key or len(peer_pub_key.strip()) == 0:
+                    st.error(f"Không thể lấy Public Key của ví {active_peer_addr}. Hãy chắc chắn đối phương đã đăng ký khóa lên dPKI Smart Contract.")
+                else:
+                    try:
                         tx_id = str(uuid.uuid4())
                         is_file = attached_file is not None
                         file_name = attached_file.name if is_file else ""
@@ -412,5 +439,5 @@ with col_chat:
                             st.rerun()
                         else:
                             st.error(f"Lỗi Broker: {res.text}")
-                except Exception as err:
-                    st.error(f"Thao tác thất bại: {err}")
+                    except Exception as err:
+                        st.error(f"Thao tác thất bại: {err}")
