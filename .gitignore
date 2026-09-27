@@ -1,1 +1,50 @@
-aes128.dll
+# Compiled C libraries
+core/*.dll
+core/*.so
+core/*.dylib
+*.dll
+*.so
+*.dylib
+*.exe
+*.o
+
+# Keys & Sensitive Creds
+my_keys/
+*.pem
+*.key
+*.priv
+.env
+.env.*
+
+# Python Cache & Virtualenv
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+env/
+
+# Encrypted and decrypted temp files
+*.enc
+*.dec
+*.in
+*.tmp
+*.tmp.*
+secret.txt
+downloaded_secret.txt
+dec_*.enc
+dec_*.dec
+snd_*.in
+snd_*.enc
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test renders & Screenshots
+*.png

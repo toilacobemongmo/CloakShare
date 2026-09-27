@@ -1,5 +1,14 @@
 import os
+import sys
 import uuid
+
+# Đảm bảo UTF-8 stream trên Windows console
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from engine.wrappers.aes_wrapper import AESWrapper
 from engine.rsa_envelope import RSAEnvelope
 from engine.signer import IntegritySigner

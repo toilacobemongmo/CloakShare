@@ -28,7 +28,8 @@ import contextlib
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status,Header
+from fastapi import FastAPI, HTTPException, status, Header, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from broker.memory_store import store
 from broker.schemas import (
@@ -36,6 +37,8 @@ from broker.schemas import (
     StagePayload,
     StageResponse,
     StatsResponse,
+    DPKIRegisterRequest,
+    DPKIRegisterResponse,
 )
 
 # Chu kỳ chạy background task dọn payload hết hạn (giây).
@@ -72,6 +75,14 @@ app = FastAPI(
     description="Trạm trung chuyển payload mã hoá, chỉ lưu trên RAM.",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -119,6 +130,7 @@ async def health() -> dict[str, str]:
 @app.get("/api/v1/retrieve/{tx_id}", response_model=RetrieveResponse)
 async def retrieve_payload(
     tx_id: str,
+    burn: bool = Query(default=False, description="Tự huỷ payload sau khi đọc (burn-after-read)"),
     x_wallet_address: str = Header(..., alias="X-Wallet-Address"),
     x_timestamp: int = Header(..., alias="X-Timestamp"),
     x_signature: str = Header(..., alias="X-Signature"),
@@ -155,7 +167,49 @@ async def retrieve_payload(
             detail="Vi nay khong phai la nguoi nhan duoc chi dinh cho payload.",
         )
 
+    if burn:
+        store.purge(tx_id)
+
     return RetrieveResponse(**data)
+
+
+@app.delete("/api/v1/payload/{tx_id}")
+async def delete_payload(
+    tx_id: str,
+    x_wallet_address: str = Header(..., alias="X-Wallet-Address"),
+    x_timestamp: int = Header(..., alias="X-Timestamp"),
+    x_signature: str = Header(..., alias="X-Signature"),
+) -> dict[str, str]:
+    """
+    Buyer yêu cầu huỷ payload trên RAM ngay lập tức (burn-after-read thủ công).
+    """
+    data = store.retrieve(tx_id)
+    if data is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payload khong ton tai hoac da het han TTL.",
+        )
+
+    is_valid_sig = Web3Auth.verify_retrieve_request(
+        tx_id=tx_id,
+        address=x_wallet_address,
+        timestamp=x_timestamp,
+        signature_hex=x_signature,
+    )
+    if not is_valid_sig:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Chu ky xac thuc vi Web3 khong hop le hoac da qua han.",
+        )
+
+    if data["recipient"].lower() != x_wallet_address.lower():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vi nay khong phai la nguoi nhan duoc chi dinh cho payload.",
+        )
+
+    store.purge(tx_id)
+    return {"tx_id": tx_id, "status": "purged_from_ram"}
 @app.get("/api/v1/inbox", response_model=list[RetrieveResponse])
 async def get_inbox(
     x_wallet_address: str = Header(..., alias="X-Wallet-Address"),
@@ -187,3 +241,35 @@ async def get_inbox(
     # 2. Lấy danh sách từ RAM store theo recipient address
     items = store.get_inbox(x_wallet_address)
     return [RetrieveResponse(**item) for item in items]
+
+
+# ------------------------------------------------------------------ #
+# Mạng dPKI Cục Bộ Qua Broker (Hỗ Trợ Đa Máy Không Cần EVM Node)    #
+# ------------------------------------------------------------------ #
+
+_BROKER_DPKI_REGISTRY: dict[str, str] = {}
+
+
+@app.post("/api/v1/dpki/register", response_model=DPKIRegisterResponse)
+async def register_broker_dpki(payload: DPKIRegisterRequest) -> DPKIRegisterResponse:
+    """Đăng ký Public Key lên bảng danh bạ RAM của Broker."""
+    _BROKER_DPKI_REGISTRY[payload.address.lower()] = payload.public_key_pem
+    return DPKIRegisterResponse(address=payload.address, status="registered")
+
+
+@app.get("/api/v1/dpki/keys/{address}")
+async def get_broker_dpki_key(address: str) -> dict[str, str]:
+    """Tra cứu Public Key của địa chỉ ví qua bảng danh bạ RAM của Broker."""
+    pem = _BROKER_DPKI_REGISTRY.get(address.lower())
+    if not pem:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Dia chi {address} chua dang ky khoa tren Broker dPKI.",
+        )
+    return {"address": address, "public_key_pem": pem}
+
+
+@app.get("/api/v1/dpki/list")
+async def list_broker_dpki() -> dict[str, list[str]]:
+    """Liệt kê danh sách tất cả các địa chỉ ví đã đăng ký trên Broker."""
+    return {"addresses": list(_BROKER_DPKI_REGISTRY.keys())}

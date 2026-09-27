@@ -87,3 +87,21 @@ class StatsResponse(BaseModel):
         default=0,
         description="Luôn bằng 0 - Broker không bao giờ ghi payload xuống ổ cứng.",
     )
+    approx_ram_bytes: int = Field(
+        default=0,
+        description="Ước tính dung lượng RAM đang chứa payload (bytes).",
+    )
+    uptime_seconds: int = Field(
+        default=0,
+        description="Thời gian hoạt động của Broker (giây).",
+    )
+
+
+class DPKIRegisterRequest(BaseModel):
+    address: str = Field(..., min_length=42, max_length=42, description="Địa chỉ ví Ethereum (0x...)")
+    public_key_pem: str = Field(..., min_length=10, description="RSA Public Key dạng PEM")
+
+
+class DPKIRegisterResponse(BaseModel):
+    address: str
+    status: str = "registered"

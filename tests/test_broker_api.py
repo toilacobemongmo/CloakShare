@@ -1,11 +1,8 @@
 """
 tests/test_broker_api.py
 
-Test cho Zero-Log Broker (Issue #7).
+Test cho Zero-Log Broker (Issue #7, #8, #18, #20).
 Chạy: pytest tests/test_broker_api.py -v
-
-Yêu cầu: pip install fastapi httpx pytest
-(TestClient của FastAPI cần httpx)
 """
 
 import base64
@@ -15,12 +12,23 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from eth_account import Account
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from broker.main import app  # noqa: E402
 from broker.memory_store import InMemoryStore, store  # noqa: E402
+from engine.wallet_auth import Web3Auth  # noqa: E402
+
+# Tài khoản ví mẫu cố định cho test
+TEST_BUYER = Account.create()
+TEST_BUYER_ADDR = TEST_BUYER.address
+TEST_BUYER_KEY = TEST_BUYER.key.hex()
+
+OTHER_USER = Account.create()
+OTHER_USER_ADDR = OTHER_USER.address
+OTHER_USER_KEY = OTHER_USER.key.hex()
 
 
 @pytest.fixture()
@@ -36,15 +44,33 @@ def _b64(raw: bytes) -> str:
     return base64.b64encode(raw).decode("ascii")
 
 
-def make_payload(tx_id: str = "tx-demo-001", ttl_seconds: int = 300) -> dict:
+def make_payload(
+    tx_id: str = "tx-demo-001",
+    recipient: str = TEST_BUYER_ADDR,
+    ttl_seconds: int = 300,
+) -> dict:
     return {
         "tx_id": tx_id,
-        "recipient": "0x1234567890abcdef1234567890abcdef12345678",
+        "recipient": recipient,
         "iv": _b64(b"0123456789abcdef"),
         "wrapped_key": _b64(b"wrapped-session-key-rsa-oaep"),
         "ciphertext": _b64(b"encrypted-file-content-aes-128-cbc"),
         "signature": _b64(b"rsa-pss-sha256-signature"),
         "ttl_seconds": ttl_seconds,
+    }
+
+
+def make_auth_headers(
+    tx_id: str,
+    private_key: str = TEST_BUYER_KEY,
+    address: str = TEST_BUYER_ADDR,
+    timestamp: int | None = None,
+) -> dict:
+    ts, sig = Web3Auth.sign_retrieve_request(tx_id, private_key, timestamp)
+    return {
+        "X-Wallet-Address": address,
+        "X-Timestamp": str(ts),
+        "X-Signature": sig,
     }
 
 
@@ -79,14 +105,25 @@ def test_stage_rejects_invalid_ttl(client):
 
 
 # ------------------------------------------------------------------ #
-# GET /api/v1/retrieve/{tx_id}                                        #
+# GET /api/v1/retrieve/{tx_id} & Web3 SIWE Authentication            #
 # ------------------------------------------------------------------ #
 
-def test_retrieve_returns_full_payload(client):
+def test_retrieve_without_auth_headers_returns_422(client):
+    """Không có header xác thực Web3 sẽ bị từ chối với 422."""
     payload = make_payload()
     client.post("/api/v1/stage", json=payload)
 
     resp = client.get(f"/api/v1/retrieve/{payload['tx_id']}")
+    assert resp.status_code == 422
+
+
+def test_retrieve_returns_full_payload(client):
+    """Xác thực ví Web3 hợp lệ từ đúng Recipient sẽ lấy được payload."""
+    payload = make_payload()
+    client.post("/api/v1/stage", json=payload)
+
+    headers = make_auth_headers(payload["tx_id"])
+    resp = client.get(f"/api/v1/retrieve/{payload['tx_id']}", headers=headers)
 
     assert resp.status_code == 200
     body = resp.json()
@@ -98,8 +135,47 @@ def test_retrieve_returns_full_payload(client):
     assert body["signature"] == payload["signature"]
 
 
+def test_retrieve_with_invalid_signature_returns_401(client):
+    """Chữ ký không khớp với message/ví sẽ bị 401 Unauthorized."""
+    payload = make_payload()
+    client.post("/api/v1/stage", json=payload)
+
+    headers = make_auth_headers(payload["tx_id"])
+    headers["X-Signature"] = "0x" + "00" * 65  # Signature giả
+
+    resp = client.get(f"/api/v1/retrieve/{payload['tx_id']}", headers=headers)
+    assert resp.status_code == 401
+
+
+def test_retrieve_with_drifted_timestamp_returns_401(client):
+    """Timestamp quá hạn (> 60 giây) chống Replay Attack bị 401."""
+    payload = make_payload()
+    client.post("/api/v1/stage", json=payload)
+
+    old_timestamp = int(time.time()) - 120
+    headers = make_auth_headers(payload["tx_id"], timestamp=old_timestamp)
+
+    resp = client.get(f"/api/v1/retrieve/{payload['tx_id']}", headers=headers)
+    assert resp.status_code == 401
+
+
+def test_retrieve_with_wrong_recipient_returns_403(client):
+    """Người khác (không phải recipient được chỉ định) cố rút file bị 403 Forbidden."""
+    payload = make_payload(recipient=TEST_BUYER_ADDR)
+    client.post("/api/v1/stage", json=payload)
+
+    headers = make_auth_headers(
+        payload["tx_id"],
+        private_key=OTHER_USER_KEY,
+        address=OTHER_USER_ADDR,
+    )
+    resp = client.get(f"/api/v1/retrieve/{payload['tx_id']}", headers=headers)
+    assert resp.status_code == 403
+
+
 def test_retrieve_unknown_tx_returns_404(client):
-    resp = client.get("/api/v1/retrieve/khong-ton-tai")
+    headers = make_auth_headers("khong-ton-tai")
+    resp = client.get("/api/v1/retrieve/khong-ton-tai", headers=headers)
     assert resp.status_code == 404
 
 
@@ -109,8 +185,66 @@ def test_retrieve_expired_payload_returns_404(client):
 
     time.sleep(1.2)
 
-    resp = client.get("/api/v1/retrieve/tx-short-ttl")
+    headers = make_auth_headers("tx-short-ttl")
+    resp = client.get("/api/v1/retrieve/tx-short-ttl", headers=headers)
     assert resp.status_code == 404
+
+
+def test_retrieve_with_burn_after_read(client):
+    """Khi burn=true, payload bị huỷ khỏi RAM ngay sau khi đọc."""
+    payload = make_payload(tx_id="tx-burn-check")
+    client.post("/api/v1/stage", json=payload)
+
+    headers = make_auth_headers("tx-burn-check")
+    resp = client.get("/api/v1/retrieve/tx-burn-check?burn=true", headers=headers)
+    assert resp.status_code == 200
+
+    # Lần gọi tiếp theo sẽ trả về 404 vì đã bị burn khỏi RAM
+    resp_again = client.get("/api/v1/retrieve/tx-burn-check", headers=headers)
+    assert resp_again.status_code == 404
+
+
+def test_delete_payload_endpoint(client):
+    """Xoá chủ động payload qua DELETE /api/v1/payload/{tx_id}."""
+    payload = make_payload(tx_id="tx-del-test")
+    client.post("/api/v1/stage", json=payload)
+
+    headers = make_auth_headers("tx-del-test")
+    resp_del = client.delete("/api/v1/payload/tx-del-test", headers=headers)
+    assert resp_del.status_code == 200
+
+    resp_get = client.get("/api/v1/retrieve/tx-del-test", headers=headers)
+    assert resp_get.status_code == 404
+
+
+# ------------------------------------------------------------------ #
+# GET /api/v1/inbox                                                  #
+# ------------------------------------------------------------------ #
+
+def test_inbox_returns_pending_messages_for_recipient(client):
+    p1 = make_payload(tx_id="tx-inbox-1", recipient=TEST_BUYER_ADDR)
+    p2 = make_payload(tx_id="tx-inbox-2", recipient=TEST_BUYER_ADDR)
+    p3 = make_payload(tx_id="tx-inbox-3", recipient=OTHER_USER_ADDR)
+
+    client.post("/api/v1/stage", json=p1)
+    client.post("/api/v1/stage", json=p2)
+    client.post("/api/v1/stage", json=p3)
+
+    now_ts = int(time.time())
+    msg = f"CloakShare Inbox Access:{now_ts}"
+    sig = Web3Auth.sign_challenge(TEST_BUYER_KEY, msg)
+    headers = {
+        "X-Wallet-Address": TEST_BUYER_ADDR,
+        "X-Timestamp": str(now_ts),
+        "X-Signature": sig,
+    }
+
+    resp = client.get("/api/v1/inbox", headers=headers)
+    assert resp.status_code == 200
+    items = resp.json()
+    assert len(items) == 2
+    tx_ids = {it["tx_id"] for it in items}
+    assert tx_ids == {"tx-inbox-1", "tx-inbox-2"}
 
 
 # ------------------------------------------------------------------ #
@@ -132,6 +266,7 @@ def test_no_open_call_during_stage_and_retrieve(client):
     Patch builtins.open để phát hiện mọi truy cập file.
     """
     payload = make_payload(tx_id="tx-no-disk")
+    headers = make_auth_headers("tx-no-disk")
 
     real_open = open
     calls = []
@@ -142,17 +277,21 @@ def test_no_open_call_during_stage_and_retrieve(client):
 
     with patch("builtins.open", side_effect=spy_open):
         client.post("/api/v1/stage", json=payload)
-        client.get("/api/v1/retrieve/tx-no-disk")
+        client.get("/api/v1/retrieve/tx-no-disk", headers=headers)
 
     assert calls == [], f"Phat hien ghi/doc file: {calls}"
 
 
-def test_stats_reports_zero_disk_writes(client):
+def test_stats_reports_zero_disk_writes_and_ram_bytes(client):
     client.post("/api/v1/stage", json=make_payload())
 
     resp = client.get("/api/v1/stats")
     assert resp.status_code == 200
-    assert resp.json()["disk_writes"] == 0
+    data = resp.json()
+    assert data["disk_writes"] == 0
+    assert data["active_payloads"] >= 1
+    assert data["approx_ram_bytes"] > 0
+    assert "uptime_seconds" in data
 
 
 # ------------------------------------------------------------------ #
@@ -200,7 +339,7 @@ def test_restage_same_tx_id_wipes_old_payload():
 
 
 # ------------------------------------------------------------------ #
-# Stats                                                               #
+# Stats & Health                                                      #
 # ------------------------------------------------------------------ #
 
 def test_stats_counters():
@@ -213,6 +352,7 @@ def test_stats_counters():
     assert stats["active_payloads"] == 2
     assert stats["total_staged"] == 2
     assert stats["total_retrieved"] == 1
+    assert stats["approx_ram_bytes"] > 0
 
 
 def test_health_endpoint(client):

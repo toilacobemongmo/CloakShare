@@ -11,10 +11,10 @@
 
 CC      = gcc
 CFLAGS  = -O3 -Wall -Wextra -fPIC
-SRCS    = aes128.c
+SRCS    = aes128.c padding.c
 TARGET  = libaes.so
 
-WIN_CC      = x86_64-w64-mingw32-gcc
+WIN_CC      = gcc
 WIN_TARGET  = aes128.dll
 
 .PHONY: all shared win clean clean_obj
@@ -25,9 +25,9 @@ all: shared clean_obj
 shared:
 	$(CC) $(CFLAGS) -shared $(SRCS) -o $(TARGET)
 
-# Build thư viện động cho Windows (.dll) - cần mingw-w64 cài sẵn
+# Build thư viện động cho Windows (.dll)
 win:
-	$(WIN_CC) $(CFLAGS) -shared $(SRCS) -o $(WIN_TARGET)
+	$(WIN_CC) -O3 -shared $(SRCS) -o $(WIN_TARGET)
 
 clean_obj:
 	rm -f *.o

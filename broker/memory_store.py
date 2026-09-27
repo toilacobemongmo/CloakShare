@@ -59,6 +59,7 @@ class InMemoryStore:
         self._lock = threading.RLock()
 
         # Bộ đếm phục vụ Dashboard giám sát (Issue #18).
+        self.start_time = time.time()
         self.total_staged = 0
         self.total_retrieved = 0
         self.total_purged_expired = 0
@@ -202,6 +203,17 @@ class InMemoryStore:
                 1 for entry in self._data.values() if now < entry["expires_at"]
             )
 
+    def approx_ram_bytes(self) -> int:
+        """Ước tính tổng dung lượng RAM đang cấp phát cho payloads (bytes)."""
+        total = 0
+        with self._lock:
+            for entry in self._data.values():
+                for field in _SENSITIVE_FIELDS:
+                    val = entry.get(field)
+                    if isinstance(val, (bytearray, bytes)):
+                        total += len(val)
+        return total
+
     def stats(self) -> dict[str, int]:
         """Số liệu cho Dashboard Broker."""
         with self._lock:
@@ -211,6 +223,8 @@ class InMemoryStore:
                 "total_retrieved": self.total_retrieved,
                 "total_purged_expired": self.total_purged_expired,
                 "disk_writes": 0,
+                "approx_ram_bytes": self.approx_ram_bytes(),
+                "uptime_seconds": int(time.time() - self.start_time),
             }
     def get_inbox(self, recipient: str) -> list[dict[str, str]]:
         """
