@@ -883,13 +883,39 @@ with tab_keys:
         st.text_area("Public Key PEM:", value=my_pub_pem, height=130)
 
     st.divider()
-    st.markdown("##### 🌐 Cấu Hình Kết Nối Hai Máy (Tailscale / LAN)")
-    if TAILSCALE_IP:
-        st.success(f"🦎 **IP Tailscale của máy này:** `{TAILSCALE_IP}` (Dùng IP này để kết nối từ xa mọi nơi)")
-    st.write(f"🏠 **IP LAN Wi-Fi:** `{LOCAL_IP}`")
+    st.markdown("##### 🌐 Kết Nối Đa Thiết Bị (Mobile / Laptop / LAN / Tailscale)")
+    st.caption("Quét mã QR bằng điện thoại (Android/iOS) hoặc mở đường dẫn từ máy khác để truy cập CloakShare:")
     
+    net_col1, net_col2 = st.columns(2)
+    with net_col1:
+        if TAILSCALE_IP:
+            tailscale_url = f"http://{TAILSCALE_IP}:8501"
+            st.markdown(f"**🦎 Mạng Tailscale (Từ xa / 4G / Mọi nơi):**")
+            st.code(tailscale_url, language="text")
+            st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={tailscale_url}", caption="Quét bằng camera điện thoại")
+        else:
+            st.info("Chưa phát hiện IP Tailscale. Bật Tailscale để kết nối từ xa mọi nơi.")
+            
+    with net_col2:
+        lan_url = f"http://{LOCAL_IP}:8501"
+        st.markdown(f"**🏠 Mạng Wi-Fi Nội Bộ (LAN):**")
+        st.code(lan_url, language="text")
+        st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={lan_url}", caption="Quét khi chung mạng Wi-Fi")
+
     custom_broker = st.text_input("Địa chỉ Broker URL kết nối:", value=st.session_state.broker_url)
-    if st.button("Lưu Thay Đổi Broker URL", use_container_width=True):
-        st.session_state.broker_url = custom_broker.strip()
-        st.success("Đã cập nhật Broker URL!")
-        st.rerun()
+    c_btn1, c_btn2 = st.columns(2)
+    with c_btn1:
+        if st.button("Lưu Thay Đổi Broker URL", use_container_width=True):
+            st.session_state.broker_url = custom_broker.strip()
+            st.success("Đã cập nhật Broker URL!")
+            st.rerun()
+    with c_btn2:
+        if st.button("Kiểm Tra Kết Nối Broker", use_container_width=True):
+            try:
+                r = requests.get(f"{custom_broker.strip()}/health", timeout=3)
+                if r.status_code == 200:
+                    st.success(f"✅ Kết nối Broker thành công ({r.json().get('status', 'ok')})!")
+                else:
+                    st.warning(f"⚠️ Broker phản hồi mã HTTP {r.status_code}")
+            except Exception as ex:
+                st.error(f"❌ Không thể kết nối tới Broker: {ex}")
