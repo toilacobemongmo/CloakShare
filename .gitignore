@@ -1,1 +1,28 @@
-aes128.dll
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.dll
+*.dylib
+
+# C object files
+*.o
+*.obj
+
+# Test and coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary exchange artifacts
+dec_*.enc
+dec_*.dec
+snd_*.in
+snd_*.enc
+
+# Environment and secrets
+.env
+.venv
+env/
+venv/

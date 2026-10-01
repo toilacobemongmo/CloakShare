@@ -36,10 +36,27 @@ def _b64(raw: bytes) -> str:
     return base64.b64encode(raw).decode("ascii")
 
 
+from eth_account import Account
+from engine.wallet_auth import Web3Auth
+
+TEST_WALLET = Account.create()
+TEST_RECIPIENT = TEST_WALLET.address
+TEST_PRIVKEY = TEST_WALLET.key.hex()
+
+
+def make_auth_headers(tx_id: str, priv_key: str = TEST_PRIVKEY, address: str = TEST_RECIPIENT) -> dict:
+    ts, sig = Web3Auth.sign_retrieve_request(tx_id, priv_key)
+    return {
+        "X-Wallet-Address": address,
+        "X-Timestamp": str(ts),
+        "X-Signature": sig,
+    }
+
+
 def make_payload(tx_id: str = "tx-demo-001", ttl_seconds: int = 300) -> dict:
     return {
         "tx_id": tx_id,
-        "recipient": "0x1234567890abcdef1234567890abcdef12345678",
+        "recipient": TEST_RECIPIENT,
         "iv": _b64(b"0123456789abcdef"),
         "wrapped_key": _b64(b"wrapped-session-key-rsa-oaep"),
         "ciphertext": _b64(b"encrypted-file-content-aes-128-cbc"),
@@ -86,7 +103,10 @@ def test_retrieve_returns_full_payload(client):
     payload = make_payload()
     client.post("/api/v1/stage", json=payload)
 
-    resp = client.get(f"/api/v1/retrieve/{payload['tx_id']}")
+    resp = client.get(
+        f"/api/v1/retrieve/{payload['tx_id']}",
+        headers=make_auth_headers(payload["tx_id"]),
+    )
 
     assert resp.status_code == 200
     body = resp.json()
@@ -99,7 +119,10 @@ def test_retrieve_returns_full_payload(client):
 
 
 def test_retrieve_unknown_tx_returns_404(client):
-    resp = client.get("/api/v1/retrieve/khong-ton-tai")
+    resp = client.get(
+        "/api/v1/retrieve/khong-ton-tai",
+        headers=make_auth_headers("khong-ton-tai"),
+    )
     assert resp.status_code == 404
 
 
@@ -109,7 +132,10 @@ def test_retrieve_expired_payload_returns_404(client):
 
     time.sleep(1.2)
 
-    resp = client.get("/api/v1/retrieve/tx-short-ttl")
+    resp = client.get(
+        "/api/v1/retrieve/tx-short-ttl",
+        headers=make_auth_headers("tx-short-ttl"),
+    )
     assert resp.status_code == 404
 
 
@@ -142,7 +168,7 @@ def test_no_open_call_during_stage_and_retrieve(client):
 
     with patch("builtins.open", side_effect=spy_open):
         client.post("/api/v1/stage", json=payload)
-        client.get("/api/v1/retrieve/tx-no-disk")
+        client.get("/api/v1/retrieve/tx-no-disk", headers=make_auth_headers("tx-no-disk"))
 
     assert calls == [], f"Phat hien ghi/doc file: {calls}"
 

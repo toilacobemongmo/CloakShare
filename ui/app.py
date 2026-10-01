@@ -373,8 +373,11 @@ with col_chat:
                 try:
                     dpki = DPKIClient(contract_address=to_checksum(DEFAULT_CONTRACT), rpc_url=DEFAULT_RPC)
                     peer_pub_key = dpki.get_public_key(active_peer_addr)
-                except Exception as err:
-                    # Nếu contract revert do chưa tìm thấy khóa, thử tự động đăng ký nếu ví đó nằm trong session
+                except Exception:
+                    peer_pub_key = None
+
+                if not peer_pub_key or len(peer_pub_key.strip()) == 0:
+                    # Fallback: Nếu contract không chạy hoặc chưa có khóa, dùng khóa trong session nếu có
                     target_pk = None
                     for name, pk in st.session_state.accounts.items():
                         if to_checksum(Account.from_key(pk).address) == active_peer_addr:
@@ -382,8 +385,8 @@ with col_chat:
                             break
                     if target_pk:
                         _, t_pub = get_or_create_keys(active_peer_addr)
-                        if fund_and_register_dpki(target_pk, t_pub):
-                            peer_pub_key = t_pub
+                        fund_and_register_dpki(target_pk, t_pub)
+                        peer_pub_key = t_pub
 
                 if not peer_pub_key or len(peer_pub_key.strip()) == 0:
                     st.error(f"Không thể lấy Public Key của ví {active_peer_addr}. Hãy chắc chắn đối phương đã đăng ký khóa lên dPKI Smart Contract.")
