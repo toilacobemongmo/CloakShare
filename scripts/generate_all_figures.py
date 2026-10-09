@@ -365,9 +365,9 @@ def draw_fig_04():
         draw_academic_box(ax, 0.5 + i * 0.55, 4.1, 0.5, 0.6, title="D", bg="#FFFFFF", title_size=8.0)
     ax.text(5.0, 4.4, "... (16B Data)", fontsize=8.0, va="center", color=MID_SLATE)
     for i in range(4):
-        draw_academic_box(ax, 6.5 + i * 0.55, 4.1, 0.5, 0.6, title="10", bg="#FEF3C7",
-                          border="#D97706", title_size=8.0)
-    ax.text(8.8, 4.4, "... (16 bytes 0x10)", fontsize=8.0, va="center", color="#D97706")
+        draw_academic_box(ax, 6.5 + i * 0.55, 4.1, 0.5, 0.6, title="10", bg="#FEE2E2",
+                          border="#DC2626", title_size=8.0)
+    ax.text(8.8, 4.4, "... (16 bytes 0x10)", fontsize=8.0, va="center", color="#DC2626")
     ax.text(9.9, 4.4, "= 32 B", fontsize=9.0, va="center", color=NAVY, fontweight="bold")
 
     # Quy trình giải đệm an toàn (Constant-time Unpad)
@@ -436,7 +436,7 @@ def draw_fig_05():
     ax.text(9.0, 4.7, r"$\oplus$", fontsize=13, ha="center", va="center", color=NAVY, zorder=4)
 
     draw_academic_box(ax, 7.6, 1.6, 2.8, 0.85, title="Khối Dữ Liệu Đã Che (maskedDB)",
-                      subtitle=r"maskedDB = DB $\oplus$ dbMask", bg="#FEF3C7", border="#D97706")
+                      subtitle=r"maskedDB = DB $\oplus$ dbMask", bg="#EFF6FF", border=MUTED_BLUE)
 
     # 3. Hàm Sinh Mặt Nạ MGF1 (Cột Giữa, tâm x=5.5)
     # 3.1 MGF1 Vòng 1 (Tạo dbMask từ Seed)
@@ -501,7 +501,7 @@ def draw_fig_06():
     draw_academic_box(ax, 4.3, 6.5, 3.0, 0.85, title="Băm SHA-256",
                       subtitle="mHash = Hash(M) (32B)", bg="#F8FAFC")
     draw_academic_box(ax, 7.8, 6.5, 3.1, 0.85, title="Muối Salt Ngẫu Nhiên",
-                      subtitle="sLen = 32 bytes từ CSPRNG", bg="#FEF3C7", border="#D97706")
+                      subtitle="sLen = 32 bytes từ CSPRNG", bg="#FEE2E2", border="#DC2626")
 
     # Mũi tên ngang M -> mHash
     ax.annotate("", xy=(4.3, 6.92), xytext=(3.8, 6.92), arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.2))
@@ -533,7 +533,7 @@ def draw_fig_06():
     ax.annotate("", xy=(1.9, 2.92), xytext=(1.9, 3.7), arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.2))
 
     draw_academic_box(ax, 0.6, 1.35, 2.6, 0.75, title="Khối Đã Che (maskedDB)",
-                      subtitle=r"maskedDB = DB $\oplus$ dbMask", bg="#FEF3C7", border="#D97706")
+                      subtitle=r"maskedDB = DB $\oplus$ dbMask", bg="#EFF6FF", border=MUTED_BLUE)
     ax.annotate("", xy=(1.9, 2.1), xytext=(1.9, 2.48), arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.2))
 
     # 3.3 Cột 2: MGF1(H) sinh dbMask
@@ -612,8 +612,8 @@ def draw_fig_07():
                        bg="#EFF6FF", border=MUTED_BLUE, z=2)
 
     # Khối 2.2: Trạng thái State Storage (Ở giữa)
-    draw_academic_box(ax, 5.8, 2.7, 4.0, 1.6, bg="#FEF3C7", border="#D97706", lw=1.2, z=2)
-    ax.text(7.8, 3.95, "Trạng Thái Lưu Trữ Bất Biến (State Storage)", ha="center", fontsize=9.0, fontweight="bold", color="#B45309", zorder=3)
+    draw_academic_box(ax, 5.8, 2.7, 4.0, 1.6, bg="#EFF6FF", border=NAVY, lw=1.3, z=2)
+    ax.text(7.8, 3.95, "Trạng Thái Lưu Trữ Bất Biến (State Storage)", ha="center", fontsize=9.0, fontweight="bold", color=NAVY, zorder=3)
     ax.text(7.8, 3.25, "mapping(address => string) private _publicKeys;\n"
                        "• 0xf39F... -> '-----BEGIN RSA PUBLIC KEY...'\n"
                        "• 0x7099... -> '-----BEGIN RSA PUBLIC KEY...'",
@@ -720,69 +720,69 @@ def draw_fig_08():
 # HÌNH 9: VÒNG ĐỜI STAGING - RETRIEVAL - PURGE TRÊN BỘ NHỚ RAM
 # ==============================================================================
 def draw_fig_09():
-    fig, ax = plt.subplots(figsize=(10.5, 7.2))
-    ax.set_xlim(0, 10.5)
-    ax.set_ylim(0, 7.5)
+    fig, ax = plt.subplots(figsize=(11.0, 7.6))
+    ax.set_xlim(0, 11.0)
+    ax.set_ylim(0, 7.6)
     ax.axis("off")
 
-    ax.text(5.25, 7.1, "Hình 9: Vòng Đời Staging - Retrieval - Purge của Payload trên Bộ Nhớ RAM",
+    ax.text(5.5, 7.2, "Hình 9: Vòng Đời Staging - Retrieval - Purge của Payload trên Bộ Nhớ RAM",
             ha="center", va="center", fontsize=12, fontweight="bold", color=NAVY)
 
-    # 1. State 1: Staged (Cột 1)
-    draw_academic_box(ax, 0.6, 2.2, 2.6, 2.8, title="TRẠNG THÁI: STAGED",
-                      subtitle="• Lưu trên Heap RAM\n• expires_at = now + 60s\n• Kiểu dữ liệu bytearray\n• Ghi đĩa vật lý = 0\n• Đang chờ Bob truy vấn",
-                      bg="#EFF6FF", border=MUTED_BLUE, lw=1.3)
+    # 1. State 1: Staged (Cột 1 - Xanh Biển)
+    draw_academic_box(ax, 0.6, 2.0, 2.7, 4.5, title="TRẠNG THÁI: STAGED",
+                      subtitle="• Lưu trên Heap RAM (bytearray)\n• Khóa truy vấn: tx_id (UUID4)\n• expires_at = now + 60s\n• Ghi đĩa cứng vật lý = 0\n• Đang chờ Bob gửi request",
+                      bg="#EFF6FF", border=MUTED_BLUE, lw=1.4)
 
     # 2. Hai Nhánh Kích Hoạt Tẩy Xóa (Cột 2)
-    # Nhánh 1: Burn-After-Read (Trên)
-    draw_academic_box(ax, 4.1, 4.2, 2.8, 1.8, title="ĐỌC VÀ TỰ HỦY\n(Burn-After-Read)",
-                      subtitle="• Bob rút tệp thành công\n• Gọi _purge_one(tx_id)\n• Kích hoạt tẩy xóa ngay",
-                      bg="#FEF3C7", border="#D97706", lw=1.3)
+    # Nhánh 1: Burn-After-Read (Trên - Đen / Chuẩn Academic)
+    draw_academic_box(ax, 4.2, 4.5, 2.8, 1.9, title="ĐỌC VÀ TỰ HỦY\n(Burn-After-Read)",
+                      subtitle="• Bob gửi EIP-191 hợp lệ\n• Trả tệp cho Bob giải mã\n• Gọi ngay _purge_one(tx_id)\n• Kích hoạt tẩy xóa tức thì",
+                      bg="#FFFFFF", border=DARK_SLATE, lw=1.3)
 
-    # Nhánh 2: TTL Purge Loop (Dưới)
-    draw_academic_box(ax, 4.1, 1.4, 2.8, 1.8, title="HẾT HẠN THỜI GIAN\n(TTL Purge Loop)",
-                      subtitle="• Quét ngầm mỗi 5 giây\n• Phát hiện now >= expires_at\n• Kích hoạt tẩy xóa cưỡng chế",
+    # Nhánh 2: TTL Purge Loop (Dưới - Đỏ)
+    draw_academic_box(ax, 4.2, 2.1, 2.8, 1.9, title="HẾT HẠN THỜI GIAN\n(TTL Purge Loop)",
+                      subtitle="• Luồng quét ngầm mỗi 5 giây\n• Phát hiện now >= expires_at\n• Quá hạn TTL (Timeout 60s)\n• Tẩy xóa RAM cưỡng chế",
                       bg="#FEE2E2", border="#DC2626", lw=1.3)
 
-    # 3. State 3: Purged (Cột 3)
-    draw_academic_box(ax, 7.7, 2.2, 2.6, 2.8, title="TRẠNG THÁI: PURGED\n(TIÊU HỦY HOÀN TOÀN)",
-                      subtitle="• _wipe_bytes(0x00)\n• del _data[tx_id]\n• GC giải phóng Heap\n• Mọi truy cập sau: 404\n• Bất biến: Không thể khôi phục",
-                      bg="#F1F5F9", border=DARK_SLATE, lw=1.3)
+    # 3. State 3: Purged (Cột 3 - Đen / Khung Tối Giản)
+    draw_academic_box(ax, 7.9, 2.0, 2.7, 4.5, title="TRẠNG THÁI: PURGED\n(TIÊU HỦY HOÀN TOÀN)",
+                      subtitle="• Ghi đè bộ nhớ _wipe_bytes(0x00)\n• del _data[tx_id] (Hủy con trỏ)\n• GC thu hồi bộ nhớ Heap RAM\n• Mọi truy vấn sau: Trả HTTP 404\n• Bất biến: Không thể khôi phục",
+                      bg="#F8FAFC", border=DARK_SLATE, lw=1.4)
 
-    # Các mũi tên liên kết vuông góc (Orthogonal State Machine Flow)
-    # 1. STAGED -> Burn-After-Read
-    ax.plot([3.2, 3.65, 3.65], [3.8, 3.8, 5.1], color=DARK_SLATE, lw=1.3)
-    ax.annotate("", xy=(4.1, 5.1), xytext=(3.65, 5.1),
+    # Các mũi tên ngang trực giao hoàn toàn (Orthogonal Non-Colliding Flow)
+    # 1. STAGED -> Burn-After-Read (Ngang hoàn toàn)
+    ax.annotate("", xy=(4.2, 5.45), xytext=(3.3, 5.45),
                 arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.3))
-    ax.text(3.65, 5.35, "GET /retrieve", fontsize=7.5, color=DARK_SLATE, ha="center",
+    ax.text(3.75, 5.68, "GET /retrieve\n(Hợp lệ)", fontsize=7.5, color=DARK_SLATE,
+            ha="center", va="bottom",
             bbox=dict(boxstyle="square,pad=0.15", fc="#FFFFFF", ec="none"))
 
-    # 2. STAGED -> TTL Purge Loop
-    ax.plot([3.2, 3.65, 3.65], [3.4, 3.4, 2.3], color="#DC2626", lw=1.3, ls="--")
-    ax.annotate("", xy=(4.1, 2.3), xytext=(3.65, 2.3),
+    # 2. STAGED -> TTL Purge Loop (Ngang hoàn toàn - Đỏ)
+    ax.annotate("", xy=(4.2, 3.05), xytext=(3.3, 3.05),
                 arrowprops=dict(arrowstyle="->", color="#DC2626", lw=1.3, ls="--"))
-    ax.text(3.65, 2.05, "Quá hạn TTL", fontsize=7.5, color="#DC2626", ha="center",
+    ax.text(3.75, 3.28, "Quá hạn TTL\n(>= 60s)", fontsize=7.5, color="#DC2626",
+            ha="center", va="bottom",
             bbox=dict(boxstyle="square,pad=0.15", fc="#FFFFFF", ec="none"))
 
-    # 3. Burn-After-Read -> PURGED
-    ax.plot([6.9, 7.3, 7.3], [5.1, 5.1, 3.8], color=DARK_SLATE, lw=1.3)
-    ax.annotate("", xy=(7.7, 3.8), xytext=(7.3, 3.8),
+    # 3. Burn-After-Read -> PURGED (Ngang hoàn toàn)
+    ax.annotate("", xy=(7.9, 5.45), xytext=(7.0, 5.45),
                 arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.3))
-    ax.text(7.3, 5.35, "Ghi đè 0x00", fontsize=7.5, color=DARK_SLATE, ha="center",
+    ax.text(7.45, 5.68, "Ghi đè 0x00\n& Tẩy xóa", fontsize=7.5, color=DARK_SLATE,
+            ha="center", va="bottom",
             bbox=dict(boxstyle="square,pad=0.15", fc="#FFFFFF", ec="none"))
 
-    # 4. TTL Purge Loop -> PURGED
-    ax.plot([6.9, 7.3, 7.3], [2.3, 2.3, 3.4], color="#DC2626", lw=1.3, ls="--")
-    ax.annotate("", xy=(7.7, 3.4), xytext=(7.3, 3.4),
+    # 4. TTL Purge Loop -> PURGED (Ngang hoàn toàn - Đỏ)
+    ax.annotate("", xy=(7.9, 3.05), xytext=(7.0, 3.05),
                 arrowprops=dict(arrowstyle="->", color="#DC2626", lw=1.3, ls="--"))
-    ax.text(7.3, 2.05, "Tẩy xóa RAM", fontsize=7.5, color="#DC2626", ha="center",
+    ax.text(7.45, 3.28, "Cưỡng chế\nTẩy xóa RAM", fontsize=7.5, color="#DC2626",
+            ha="center", va="bottom",
             bbox=dict(boxstyle="square,pad=0.15", fc="#FFFFFF", ec="none"))
 
-    # Cam kết dưới đáy
-    draw_academic_box(ax, 0.6, 0.6, 9.7, 0.9,
+    # Cam kết dưới đáy (Khoảng cách an toàn rộng rãi 0.7 units bên dưới TTL Purge Loop)
+    draw_academic_box(ax, 0.6, 0.5, 10.0, 0.9,
                       title="Cam Kết Bất Biến Kiến Trúc Zero-Log Broker",
                       subtitle="Không tạo file tạm, không lưu cache đĩa, tắt Uvicorn access log, xóa sạch RAM trước khi hủy tham chiếu.",
-                      bg="#FFFFFF", lw=1.1, title_size=9.0, sub_size=8.0)
+                      bg="#FFFFFF", border=DARK_SLATE, lw=1.2, title_size=9.2, sub_size=8.0)
 
     plt.tight_layout()
     plt.savefig(OUT_DIR / "hinh_09_ram_store_lifecycle.png")
@@ -855,7 +855,7 @@ def draw_fig_11():
     ]
     y_pos = np.arange(len(operations))
     gas_costs = [285420, 68230, 28450, 14200, 0]
-    colors = [NAVY, "#2563EB", "#60A5FA", "#93C5FD", "#10B981"]
+    colors = [NAVY, "#1E40AF", "#2563EB", "#60A5FA", "#94A3B8"]
 
     bars = ax.barh(y_pos, gas_costs, align="center", color=colors,
                    edgecolor=DARK_SLATE, linewidth=1.1, height=0.55)
@@ -875,7 +875,7 @@ def draw_fig_11():
                     f"{val:,} Gas", va="center", fontsize=8.5, fontweight="bold", color=DARK_SLATE)
         else:
             ax.text(5000, bar.get_y() + bar.get_height() / 2,
-                    "0 Gas (Miễn Phí Hoàn Toàn)", va="center", fontsize=8.5, fontweight="bold", color="#047857")
+                    "0 Gas (Miễn Phí Hoàn Toàn)", va="center", fontsize=8.5, fontweight="bold", color=NAVY)
 
     plt.tight_layout()
     plt.savefig(OUT_DIR / "hinh_11_gas_analysis.png")
@@ -1207,9 +1207,9 @@ def draw_fig_17():
     ax.text(7.4, 2.95, "10:43", color=MID_SLATE, fontsize=6.5, zorder=4)
 
     # Badge tiến trình nền Streamlit
-    draw_academic_box(ax, 3.8, 2.15, 5.8, 0.45, title="", bg="#FEF3C7", border="#D97706", lw=1.0, z=3)
+    draw_academic_box(ax, 3.8, 2.15, 5.8, 0.45, title="", bg="#EFF6FF", border=MUTED_BLUE, lw=1.0, z=3)
     ax.text(6.7, 2.37, "Tiến trình quét ngầm: @st.fragment(run_every=2) quét hòm thư không giật lag giao diện",
-            fontsize=7.5, ha="center", va="center", color="#92400E", fontweight="bold", zorder=4)
+            fontsize=7.5, ha="center", va="center", color=NAVY, fontweight="bold", zorder=4)
 
     # 4. Input Area (Dưới cùng)
     draw_academic_box(ax, 3.6, 0.7, 6.2, 1.1, bg="#F8FAFC", border=BORDER_GRAY, lw=1.1, z=2)
