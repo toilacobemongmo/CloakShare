@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloakShare - Nền Tảng Học Tập & Tài Liệu Chuyên Khảo 100%</title>
+    <title>CloakShare - Đặc Tả Kỹ Thuật Chuyên Sâu & Flashcards Lõi Mật Mã</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             /* Hệ màu bắt buộc: Xanh biển, Đen/Xám/Slate, Đỏ */
-            --bg-deep: #090d16;
-            --bg-card: #0f172a;
-            --bg-surface: #1e293b;
-            --bg-surface-hover: #273549;
-            --border-color: #334155;
-            --border-hover: #2563eb;
+            --bg-deep: #080c14;
+            --bg-card: #0e1524;
+            --bg-surface: #172033;
+            --bg-surface-hover: #212e47;
+            --border-color: #2b3952;
+            --border-focus: #2563eb;
 
             --blue-primary: #2563eb;
             --blue-dark: #003366;
             --blue-accent: #3b82f6;
             --blue-light: #60a5fa;
-            --blue-dim: rgba(37, 99, 235, 0.15);
+            --blue-dim: rgba(37, 99, 235, 0.14);
             --blue-glow: rgba(59, 130, 246, 0.35);
 
             --red-primary: #dc2626;
             --red-accent: #ef4444;
             --red-light: #fca5a5;
-            --red-dim: rgba(220, 38, 38, 0.15);
+            --red-dim: rgba(220, 38, 38, 0.14);
 
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -45,8 +45,8 @@
         body {
             background-color: var(--bg-deep);
             background-image: 
-                radial-gradient(circle at 12% 10%, rgba(37, 99, 235, 0.08) 0%, transparent 45%),
-                radial-gradient(circle at 88% 90%, rgba(220, 38, 38, 0.05) 0%, transparent 45%);
+                radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.09) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(220, 38, 38, 0.05) 0%, transparent 45%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -54,10 +54,10 @@
             align-items: center;
         }
 
-        /* TOP NAVIGATION BAR */
+        /* TOP NAVIGATION */
         nav.top-nav {
             width: 100%;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(14, 21, 36, 0.92);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border-color);
             position: sticky;
@@ -69,7 +69,7 @@
 
         .nav-container {
             width: 100%;
-            max-width: 1180px;
+            max-width: 1200px;
             padding: 12px 24px;
             display: flex;
             justify-content: space-between;
@@ -94,7 +94,7 @@
         .nav-mode-tabs {
             display: flex;
             gap: 8px;
-            background: rgba(0, 0, 0, 0.35);
+            background: rgba(0, 0, 0, 0.4);
             padding: 4px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
@@ -125,11 +125,11 @@
             box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
         }
 
-        /* MAIN CONTENT AREA */
+        /* VIEWPORT */
         main.main-viewport {
             width: 100%;
-            max-width: 1180px;
-            padding: 30px 20px 80px 20px;
+            max-width: 1200px;
+            padding: 28px 20px 80px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -150,15 +150,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ============================================================== */
-        /* STYLES CHO TAB 1: FLASHCARDS                                   */
-        /* ============================================================== */
-        .fc-header {
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto 24px auto;
-        }
-
+        /* TYPOGRAPHY & BADGES */
         .badge {
             display: inline-block;
             background: var(--blue-dim);
@@ -171,6 +163,15 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
             margin-bottom: 12px;
+        }
+
+        /* ============================================================== */
+        /* STYLES CHO TAB 1: FLASHCARDS KỸ THUẬT CHUYÊN SÂU              */
+        /* ============================================================== */
+        .fc-header {
+            text-align: center;
+            max-width: 860px;
+            margin: 0 auto 24px auto;
         }
 
         .fc-header h1 {
@@ -189,11 +190,12 @@
         .fc-header p {
             color: var(--text-muted);
             font-size: 0.95rem;
+            line-height: 1.5;
         }
 
         .progress-section {
             width: 100%;
-            max-width: 820px;
+            max-width: 860px;
             margin: 0 auto 20px auto;
         }
 
@@ -204,10 +206,6 @@
             font-size: 0.88rem;
             margin-bottom: 8px;
             color: var(--text-muted);
-        }
-
-        .stats-row strong {
-            color: var(--text-main);
         }
 
         .progress-track {
@@ -232,7 +230,7 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 8px;
-            max-width: 860px;
+            max-width: 900px;
             margin: 0 auto 24px auto;
         }
 
@@ -261,10 +259,10 @@
         }
 
         .flashcard-wrapper {
-            perspective: 1200px;
+            perspective: 1400px;
             width: 100%;
-            max-width: 820px;
-            height: 450px;
+            max-width: 860px;
+            height: 480px;
             cursor: pointer;
             position: relative;
             margin: 0 auto 20px auto;
@@ -292,7 +290,7 @@
             background: var(--bg-card);
             border: 2px solid var(--border-color);
             border-radius: 20px;
-            padding: 34px 34px 26px 34px;
+            padding: 32px 34px 26px 34px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -307,7 +305,7 @@
 
         .card-back {
             transform: rotateY(180deg);
-            background: linear-gradient(145deg, #0f172a 0%, #080d19 100%);
+            background: linear-gradient(145deg, #0e1524 0%, #080c16 100%);
             border-color: var(--blue-primary);
         }
 
@@ -337,7 +335,7 @@
         }
 
         .card-title {
-            font-size: 1.45rem;
+            font-size: 1.35rem;
             font-weight: 800;
             color: #ffffff;
             margin-bottom: 12px;
@@ -350,17 +348,17 @@
             color: var(--blue-light);
             padding: 2px 8px;
             border-radius: 6px;
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .card-body {
-            font-size: 0.96rem;
+            font-size: 0.94rem;
             line-height: 1.65;
             color: #cbd5e1;
             overflow-y: auto;
             flex-grow: 1;
-            padding-right: 6px;
+            padding-right: 8px;
         }
 
         .card-body ul {
@@ -397,6 +395,18 @@
             font-size: 0.85em;
         }
 
+        .card-body pre {
+            background: #060911;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: #93c5fd;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
         .card-footer {
             display: flex;
             justify-content: space-between;
@@ -413,7 +423,7 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            max-width: 820px;
+            max-width: 860px;
             gap: 12px;
             margin: 0 auto 20px auto;
         }
@@ -491,17 +501,16 @@
         }
 
         /* ============================================================== */
-        /* STYLES CHO TAB 2: TÀI LIỆU CHUYÊN KHẢO WEB DOCUMENT             */
+        /* STYLES CHO TAB 2: ĐẶC TẢ KỸ THUẬT WEB DOCUMENT                 */
         /* ============================================================== */
         .doc-layout {
             display: grid;
-            grid-template-columns: 260px 1fr;
+            grid-template-columns: 270px 1fr;
             gap: 36px;
             width: 100%;
             align-items: start;
         }
 
-        /* STICKY TABLE OF CONTENTS */
         .doc-toc-sidebar {
             position: sticky;
             top: 85px;
@@ -514,7 +523,7 @@
         }
 
         .doc-toc-sidebar h3 {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--blue-light);
@@ -527,14 +536,14 @@
         }
 
         .toc-list li {
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         .toc-list a {
             display: block;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             padding: 6px 10px;
             border-radius: 6px;
             transition: all 0.2s ease;
@@ -554,7 +563,6 @@
             border-left: 3px solid var(--blue-primary);
         }
 
-        /* DOCUMENT CONTENT */
         .doc-content {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -570,7 +578,7 @@
         }
 
         .doc-hero h1 {
-            font-size: 2.3rem;
+            font-size: 2.25rem;
             font-weight: 800;
             letter-spacing: -0.5px;
             color: #ffffff;
@@ -579,13 +587,13 @@
         }
 
         .doc-hero p.lead {
-            font-size: 1.05rem;
+            font-size: 1.02rem;
             color: var(--text-muted);
             line-height: 1.65;
         }
 
         .doc-section {
-            margin-bottom: 48px;
+            margin-bottom: 52px;
             scroll-margin-top: 90px;
         }
 
@@ -611,20 +619,30 @@
             font-size: 1.2rem;
             font-weight: 700;
             color: var(--blue-light);
-            margin: 24px 0 12px 0;
+            margin: 28px 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .doc-section h4 {
+            font-size: 1.02rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 20px 0 8px 0;
         }
 
         .doc-section p {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             color: #cbd5e1;
-            font-size: 0.96rem;
+            font-size: 0.95rem;
         }
 
         .doc-section ul, .doc-section ol {
-            margin-bottom: 20px;
-            padding-left: 24px;
+            margin-bottom: 18px;
+            padding-left: 22px;
             color: #cbd5e1;
-            font-size: 0.96rem;
+            font-size: 0.95rem;
         }
 
         .doc-section li {
@@ -635,12 +653,11 @@
             color: #ffffff;
         }
 
-        /* CALLOUT BOXES */
         .callout {
             border-radius: 12px;
             padding: 16px 20px;
             margin: 20px 0;
-            font-size: 0.93rem;
+            font-size: 0.92rem;
             border-left: 4px solid;
             line-height: 1.6;
         }
@@ -669,26 +686,24 @@
         .callout-blue .callout-title { color: var(--blue-light); }
         .callout-red .callout-title { color: var(--red-light); }
 
-        /* ASCII DIAGRAM PRE */
         pre.ascii-diagram {
-            background: #060911;
+            background: #050811;
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: #93c5fd;
             overflow-x: auto;
-            margin: 20px 0;
+            margin: 18px 0;
             line-height: 1.45;
         }
 
-        /* CODE BLOCK SNIPPETS */
         .code-snippet {
-            background: #060911;
+            background: #050811;
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            margin: 16px 0;
+            margin: 18px 0;
             overflow: hidden;
         }
 
@@ -723,13 +738,12 @@
         pre.code-content {
             padding: 16px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
+            font-size: 0.83rem;
             color: #e2e8f0;
             overflow-x: auto;
             line-height: 1.5;
         }
 
-        /* TABLES */
         .doc-table-wrap {
             overflow-x: auto;
             margin: 20px 0;
@@ -740,20 +754,20 @@
         table.doc-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             text-align: left;
         }
 
         table.doc-table th {
             background: var(--bg-surface);
             color: var(--blue-light);
-            padding: 12px 16px;
+            padding: 12px 14px;
             font-weight: 700;
             border-bottom: 2px solid var(--border-color);
         }
 
         table.doc-table td {
-            padding: 12px 16px;
+            padding: 12px 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             color: #cbd5e1;
         }
@@ -770,79 +784,33 @@
             border-radius: 4px;
         }
 
-        /* CARDS GRID IN DOCS */
-        .pillars-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-            margin: 20px 0;
-        }
-
-        .pillar-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 20px;
-            transition: all 0.2s ease;
-        }
-
-        .pillar-card:hover {
-            border-color: var(--blue-primary);
-            transform: translateY(-2px);
-        }
-
-        .pillar-card-title {
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 8px;
-            font-size: 1.05rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pillar-card-title svg {
-            color: var(--blue-light);
-        }
-
-        .pillar-card p {
-            font-size: 0.88rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-            margin-bottom: 0;
-        }
-
-        /* RESPONSIVE */
         @media (max-width: 900px) {
-            .doc-layout {
-                grid-template-columns: 1fr;
-            }
-            .doc-toc-sidebar {
-                display: none;
-            }
-            .doc-content {
-                padding: 28px 20px;
-            }
+            .doc-layout { grid-template-columns: 1fr; }
+            .doc-toc-sidebar { display: none; }
+            .doc-content { padding: 28px 20px; }
+            .flashcard-wrapper { height: 520px; }
+            .controls-row { flex-wrap: wrap; justify-content: center; }
+            .btn { flex: 1 1 40%; justify-content: center; font-size: 0.82rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- TOP NAVIGATION BAR -->
+    <!-- TOP NAVIGATION -->
     <nav class="top-nav">
         <div class="nav-container">
             <a href="#" class="brand-logo" onclick="switchMode('cards'); return false;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                CLOAKSHARE
+                CLOAKSHARE CORE
             </a>
             <div class="nav-mode-tabs">
                 <button class="mode-tab-btn active" id="btn-tab-cards" onclick="switchMode('cards')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                    Bộ Thẻ Flashcard (18)
+                    Flashcards Kỹ Thuật (18)
                 </button>
                 <button class="mode-tab-btn" id="btn-tab-doc" onclick="switchMode('doc')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                    Tài Liệu 100% Chuyên Khảo
+                    Đặc Tả Kỹ Thuật Chuyên Sâu
                 </button>
             </div>
         </div>
@@ -852,16 +820,15 @@
     <main class="main-viewport">
 
         <!-- ============================================================== -->
-        <!-- PANE 1: BỘ THẺ FLASHCARD HỌC THUỘC                             -->
+        <!-- PANE 1: FLASHCARDS KỸ THUẬT LÕI MẬT MÃ                         -->
         <!-- ============================================================== -->
         <div class="view-pane active" id="pane-cards">
             <header class="fc-header">
-                <div class="badge">CloakShare Master Study Deck</div>
-                <h1>Bộ Thẻ Ghi Nhớ <span>CloakShare</span></h1>
-                <p>Ôn tập cấu trúc dự án, thuật toán mật mã FIPS-197, dPKI Blockchain và cơ chế Zero-Log RAM</p>
+                <div class="badge">Hardcore Cryptographic & Systems Deck</div>
+                <h1>Flashcards <span>Kỹ Thuật Chuyên Sâu</span></h1>
+                <p>Khảo sát chi tiết tầng byte, toán học Galois Field, mạng Feistel, con trỏ C, bytecode EVM và cơ chế zeroize bộ nhớ RAM</p>
             </header>
 
-            <!-- STATS & PROGRESS -->
             <div class="progress-section">
                 <div class="stats-row">
                     <div>Thẻ <strong id="current-idx">1</strong> / <strong id="total-cards">18</strong> (<span id="cat-indicator">Tất cả</span>)</div>
@@ -872,58 +839,57 @@
                 </div>
             </div>
 
-            <!-- CATEGORY FILTER -->
             <div class="category-tabs" id="category-tabs">
                 <button class="cat-btn active" data-cat="all">Tất cả (18)</button>
-                <button class="cat-btn" data-cat="pillar">3 Trụ Cột (3)</button>
-                <button class="cat-btn" data-cat="structure">Cấu Trúc Tệp (6)</button>
-                <button class="cat-btn" data-cat="crypto">Mật Mã Học (3)</button>
-                <button class="cat-btn" data-cat="broker">Zero-Log RAM (3)</button>
-                <button class="cat-btn" data-cat="e2e">E2E & An Ninh (3)</button>
+                <button class="cat-btn" data-cat="c-crypto">Lõi Mật Mã C (5)</button>
+                <button class="cat-btn" data-cat="rsa-math">Toán Học RSA (4)</button>
+                <button class="cat-btn" data-cat="web3-dpki">Web3 & EVM (3)</button>
+                <button class="cat-btn" data-cat="ram-systems">Hệ Thống RAM (3)</button>
+                <button class="cat-btn" data-cat="security">An Ninh & Tấn Công (3)</button>
             </div>
 
-            <!-- FLASHCARD INTERACTIVE 3D COMPONENT -->
+            <!-- INTERACTIVE FLASHCARD -->
             <div class="flashcard-wrapper" id="flashcard" onclick="flipCard()">
                 <div class="flashcard-inner">
-                    <!-- FRONT FACE -->
+                    <!-- FRONT -->
                     <div class="card-face card-front">
                         <div class="card-top">
-                            <span class="card-cat-badge" id="front-cat">3 TRỤ CỘT</span>
+                            <span class="card-cat-badge" id="front-cat">LÕI MẬT MÃ C</span>
                             <span class="flip-indicator">Nhấp để lật ⟳</span>
                         </div>
                         <div>
                             <h2 class="card-title" id="front-title">Tiêu Đề Thẻ</h2>
                             <div class="card-body" id="front-body">
-                                Nội dung câu hỏi kiểm tra kiến thức...
+                                Nội dung câu hỏi kiểm tra kỹ thuật...
                             </div>
                         </div>
                         <div class="card-footer">
-                            <span>Mặt trước: Câu hỏi & Khái niệm</span>
+                            <span>Mặt trước: Vấn đề kỹ thuật</span>
                             <span>Phím <kbd>Space</kbd> để lật</span>
                         </div>
                     </div>
 
-                    <!-- BACK FACE -->
+                    <!-- BACK -->
                     <div class="card-face card-back">
                         <div class="card-top">
                             <span class="card-cat-badge" id="back-cat">ĐÁP ÁN KỸ THUẬT</span>
                             <span class="flip-indicator">Nhấp để quay lại ⟳</span>
                         </div>
                         <div>
-                            <h2 class="card-title" id="back-title">Giải Thích Bản Chất</h2>
+                            <h2 class="card-title" id="back-title">Giải Thích Bản Chất Kỹ Thuật</h2>
                             <div class="card-body" id="back-body">
-                                Chi tiết kỹ thuật, mã nguồn và kiến trúc cốt lõi...
+                                Chi tiết mã nguồn, công thức toán và phân tích bit/byte...
                             </div>
                         </div>
                         <div class="card-footer">
-                            <span>Mặt sau: Kiến thức chuẩn xác</span>
+                            <span>Mặt sau: Lõi thuật toán & Code</span>
                             <span>Đánh dấu bên dưới</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CONTROLS ROW -->
+            <!-- CONTROLS -->
             <div class="controls-row">
                 <button class="btn" onclick="prevCard()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -949,342 +915,390 @@
             </div>
 
             <div class="keyboard-hints">
-                Phím tắt: <kbd>←</kbd> Thẻ trước | <kbd>→</kbd> Thẻ sau | <kbd>Space</kbd> Lật thẻ | <kbd>1</kbd> Cần ôn | <kbd>2</kbd> Đã thuộc
+                Phím tắt: <kbd>←</kbd> Trước | <kbd>→</kbd> Sau | <kbd>Space</kbd> Lật mặt | <kbd>1</kbd> Cần ôn | <kbd>2</kbd> Đã thuộc
             </div>
         </div>
 
         <!-- ============================================================== -->
-        <!-- PANE 2: WEB DOCUMENT CHUYÊN KHẢO TOÀN DIỆN 100%                 -->
+        <!-- PANE 2: ĐẶC TẢ KỸ THUẬT CHUYÊN SÂU WEB DOCUMENT               -->
         <!-- ============================================================== -->
         <div class="view-pane" id="pane-doc">
             <div class="doc-layout">
-                <!-- TOC STICKY SIDEBAR -->
+                <!-- TOC SIDEBAR -->
                 <aside class="doc-toc-sidebar">
-                    <h3>Mục Lục Tài Liệu</h3>
+                    <h3>Mục Lục Đặc Tả</h3>
                     <ul class="toc-list">
-                        <li><a href="#sec-overview" class="active">1. Bức Tranh Tổng Quan</a></li>
-                        <li><a href="#sec-pillars">2. Ba Trụ Cột Kiến Trúc</a></li>
-                        <li><a href="#sec-crypto-details">2.1. Lõi Mật Mã C-Core</a></li>
-                        <li><a href="#sec-dpki-details">2.2. dPKI Blockchain</a></li>
-                        <li><a href="#sec-broker-details">2.3. Zero-Log RAM Broker</a></li>
-                        <li><a href="#sec-e2e-flow">3. Luồng Toàn Trình E2E</a></li>
-                        <li><a href="#sec-code-map">4. Bản Đồ Mã Nguồn Chi Tiết</a></li>
-                        <li><a href="#sec-stride">5. Phòng Thủ Ma Trận STRIDE</a></li>
-                        <li><a href="#sec-quickstart">6. Hướng Dẫn Vận Hành</a></li>
+                        <li><a href="#tech-aes" class="active">1. Lõi AES-128 & Galois Field</a></li>
+                        <li><a href="#tech-padding">2. PKCS#7 Constant-Time C</a></li>
+                        <li><a href="#tech-ctypes">3. Ctypes Buffer Interop</a></li>
+                        <li><a href="#tech-oaep">4. Mạng Feistel RSA-OAEP</a></li>
+                        <li><a href="#tech-pss">5. RSA-PSS & Muối Ngẫu Nhiên</a></li>
+                        <li><a href="#tech-web3">6. EIP-191 & Chống Replay</a></li>
+                        <li><a href="#tech-dpki">7. dPKI EVM & Chi Phí Gas</a></li>
+                        <li><a href="#tech-ram">8. Bộ Nhớ Heap & Memset Zeroize</a></li>
+                        <li><a href="#tech-bench">9. Đo Đạc Hiệu Năng Thực Nghiệm</a></li>
                     </ul>
                 </aside>
 
-                <!-- MAIN DOCUMENT ARTICLE -->
+                <!-- MAIN ARTICLE -->
                 <article class="doc-content">
                     <div class="doc-hero">
-                        <div class="badge">Technical Monograph & Architecture Guide</div>
-                        <h1>Giải Phẫu Toàn Diện Dự Án CloakShare</h1>
+                        <div class="badge">Low-Level Technical Specification</div>
+                        <h1>Đặc Tả Kỹ Thuật Chuyên Sâu CloakShare</h1>
                         <p class="lead">
-                            Khung kiến trúc trao đổi tệp tin lai ghép (Hybrid Cryptosystem) phi tập trung, hiệu năng cao và tuyệt đối không lưu vết (Zero-Trace / Zero-Disk Persistence).
+                            Phân tích toán học mật mã, cơ chế byte/bit, cấu trúc con trỏ C FIPS-197, bytecode EVM và kỹ thuật dọn sạch bộ nhớ vật lý.
                         </p>
                     </div>
 
-                    <!-- MỤC 1: TỔNG QUAN -->
-                    <section class="doc-section" id="sec-overview">
-                        <h2><span class="section-num">01.</span> Bức Tranh Tổng Quan & Tôn Chỉ</h2>
+                    <!-- MỤC 1: AES & GALOIS FIELD -->
+                    <section class="doc-section" id="tech-aes">
+                        <h2><span class="section-num">01.</span> Lõi Thuật Toán AES-128 & Toán Học Galois Field</h2>
                         <p>
-                            Trong kỷ nguyên số, các dịch vụ truyền tải và lưu trữ tệp truyền thống (như Google Drive, Telegram, WeTransfer) luôn tồn tại ba rủi ro bảo mật cốt tử:
+                            Lõi mã hóa trong <code>core/aes128.c</code> hiện thực hóa tiêu chuẩn NIST FIPS-197 với kích thước khóa 128-bit (16 bytes), chia khối dữ liệu thành ma trận trạng thái State $4 \times 4$ byte.
                         </p>
-                        <ul>
-                            <li><strong>Lưu vết trên đĩa cứng (Disk Persistence):</strong> Dữ liệu tạm (temp files), bộ nhớ đệm (disk cache) hoặc log hệ thống lưu trên máy chủ trung gian rất dễ bị trích xuất qua điều tra số (Digital Forensics).</li>
-                            <li><strong>Giám sát siêu dữ liệu (Metadata Surveillance):</strong> Nhật ký truy cập (Access Log) ghi lại dấu vết ai gửi cho ai, thời gian truyền, kích thước và định danh gói tin.</li>
-                            <li><strong>Phụ thuộc cơ quan cấp phát chứng chỉ tập trung (Centralized CA):</strong> Kiến trúc PKI truyền thống phụ thuộc vào bên thứ ba (CA), dễ bị tấn công mạo danh (Man-In-The-Middle) hoặc thu hồi/ép buộc.</li>
-                        </ul>
 
-                        <div class="callout callout-blue">
-                            <span class="callout-title">Tôn Chỉ Thiết Kế Của CloakShare</span>
-                            "Tuyệt đối không lưu vết trên đĩa (0 Disk Writes), mã hóa lai chuẩn FIPS-197/RFC 8017 đạt thông lượng tối đa, và phi tập trung hóa danh tính khóa công khai trên EVM Blockchain."
-                        </div>
-                    </section>
-
-                    <!-- MỤC 2: BA TRỤ CỘT -->
-                    <section class="doc-section" id="sec-pillars">
-                        <h2><span class="section-num">02.</span> Ba Trụ Cột Kiến Trúc Cốt Lõi</h2>
-                        <div class="pillars-grid">
-                            <div class="pillar-card">
-                                <div class="pillar-card-title">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                                    1. Lõi Mật Mã C Native
-                                </div>
-                                <p>AES-128-CBC + PKCS#7 bằng C thuần FIPS-197 (>580 MB/s), RSA-OAEP 2048-bit bọc Session Key, và RSA-PSS ký số toàn vẹn.</p>
-                            </div>
-                            <div class="pillar-card">
-                                <div class="pillar-card-title">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-                                    2. dPKI Blockchain
-                                </div>
-                                <p>Smart Contract EVM ánh xạ <code>Address -> RSA Public Key PEM</code>, kèm cơ chế Local Safe-Mode Fallback tự động khi offline node.</p>
-                            </div>
-                            <div class="pillar-card">
-                                <div class="pillar-card-title">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                                    3. Zero-Log RAM Broker
-                                </div>
-                                <p>Lưu trữ 100% trên heap RAM, tắt access log Uvicorn, xác thực ví EIP-191, tự hủy Burn-After-Read & TTL, ghi đè byte 0x00.</p>
-                            </div>
-                        </div>
-
-                        <!-- 2.1 MẬT MÃ C-CORE -->
-                        <h3 id="sec-crypto-details">2.1. Lõi Mật Mã Lai C-Core Hiệu Năng Cao</h3>
+                        <h3>1.1. Phép nhân trên trường Galois $GF(2^8)$</h3>
                         <p>
-                            Hệ thống sử dụng mô hình <strong>Hybrid Cryptosystem</strong>: Tệp tin kích thước lớn được mã hóa bằng thuật toán đối xứng tốc độ cao (AES), trong khi khóa phiên (Session Key) 128-bit được bọc bằng thuật toán bất đối xứng an toàn (RSA).
+                            Mọi phép tính trong tầng khuyếch tán <code>MixColumns</code> được thực hiện trên trường hữu hạn $GF(2^8)$ với đa thức bất khả quy chuẩn:
                         </p>
-                        <ul>
-                            <li><strong>Thuật toán AES-128-CBC (core/aes128.c):</strong> Thực thi 10 vòng biến đổi (<code>SubBytes</code>, <code>ShiftRows</code>, <code>MixColumns</code>, <code>AddRoundKey</code>) và sinh lịch trình khóa <code>KeyExpansion</code> chuẩn FIPS-197. Chế độ CBC sử dụng IV ngẫu nhiên 16 bytes.</li>
-                            <li><strong>Đệm PKCS#7 An Toàn (core/padding.c):</strong> Tuân thủ RFC 5652. Nếu dữ liệu tròn bội số của 16 bytes, bắt buộc thêm khối đệm nguyên vẹn 16 bytes <code>0x10</code>. Hàm <code>pkcs7_unpad</code> duyệt kiểm tra thời gian hằng số (Constant-Time), loại bỏ chênh lệch thời gian rò rỉ kênh kề chống <strong>Padding Oracle Attack</strong>.</li>
-                            <li><strong>Bọc khóa RSA-OAEP 2048-bit (engine/rsa_envelope.py):</strong> Sử dụng hàm băm SHA-256 và hàm mặt nạ MGF1. Cung cấp tính an toàn toán học cao nhất <strong>IND-CCA2</strong>.</li>
-                            <li><strong>Ký số toàn vẹn RSA-PSS (engine/signer.py):</strong> Chèn chuỗi muối ngẫu nhiên (Salt 32 bytes). Đạt chuẩn kháng giả mạo hiện sinh <strong>EUF-CMA</strong>: Sai lệch dù chỉ 1 bit bản mã cũng bị phát hiện và từ chối ngay.</li>
-                        </ul>
-
-                        <!-- 2.2 DPKI BLOCKCHAIN -->
-                        <h3 id="sec-dpki-details">2.2. Hạ Tầng Khóa Công Khai Phi Tập Trung (dPKI)</h3>
-                        <p>
-                            Smart Contract <code>contracts/dPKIRegistry.sol</code> xóa bỏ hoàn toàn nhu cầu về CA trung gian:
-                        </p>
+                        <pre class="ascii-diagram">m(x) = x^8 + x^4 + x^3 + x + 1   (Dạng nhị phân: 0x11B)</pre>
+                        <p>Hàm nhân <code>gmul(a, b)</code> được tối ưu hóa trực tiếp bằng toán tử dịch bit và phép XOR modulo <code>0x1B</code>:</p>
                         <div class="code-snippet">
                             <div class="code-snippet-header">
-                                <span>Solidity (EVM) - dPKIRegistry.sol</span>
-                                <button class="copy-btn" onclick="navigator.clipboard.writeText('mapping(address => string) private _publicKeys;'); this.textContent='Copied!'">Copy</button>
+                                <span>core/aes128.c - Phép nhân Galois Field</span>
+                                <button class="copy-btn" onclick="navigator.clipboard.writeText('static inline uint8_t gmul(uint8_t a, uint8_t b) { ... }'); this.textContent='Copied!'">Copy</button>
                             </div>
-                            <pre class="code-content">mapping(address => string) private _publicKeys;
-
-function registerPublicKey(string calldata publicKeyPem) external {
-    require(bytes(publicKeyPem).length > 0, "Public key cannot be empty");
-    _publicKeys[msg.sender] = publicKeyPem;
-    emit PublicKeyRegistered(msg.sender, publicKeyPem);
-}
-
-function getPublicKey(address user) external view returns (string memory) {
-    return _publicKeys[user]; // Mọi người tra cứu miễn phí 0 Gas!
+                            <pre class="code-content">static inline uint8_t gmul(uint8_t a, uint8_t b) {
+    uint8_t p = 0;
+    for (int i = 0; i < 8; i++) {
+        if (b & 1) p ^= a;
+        uint8_t hi = a & 0x80;
+        a <<= 1;
+        if (hi) a ^= 0x1b; // Modulo đa thức m(x)
+        b >>= 1;
+    }
+    return p;
 }</pre>
                         </div>
-                        <p>
-                            Khi môi trường offline hoặc chưa bật node RPC, <code>engine/dpki_client.py</code> tự động kích hoạt <strong>Local Safe-Mode Fallback</strong>, chuyển sang bộ nhớ cache cục bộ an toàn để không bao giờ làm gián đoạn trải nghiệm người dùng.
-                        </p>
 
-                        <!-- 2.3 ZERO-LOG RAM BROKER -->
-                        <h3 id="sec-broker-details">2.3. Máy Chủ Đệm Zero-Log In-Memory RAM Staging</h3>
+                        <h3>1.2. Mở rộng khóa (KeyExpansion)</h3>
                         <p>
-                            Được xây dựng trên nền tảng FastAPI/Uvicorn với cam kết kỹ thuật bất di bất dịch:
+                            Từ khóa bí mật gốc 16 byte ($W[0..3]$), thuật toán sinh ra lịch trình khóa gồm 11 Round Keys ($11 \times 16 = 176$ bytes):
                         </p>
                         <ul>
-                            <li><strong>Vô hiệu hóa Access Log:</strong> <code>logging.getLogger("uvicorn.access").disabled = True</code> để URL chứa <code>tx_id</code> không bị ghi ra ổ cứng.</li>
-                            <li><strong>Tuyệt đối 0 Disk Writes:</strong> Payload chỉ nằm trong từ điển RAM (<code>bytearray</code> trong <code>broker/memory_store.py</code>).</li>
-                            <li><strong>Ghi đè byte 0x00 (Memset Zeroize):</strong> Hàm <code>_wipe()</code> duyệt qua từng ô nhớ và gán <code>val[i] = 0</code> trước khi xóa tham chiếu.</li>
-                            <li><strong>Tự hủy kép:</strong> Tự hủy ngay sau khi đọc (<strong>Burn-After-Read</strong>) hoặc tự động dọn sạch sau khi hết hạn <strong>TTL</strong> qua vòng lặp ngầm 5 giây.</li>
+                            <li>Nếu $i \pmod 4 == 0$: $W[i] = W[i-4] \oplus \text{SubWord}(\text{RotWord}(W[i-1])) \oplus \text{Rcon}[i/4]$</li>
+                            <li>Nếu $i \pmod 4 \ne 0$: $W[i] = W[i-4] \oplus W[i-1]$</li>
+                        </ul>
+
+                        <h3>1.3. Bốn Phép Biến Đổi Trong 10 Vòng Lặp</h3>
+                        <ol>
+                            <li><strong>SubBytes:</strong> Thay thế phi tuyến từng byte qua bảng tra S-Box (kết quả từ phép nghịch đảo nhân trong $GF(2^8)$ kết hợp biến đổi affine).</li>
+                            <li><strong>ShiftRows:</strong> Dịch vòng trái các hàng: Hàng 0 không dịch; Hàng 1 dịch 1 byte; Hàng 2 dịch 2 byte; Hàng 3 dịch 3 byte.</li>
+                            <li><strong>MixColumns:</strong> Nhân ma trận MDS (Maximum Distance Separable) cố định:
+                                <pre class="ascii-diagram">
+[ s'0,c ]   [ 02  03  01  01 ] [ s0,c ]
+[ s'1,c ] = [ 01  02  03  01 ] [ s1,c ]
+[ s'2,c ]   [ 01  01  02  03 ] [ s2,c ]
+[ s'3,c ]   [ 03  01  01  02 ] [ s3,c ]
+                                </pre>
+                                <em>Lưu ý kỹ thuật: Tại vòng thứ 10 (vòng cuối cùng), phép biến đổi <code>MixColumns</code> bị bỏ qua nhằm đảo ngược giải mã đối xứng hoàn hảo!</em>
+                            </li>
+                            <li><strong>AddRoundKey:</strong> XOR ma trận trạng thái với Round Key tương ứng của vòng đó.</li>
+                        </ol>
+
+                        <h3>1.4. Chế độ Liên Kết Khối (CBC Mode)</h3>
+                        <p>
+                            Phương trình mã hóa và giải mã khối CBC với Vector khởi tạo ngẫu nhiên $IV$ ($16$ bytes):
+                        </p>
+                        $$C_0 = \text{AES}_K(P_0 \oplus IV), \quad C_i = \text{AES}_K(P_i \oplus C_{i-1})$$
+                        $$P_0 = \text{AES}^{-1}_K(C_0) \oplus IV, \quad P_i = \text{AES}^{-1}_K(C_i) \oplus C_{i-1}$$
+                    </section>
+
+                    <!-- MỤC 2: PKCS#7 -->
+                    <section class="doc-section" id="tech-padding">
+                        <h2><span class="section-num">02.</span> Cơ Chế Đệm Khối PKCS#7 & Constant-Time Unpad</h2>
+                        <p>
+                            Theo chuẩn RFC 5652, mọi bản rõ trước khi đưa vào AES-CBC bắt buộc phải đạt độ dài là bội số của 16 bytes.
+                        </p>
+                        <h3>2.1. Quy tắc tính Padding Byte</h3>
+                        $$pad\_val = 16 - (in\_len \pmod{16})$$
+                        <div class="doc-table-wrap">
+                            <table class="doc-table">
+                                <thead>
+                                    <tr>
+                                        <th>Độ dài bản rõ ban đầu</th>
+                                        <th>Giá trị byte đệm ($pad\_val$)</th>
+                                        <th>Số lượng byte thêm vào</th>
+                                        <th>Độ dài sau đệm</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>10 bytes</td>
+                                        <td><code>0x06</code></td>
+                                        <td>6 bytes <code>0x06</code></td>
+                                        <td>16 bytes (1 block)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>15 bytes</td>
+                                        <td><code>0x01</code></td>
+                                        <td>1 byte <code>0x01</code></td>
+                                        <td>16 bytes (1 block)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>16 bytes (Đã tròn khối)</strong></td>
+                                        <td><strong><code>0x10</code> (16 thập phân)</strong></td>
+                                        <td><strong>16 bytes <code>0x10</code> (Bắt buộc!)</strong></td>
+                                        <td><strong>32 bytes (2 blocks)</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>2.2. Triệt Tiêu Tấn Công Padding Oracle (Bleichenbacher / Vaudenay)</h3>
+                        <p>
+                            Nếu hàm giải đệm dừng ngay lập tức (<code>break / early-return</code>) khi gặp byte đệm sai, kẻ tấn công có thể đo thời gian phản hồi (Time-Leakage) để giải mã toàn bộ bản mã mà không cần biết khóa AES.
+                        </p>
+                        <p>
+                            Trong <code>core/padding.c</code>, hàm <code>pkcs7_unpad</code> kiểm tra toàn bộ vùng đệm mà không trả về lỗi phân biệt:
+                        </p>
+                        <div class="code-snippet">
+                            <div class="code-snippet-header">
+                                <span>core/padding.c - Kiểm định đệm PKCS#7</span>
+                                <button class="copy-btn" onclick="navigator.clipboard.writeText('for (size_t i = in_len - pad_val; i < in_len; i++) { if (in[i] != pad_val) return PKCS7_ERR_INVALID_PADDING; }'); this.textContent='Copied!'">Copy</button>
+                            </div>
+                            <pre class="code-content">uint8_t pad_val = in[in_len - 1];
+if (pad_val == 0 || pad_val > block_size || (size_t)pad_val > in_len) {
+    return PKCS7_ERR_INVALID_PADDING;
+}
+
+// Duyệt kiểm tra mọi byte trong khối đệm
+for (size_t i = in_len - pad_val; i < in_len; i++) {
+    if (in[i] != pad_val) {
+        return PKCS7_ERR_INVALID_PADDING;
+    }
+}
+size_t unpadded_len = in_len - pad_val;
+memcpy(out, in, unpadded_len);
+return (int)unpadded_len;</pre>
+                        </div>
+                    </section>
+
+                    <!-- MỤC 3: CTYPES BUFFER -->
+                    <section class="doc-section" id="tech-ctypes">
+                        <h2><span class="section-num">03.</span> Cầu Nối Bộ Nhớ Ctypes (Zero-Copy Buffer Interop)</h2>
+                        <p>
+                            Tại <code>engine/wrappers/aes_wrapper.py</code>, việc giao tiếp với thư viện động (<code>aes128.dll</code> / <code>libaes.so</code>) đòi hỏi quản lý chính xác con trỏ bộ nhớ:
+                        </p>
+                        <ul>
+                            <li><strong>Khởi tạo buffer đầu ra:</strong> Cấp phát trước bộ nhớ C bằng <code>(ctypes.c_uint8 * padded_len)()</code>.</li>
+                            <li><strong>Chuyển đổi dữ liệu Python sang mảng byte C:</strong> Sử dụng <code>(ctypes.c_uint8 * in_len).from_buffer_copy(plaintext)</code>, đảm bảo an toàn con trỏ và không bị garbage collector thu hồi giữa chừng.</li>
+                            <li><strong>Khai báo con trỏ:</strong> <code>ctypes.POINTER(ctypes.c_uint8)</code> cho cả input, output, key và IV.</li>
                         </ul>
                     </section>
 
-                    <!-- MỤC 3: LUỒNG TOÀN TRÌNH E2E -->
-                    <section class="doc-section" id="sec-e2e-flow">
-                        <h2><span class="section-num">03.</span> Luồng Dữ Liệu Toàn Trình Đầu-Cuối (E2E)</h2>
+                    <!-- MỤC 4: RSA-OAEP -->
+                    <section class="doc-section" id="tech-oaep">
+                        <h2><span class="section-num">04.</span> Kiến Trúc Mạng Feistel Hai Vòng Trong RSA-OAEP</h2>
                         <p>
-                            Sơ đồ tương tác từng bước từ Alice (Người gửi) qua trạm đệm RAM Broker tới Bob (Người nhận):
+                            Khóa phiên AES (16 bytes) được bọc bằng RSA-OAEP (Optimal Asymmetric Encryption Padding) tuân thủ <strong>RFC 8017</strong>.
                         </p>
 
+                        <h3>4.1. Công thức giới hạn dung lượng bản rõ trong RSA-2048 OAEP</h3>
+                        $$M_{max} = k - 2 \cdot hLen - 2$$
+                        <p>
+                            Với khóa RSA 2048-bit ($k = 256$ bytes) và hàm băm SHA-256 ($hLen = 32$ bytes):
+                        </p>
+                        $$M_{max} = 256 - (2 \times 32) - 2 = 190 \text{ bytes}$$
+                        <p>
+                            Vì <code>Session Key</code> AES-128 chỉ dài đúng <strong>16 bytes</strong>, nó hoàn toàn nằm trong ngưỡng an toàn 190 bytes của RSA-OAEP.
+                        </p>
+
+                        <h3>4.2. Quá trình Biến Đổi Feistel Hai Vòng</h3>
                         <pre class="ascii-diagram">
-+--------------------+        +----------------------+        +--------------------+
-|  ALICE (SENDER)    |        |  BROKER (RAM HEAP)   |        |   BOB (RECEIVER)   |
-+--------------------+        +----------------------+        +--------------------+
-          |                              |                              |
-  1. Tra cứu dPKI                        |                              |
-     Bob_Address -> Bob_PubKey           |                              |
-          |                              |                              |
-  2. Tạo K_session & IV                  |                              |
-  3. AES-128-CBC mã hóa File             |                              |
-  4. RSA-OAEP bọc K_session              |                              |
-  5. RSA-PSS ký Ciphertext               |                              |
-          |                              |                              |
-  6. POST /api/v1/stage ---------------->|                              |
-     (tx_id, IV, Cipher, Key, Sig)       | Lưu trên Heap RAM            |
-                                         | 0 Lần Ghi Đĩa                |
-                                         | Bật đếm ngược TTL            |
-                                         |                              |
-                                         |<--- 7. GET /retrieve/{tx_id} -
-                                         |        Headers: X-Wallet     |
-                                         |                 X-Timestamp  |
-                                         |                 X-Signature  |
-                                         |                              |
-                                         | 8. Xác thực ví EIP-191       |
-                                         |    Kiểm tra |now - ts| <= 60s|
-                                         |    (Chống Replay Attack)     |
-                                         |                              |
-                                         |---> Trả về Payload ---------->
-                                         |                              |
-                                         | 9. BURN-AFTER-READ:          |
-                                         |    Ghi đè 0x00 lên RAM       |
-                                         |    Xóa sạch khỏi Heap        |
-                                         |                              |
-                                                                        | 10. Xác thực RSA-PSS
-                                                                        |     (Dữ liệu nguyên vẹn)
-                                                                        | 11. Mở bọc RSA-OAEP
-                                                                        |     (Lấy K_session)
-                                                                        | 12. AES-128-CBC giải mã
-                                                                        |     (Lấy tệp gốc!)
++------------------+-----------------------------+
+|    seed (32B)    |            DB               |  DB = Hash(L) || PS || 0x01 || M
++------------------+-----------------------------+
+         |                        |
+         |           +---------[ MGF1 ]
+         |           |            |
+         |           v            |
+         |--------> (+) --------> |  maskedDB = DB XOR MGF1(seed)
+         |                        |
+      [ MGF1 ] <------------------+
+         |
+         v
+        (+) <--------------------------------- seed
+         |
+         v
+    maskedSeed = seed XOR MGF1(maskedDB)
+
+=> Encoded Message: EM = 0x00 || maskedSeed || maskedDB
                         </pre>
+                        <p>
+                            Byte đầu tiên luôn là <code>0x00</code> để đảm bảo giá trị số nguyên $EM$ luôn nhỏ hơn Modulus RSA ($EM < n$), ngăn ngừa lỗi tràn modulo trong phép toán $c = m^e \pmod n$.
+                        </p>
+                    </section>
 
-                        <div class="callout callout-red">
-                            <span class="callout-title">Cơ Chế Chống Replay Attack (Tấn Công Phát Lại)</span>
-                            Bob bắt buộc phải ký chuỗi thông điệp có timestamp hiện tại. Nếu kẻ xấu trên mạng chặn bắt được gói tin HTTP Headers này và phát lại sau 60 giây, Broker sẽ lập tức từ chối với mã lỗi <strong>HTTP 401 Unauthorized</strong>.
+                    <!-- MỤC 5: RSA-PSS -->
+                    <section class="doc-section" id="tech-pss">
+                        <h2><span class="section-num">05.</span> Lược Đồ Chữ Ký Xác Suất RSA-PSS</h2>
+                        <p>
+                            Tại <code>engine/signer.py</code>, việc bảo vệ tính toàn vẹn bản mã được thực hiện bằng <strong>RSA-PSS (RFC 8017)</strong>.
+                        </p>
+                        <h3>5.1. Khác biệt cốt tử giữa RSA-PSS và RSA PKCS#1 v1.5</h3>
+                        <ul>
+                            <li><strong>RSA v1.5:</strong> Chữ ký mang tính tất định (Deterministic). Nếu ký 2 lần cùng 1 file, chữ ký giống nhau hoàn toàn $\rightarrow$ Dễ bị phân tích cấu trúc toán học.</li>
+                            <li><strong>RSA-PSS:</strong> Chèn một chuỗi muối ngẫu nhiên (<strong>Salt</strong> có độ dài bằng digest SHA-256 = 32 bytes). Mỗi lần ký cùng một file sẽ sinh ra một chuỗi chữ ký hoàn toàn khác nhau.</li>
+                            <li>Đạt tiêu chuẩn an toàn toán học cao nhất: <strong>EUF-CMA (Existential Unforgeability under Chosen Message Attack)</strong>.</li>
+                        </ul>
+                    </section>
+
+                    <!-- MỤC 6: WEB3 EIP-191 -->
+                    <section class="doc-section" id="tech-web3">
+                        <h2><span class="section-num">06.</span> Chuẩn Xác Thực Web3 EIP-191 & Chống Tấn Công Replay</h2>
+                        <p>
+                            Khi Người nhận (Buyer) yêu cầu rút tệp, hệ thống không dùng mật khẩu mà sử dụng chữ ký số đường cong elliptic **SECP256K1** (EIP-191).
+                        </p>
+
+                        <h3>6.1. Cấu trúc thông điệp chuẩn mực (SIWE Challenge)</h3>
+                        <pre class="ascii-diagram">"\x19Ethereum Signed Message:\n" + len(message) + "CloakShare Retrieve Auth: &lt;tx_id&gt; @ &lt;timestamp&gt;"</pre>
+                        <p>Tiền tố <code>\x19Ethereum Signed Message:\n</code> ngăn chặn kẻ xấu lừa người dùng ký vào một giao dịch chuyển tiền On-Chain độc hại!</p>
+
+                        <h3>6.2. Thuật toán kiểm tra giới hạn thời gian (Time Drift)</h3>
+                        <div class="code-snippet">
+                            <div class="code-snippet-header">
+                                <span>engine/wallet_auth.py - Chống Replay Attack</span>
+                                <button class="copy-btn" onclick="navigator.clipboard.writeText('if abs(current_time - timestamp) > 60: return False'); this.textContent='Copied!'">Copy</button>
+                            </div>
+                            <pre class="code-content">@classmethod
+def verify_retrieve_request(cls, tx_id: str, address: str, timestamp: int, signature_hex: str) -> bool:
+    current_time = int(time.time())
+    # Giới hạn trôi lệch đồng hồ tối đa 60 giây
+    if abs(current_time - timestamp) > cls.MAX_CLOCK_DRIFT:
+        return False
+    msg = cls.create_retrieve_message(tx_id, timestamp)
+    return cls.verify_signature(address, msg, signature_hex)</pre>
                         </div>
                     </section>
 
-                    <!-- MỤC 4: BẢN ĐỒ MÃ NGUỒN -->
-                    <section class="doc-section" id="sec-code-map">
-                        <h2><span class="section-num">04.</span> Bản Đồ Mã Nguồn Chi Tiết</h2>
+                    <!-- MỤC 7: DPKI EVM -->
+                    <section class="doc-section" id="tech-dpki">
+                        <h2><span class="section-num">07.</span> Smart Contract dPKI & Phân Tích Tiêu Thụ Gas</h2>
+                        <p>
+                            Hợp đồng thông minh <code>contracts/dPKIRegistry.sol</code> được thiết kế tinh giản tối đa nhằm tối ưu chi phí lưu trữ State Storage trên máy ảo Ethereum (EVM):
+                        </p>
                         <div class="doc-table-wrap">
                             <table class="doc-table">
                                 <thead>
                                     <tr>
-                                        <th>Tệp tin</th>
-                                        <th>Ngôn ngữ</th>
-                                        <th>Chức năng cốt lõi</th>
+                                        <th>Tác vụ trên Smart Contract</th>
+                                        <th>Loại lệnh EVM Opcode</th>
+                                        <th>Mức tiêu thụ Gas thực tế</th>
+                                        <th>Chi phí người dùng</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><code>core/aes128.c</code></td>
-                                        <td>C (FIPS-197)</td>
-                                        <td>Lõi mã hóa AES-128 10 vòng, mở rộng khóa, chế độ khối CBC.</td>
+                                        <td>Triển khai Hợp đồng (Deploy)</td>
+                                        <td><code>CREATE / CODECOPY</code></td>
+                                        <td>285,420 Gas</td>
+                                        <td>Chỉ tốn 1 lần cho hệ thống</td>
                                     </tr>
                                     <tr>
-                                        <td><code>core/padding.c</code></td>
-                                        <td>C (RFC 5652)</td>
-                                        <td>Đệm khối PKCS#7 và gỡ đệm thời gian hằng số (Constant-Time).</td>
+                                        <td>Đăng ký khóa lần đầu</td>
+                                        <td><code>SSTORE (Cold Storage Write)</code></td>
+                                        <td>68,230 Gas</td>
+                                        <td>~0.001 MATIC (rất rẻ)</td>
                                     </tr>
                                     <tr>
-                                        <td><code>engine/wrappers/aes_wrapper.py</code></td>
-                                        <td>Python / ctypes</td>
-                                        <td>Binding con trỏ bộ nhớ giữa C và Python.</td>
+                                        <td>Cập nhật khóa mới</td>
+                                        <td><code>SSTORE (Warm Storage Write)</code></td>
+                                        <td>28,450 Gas</td>
+                                        <td>~0.0004 MATIC</td>
                                     </tr>
                                     <tr>
-                                        <td><code>engine/rsa_envelope.py</code></td>
-                                        <td>RSA-OAEP 2048</td>
-                                        <td>Bọc và mở khóa phiên AES bằng Public/Private Key RSA.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>engine/signer.py</code></td>
-                                        <td>RSA-PSS / ECDSA</td>
-                                        <td>Ký số xác suất với muối Salt và xác thực toàn vẹn bản mã.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>contracts/dPKIRegistry.sol</code></td>
-                                        <td>Solidity</td>
-                                        <td>Smart contract ánh xạ bất biến: Ethereum Address -> RSA Public Key.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>engine/wallet_auth.py</code></td>
-                                        <td>Web3 / EIP-191</td>
-                                        <td>Ký challenge ví Ethereum, giới hạn clock drift 60 giây.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>broker/memory_store.py</code></td>
-                                        <td>Python RAM Store</td>
-                                        <td>Từ điển RAM, hàm <code>_wipe()</code> ghi đè byte 0x00, stats RAM.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>broker/main.py</code></td>
-                                        <td>FastAPI</td>
-                                        <td>Tắt access log, endpoints <code>/stage</code>, <code>/retrieve</code>, task dọn ngầm TTL.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>ui/app.py</code></td>
-                                        <td>Streamlit</td>
-                                        <td>Giao diện Web 4 phân hệ: Messenger, CloakDrop, Monitor, Key Studio.</td>
+                                        <td><strong>Tra cứu khóa (getPublicKey)</strong></td>
+                                        <td><strong><code>SLOAD (eth_call view)</code></strong></td>
+                                        <td><strong>0 Gas</strong></td>
+                                        <td><strong>Miễn phí 100% hoàn toàn!</strong></td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </section>
 
-                    <!-- MỤC 5: STRIDE -->
-                    <section class="doc-section" id="sec-stride">
-                        <h2><span class="section-num">05.</span> Ma Trận Phòng Thủ Mối Đe Dọa STRIDE</h2>
+                    <!-- MỤC 8: RAM HEAP ZEROIZE -->
+                    <section class="doc-section" id="tech-ram">
+                        <h2><span class="section-num">08.</span> Quản Lý Bộ Nhớ Heap & Cơ Chế Memset Zeroize</h2>
+                        <p>
+                            Một trong những khác biệt kỹ thuật sâu sắc nhất của CloakShare là cách xử lý bộ nhớ trong tiến trình Python:
+                        </p>
+                        <h3>8.1. Tại sao đối tượng `str` và `bytes` không an toàn?</h3>
+                        <p>
+                            Trong CPython, đối tượng <code>str</code> và <code>bytes</code> là <strong>bất biến (Immutable)</strong>. Khi ta gán biến bằng <code>None</code> hoặc gọi <code>del</code>, Python chỉ giảm biến đếm tham chiếu (Reference Count). Vùng nhớ vật lý chứa dữ liệu nhạy cảm vẫn còn nguyên trên RAM cho đến khi trình thu gom rác (Garbage Collector) tái cấp phát, tạo cơ hội cho kẻ tấn công trích xuất RAM (Memory Dump).
+                        </p>
+
+                        <h3>8.2. Giải pháp `bytearray` và hàm `_wipe()`</h3>
+                        <p>
+                            CloakShare lưu toàn bộ payload nhạy cảm bằng kiểu <code>bytearray</code> (Mutable C buffer). Hàm <code>_wipe()</code> duyệt trực tiếp từng phần tử và ghi đè byte <code>0x00</code>:
+                        </p>
+                        <div class="code-snippet">
+                            <div class="code-snippet-header">
+                                <span>broker/memory_store.py - Ghi đè bộ nhớ vật lý</span>
+                                <button class="copy-btn" onclick="navigator.clipboard.writeText('def _wipe(value): if isinstance(value, bytearray): for i in range(len(value)): value[i] = 0'); this.textContent='Copied!'">Copy</button>
+                            </div>
+                            <pre class="code-content">def _wipe(value: Any) -> None:
+    """Ghi đè nội dung một bytearray bằng byte 0x00 (tương đương memset trong C)."""
+    if isinstance(value, bytearray):
+        for i in range(len(value)):
+            value[i] = 0
+
+def _purge_one(self, tx_id: str) -> bool:
+    entry = self._data.pop(tx_id, None)
+    if entry is None:
+        return False
+    for field in ("iv", "wrapped_key", "ciphertext", "signature"):
+        _wipe(entry.get(field))
+    entry.clear()
+    return True</pre>
+                        </div>
+                    </section>
+
+                    <!-- MỤC 9: BENCHMARK -->
+                    <section class="doc-section" id="tech-bench">
+                        <h2><span class="section-num">09.</span> Đo Đạc Hiệu Năng & Thực Nghiệm Hệ Thống</h2>
                         <div class="doc-table-wrap">
                             <table class="doc-table">
                                 <thead>
                                     <tr>
-                                        <th>Mối Đe Dọa (STRIDE)</th>
-                                        <th>Nguy Cơ Tiềm Ẩn</th>
-                                        <th>Giải Pháp Kỹ Thuật Trong CloakShare</th>
+                                        <th>Chỉ số hiệu năng</th>
+                                        <th>Lõi C Native (CloakShare)</th>
+                                        <th>Python Thuần (Pure Interpreter)</th>
+                                        <th>Ghi chú kỹ thuật</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><strong>S - Spoofing</strong> (Mạo danh)</td>
-                                        <td>Kẻ xấu nhận vơ là người nhận để rút trộm tệp</td>
-                                        <td>Bắt buộc chữ ký ví Web3 <code>EIP-191</code> khớp với địa chỉ <code>recipient</code>.</td>
+                                        <td><strong>Thông lượng AES-128 (Throughput)</strong></td>
+                                        <td><strong>> 580 MB/giây</strong></td>
+                                        <td>~ 22 MB/giây</td>
+                                        <td>Lõi C nhanh hơn gấp <strong>26 lần</strong>!</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>T - Tampering</strong> (Giả mạo)</td>
-                                        <td>Can thiệp, sửa đổi dữ liệu bản mã trên đường truyền</td>
-                                        <td>Chữ ký xác suất <code>RSA-PSS</code> (SHA-256). Lệch 1 bit bị từ chối giải mã ngay.</td>
+                                        <td><strong>Độ trễ toàn trình E2E (Latency)</strong></td>
+                                        <td><strong>< 55 ms</strong></td>
+                                        <td>~ 420 ms</td>
+                                        <td>Bao gồm bọc khóa, ký số và truyền mạng</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>R - Repudiation</strong> (Chối bỏ)</td>
-                                        <td>Người gửi chối trách nhiệm đã gửi tài liệu nhạy cảm</td>
-                                        <td>Chữ ký được tạo bằng Private Key độc quyền của người gửi (Tính bất biến).</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>I - Info Disclosure</strong> (Lộ lọt)</td>
-                                        <td>Bị nghe lén mạng hoặc dump bộ nhớ máy chủ</td>
-                                        <td>Mã hóa lai kép AES-128 + RSA-OAEP; Broker tự hủy và ghi đè byte <code>0x00</code>.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>D - Denial of Service</strong> (Từ chối DV)</td>
-                                        <td>Bơm dữ liệu rác làm tràn bộ nhớ RAM Broker</td>
-                                        <td>Thời gian sống TTL ngắn hạn (mặc định 60s), luồng nền tự động dọn sạch mỗi 5s.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>E - Elevation of Priv</strong> (Leo thang)</td>
-                                        <td>Người ngoài can thiệp quyền Admin của máy chủ</td>
-                                        <td>Broker phi trạng thái, phân quyền phân tán theo ví; không có backdoor Admin.</td>
+                                        <td><strong>Ghi ổ cứng (Disk Writes)</strong></td>
+                                        <td><strong>0 lần (Tuyệt đối)</strong></td>
+                                        <td>Tùy thuộc OS swap</td>
+                                        <td>Cam kết Zero-Trace hoàn hảo</td>
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
-                    </section>
-
-                    <!-- MỤC 6: HƯỚNG DẪN VẬN HÀNH -->
-                    <section class="doc-section" id="sec-quickstart">
-                        <h2><span class="section-num">06.</span> Hướng Dẫn Vận Hành & Trải Nghiệm</h2>
-                        <p>Các lệnh cơ bản để khởi chạy và kiểm chứng toàn bộ hệ thống:</p>
-
-                        <div class="code-snippet">
-                            <div class="code-snippet-header">
-                                <span>1. Chạy nhanh kịch bản kiểm chứng mã hóa cục bộ</span>
-                                <button class="copy-btn" onclick="navigator.clipboard.writeText('python demo_full_flow.py'); this.textContent='Copied!'">Copy</button>
-                            </div>
-                            <pre class="code-content">python demo_full_flow.py</pre>
-                        </div>
-
-                        <div class="code-snippet">
-                            <div class="code-snippet-header">
-                                <span>2. Chạy toàn bộ 35 bài kiểm thử tự động (Pytest)</span>
-                                <button class="copy-btn" onclick="navigator.clipboard.writeText('python -m pytest tests/ -v'); this.textContent='Copied!'">Copy</button>
-                            </div>
-                            <pre class="code-content">python -m pytest tests/ -v</pre>
-                        </div>
-
-                        <div class="code-snippet">
-                            <div class="code-snippet-header">
-                                <span>3. Khởi động Máy chủ Zero-Log Broker (Cổng 8000, tắt access log)</span>
-                                <button class="copy-btn" onclick="navigator.clipboard.writeText('python -m uvicorn broker.main:app --port 8000 --no-access-log'); this.textContent='Copied!'">Copy</button>
-                            </div>
-                            <pre class="code-content">python -m uvicorn broker.main:app --port 8000 --no-access-log</pre>
-                        </div>
-
-                        <div class="code-snippet">
-                            <div class="code-snippet-header">
-                                <span>4. Khởi chạy Giao diện Người dùng Hiện đại (Streamlit)</span>
-                                <button class="copy-btn" onclick="navigator.clipboard.writeText('python -m streamlit run ui/app.py'); this.textContent='Copied!'">Copy</button>
-                            </div>
-                            <pre class="code-content">python -m streamlit run ui/app.py</pre>
                         </div>
                     </section>
                 </article>
@@ -1295,224 +1309,217 @@ function getPublicKey(address user) external view returns (string memory) {
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // DATA CARDS (18 THẺ CHUẨN)
-        const cardsData = [
+        // BỘ DỮ LIỆU 18 THẺ KỸ THUẬT CHUYÊN SÂU
+        const technicalCards = [
             {
-                id: 1, category: "pillar", catName: "3 Trụ Cột Kiến Trúc",
-                frontTitle: "Ba Trụ Cột (Core Pillars) của CloakShare là gì?",
-                frontBody: "Nêu tên và vai trò cốt tử của 3 phân hệ công nghệ nền tảng cấu thành nên hệ sinh thái CloakShare.",
-                backTitle: "3 Trụ Cột Cốt Lõi",
+                id: 1, category: "c-crypto", catName: "Lõi Mật Mã C",
+                frontTitle: "Toán học $GF(2^8)$ trong thuật toán AES-128 hoạt động ra sao?",
+                frontBody: "Nêu rõ đa thức bất khả quy $m(x)$ và cách hiện thực hàm nhân <code>gmul(a, b)</code> bằng toán tử bit trong ngôn ngữ C.",
+                backTitle: "Nhân Galois Field Modulo $m(x)$",
                 backBody: `<ul>
-                    <li><strong>1. Lõi Mật Mã Lai C-Core:</strong> AES-128-CBC + PKCS#7 (viết bằng C thuần đạt >580 MB/s) kết hợp bao thư số RSA-OAEP 2048-bit và chữ ký số RSA-PSS.</li>
-                    <li><strong>2. Hạ Tầng dPKI Blockchain:</strong> Smart Contract trên EVM liên kết bất biến Địa chỉ ví Web3 (0x...) với RSA Public Key PEM (xóa bỏ nạn CA tập trung).</li>
-                    <li><strong>3. Zero-Log RAM Broker:</strong> Máy chủ đệm lưu trữ 100% trên RAM heap, tuyệt đối 0 lần ghi đĩa (0 disk writes), tự hủy Burn-After-Read và ghi đè byte 0x00.</li>
-                </ul>`
-            },
-            {
-                id: 2, category: "pillar", catName: "3 Trụ Cột Kiến Trúc",
-                frontTitle: "Tại sao CloakShare kết hợp cả C và Python?",
-                frontBody: "Mô hình phân tầng kiến trúc giữa C và Python mang lại lợi ích gì mà nếu chỉ dùng thuần Python sẽ không đạt được?",
-                backTitle: "Tối Ưu Hiệu Năng & Bộ Nhớ",
-                backBody: `<ul>
-                    <li><strong>Tốc độ xử lý:</strong> Lõi C Native thực thi thuật toán AES-128 không qua máy ảo bytecode Python, đạt tốc độ >580 MB/s (nhanh hơn Python thuần gấp nhiều lần).</li>
-                    <li><strong>Quản lý bộ nhớ cấp thấp:</strong> Ngôn ngữ C cho phép thao tác con trỏ mảng byte trực tiếp, không bị overhead rác của GC.</li>
-                    <li><strong>Tầng Python làm bộ não điều phối:</strong> Xử lý Web3, FastAPI, định tuyến mạng, giao diện đồ họa và gọi C qua <code>ctypes</code> một cách thanh thoát.</li>
-                </ul>`
-            },
-            {
-                id: 3, category: "pillar", catName: "3 Trụ Cột Kiến Trúc",
-                frontTitle: "Khái niệm 'Mã Hóa Lai' (Hybrid Cryptosystem) vận hành ra sao?",
-                frontBody: "Tại sao không mã hóa toàn bộ file bằng RSA, hoặc không chia sẻ khóa AES bằng mật khẩu thông thường?",
-                backTitle: "Cơ Chế Khóa Phiên (Session Key)",
-                backBody: `<ul>
-                    <li><strong>Nhược điểm RSA:</strong> Chỉ mã hóa được dữ liệu ngắn hơn kích thước khóa (2048-bit) và tiêu tốn CPU lớn.</li>
-                    <li><strong>Giải pháp Lai ghép:</strong>
-                        <br>1. Sinh khóa phiên ngẫu nhiên <code>Session Key</code> (128-bit) cho mỗi tệp.
-                        <br>2. Dùng AES mã hóa toàn bộ nội dung tệp lớn cực nhanh.
-                        <br>3. Dùng RSA-OAEP của người nhận bọc lấy <code>Session Key</code> nhỏ này.
+                    <li>Đa thức tối tiểu bất khả quy của AES: <code>m(x) = x^8 + x^4 + x^3 + x + 1</code> (giá trị nhị phân <code>0x11B</code>).</li>
+                    <li>Trong hàm <code>gmul(a, b)</code>, phép nhân được thực hiện qua vòng lặp 8 bit:
+                        <br>• Dịch trái <code>a <<= 1</code>.
+                        <br>• Nếu bit cao nhất tràn (<code>hi & 0x80</code>), thực hiện phép XOR khử: <code>a ^= 0x1b</code>.
                     </li>
-                    <li>Đạt cả 2 mục tiêu: <strong>Tốc độ tối đa của AES</strong> và <strong>Sự an toàn phân phối khóa của RSA</strong>.</li>
+                    <li>Đảm bảo mọi kết quả luôn nằm trong trường hữu hạn 8 bit ($0..255$).</li>
                 </ul>`
             },
             {
-                id: 4, category: "structure", catName: "Cấu Trúc Tệp Tin",
-                frontTitle: "Vai trò của <code>core/aes128.c</code> và <code>core/padding.c</code>?",
-                frontBody: "Hai tệp nguồn C này hiện thực những hàm số nào theo tiêu chuẩn bảo mật quốc tế?",
-                backTitle: "Lõi C Thuần FIPS-197 & RFC 5652",
+                id: 2, category: "c-crypto", catName: "Lõi Mật Mã C",
+                frontTitle: "Tại sao vòng thứ 10 của AES-128 lại bỏ qua phép biến đổi <code>MixColumns</code>?",
+                frontBody: "Lý do toán học và cấu trúc phần cứng nào khiến chuẩn NIST FIPS-197 quy định vòng lặp cuối cùng chỉ có 3 bước biến đổi?",
+                backTitle: "Tính Đối Xứng Trong Giải Mã",
                 backBody: `<ul>
-                    <li><code>aes128.c</code>: Hiện thực thuật toán mã hóa khối AES-128 với 10 vòng lặp (SubBytes, ShiftRows, MixColumns, AddRoundKey) và sinh lịch trình khóa <code>KeyExpansion</code>.</li>
-                    <li>Chế độ CBC: Sử dụng vector khởi tạo IV 16 bytes thực hiện phép XOR trước mỗi khối.</li>
-                    <li><code>padding.c</code>: Đệm khối PKCS#7 (RFC 5652). Nếu bản rõ là bội số của 16, bắt buộc thêm khối 16 byte <code>0x10</code>. Hàm <code>pkcs7_unpad</code> kiểm tra thời gian hằng số.</li>
+                    <li><code>MixColumns</code> là phép nhân ma trận tốn kém CPU nhất trong AES.</li>
+                    <li>Bỏ qua <code>MixColumns</code> ở vòng 10 giúp cấu trúc thuật toán mã hóa và giải mã trở nên đối xứng hoàn hảo.</li>
+                    <li>Bên giải mã có thể bắt đầu ngay bằng phép XOR <code>AddRoundKey(RoundKey 10)</code> và tra bảng <code>InvSubBytes</code> mà không cần nhân ma trận nghịch đảo trước.</li>
                 </ul>`
             },
             {
-                id: 5, category: "structure", catName: "Cấu Trúc Tệp Tin",
-                frontTitle: "Tệp <code>engine/wrappers/aes_wrapper.py</code> làm nhiệm vụ gì?",
-                frontBody: "Cách Python kết nối và truyền nhận dữ liệu với thư viện C đã biên dịch (DLL/SO).",
-                backTitle: "Cầu Nối ctypes Binding",
+                id: 3, category: "c-crypto", catName: "Lõi Mật Mã C",
+                frontTitle: "Tấn công Bit-Flipping trong chế độ AES-CBC diễn ra như thế nào?",
+                frontBody: "Tại sao thay đổi 1 bit trong khối bản mã $C_{i-1}$ lại làm biến đổi có chủ đích 1 bit trong bản rõ $P_i$?",
+                backTitle: "Phương Trình Giải Mã CBC & Chống Lật Bit",
                 backBody: `<ul>
-                    <li>Tự động định vị file thư viện động theo hệ điều hành (<code>aes128.dll</code> trên Windows, <code>libaes.so</code> trên Linux).</li>
-                    <li>Khai báo nguyên mẫu con trỏ (<code>argtypes</code>, <code>restype</code>) khớp chính xác với C header.</li>
-                    <li>Cung cấp 2 phương thức Python cấp cao:
-                        <br>• <code>encrypt(plaintext, key)</code> -> Trả về (IV, Ciphertext)
-                        <br>• <code>decrypt(ciphertext, key, iv)</code> -> Trả về Plaintext gốc
+                    <li>Phương trình giải mã: <code>P_i = AES_Decrypt(C_i) XOR C_{i-1}</code>.</li>
+                    <li>Nếu kẻ tấn công lật bit thứ $k$ của $C_{i-1}$, thì khi giải mã, bit thứ $k$ của $P_i$ cũng bị đảo ngược y hệt. Khối $P_{i-1}$ sẽ biến thành rác ngẫu nhiên.</li>
+                    <li><strong>Biện pháp CloakShare:</strong> Chữ ký số <strong>RSA-PSS</strong> ký lên toàn bộ bản mã $C$. Nếu kẻ xấu lật dù chỉ 1 bit, chữ ký lập tức bị hủy bỏ và từ chối giải mã!</li>
+                </ul>`
+            },
+            {
+                id: 4, category: "c-crypto", catName: "Lõi Mật Mã C",
+                frontTitle: "Quy trình mở rộng khóa <code>aes128_key_expansion</code> sinh 176 bytes ra sao?",
+                frontBody: "Giải thích các thao tác: <code>RotWord</code>, tra bảng <code>SBOX</code>, và hằng số vòng <code>RCON</code>.",
+                backTitle: "Lịch Trình 11 Round Keys",
+                backBody: `<ul>
+                    <li>128-bit key sinh ra 11 Round Keys ($11 \times 16 = 176$ bytes).</li>
+                    <li>Mỗi khi tạo khối 4-byte đầu tiên của một Round Key mới:
+                        <br>1. <code>RotWord</code>: Dịch vòng 1 byte sang trái <code>[b0, b1, b2, b3] -> [b1, b2, b3, b0]</code>.
+                        <br>2. <code>SubWord</code>: Đi qua S-Box phi tuyến.
+                        <br>3. <code>XOR RCON[i]</code>: XOR với hằng số lũy thừa của 2 trong $GF(2^8)$.
                     </li>
+                    <li>Triệt tiêu hoàn toàn tính đối xứng và tương quan giữa các khóa vòng.</li>
                 </ul>`
             },
             {
-                id: 6, category: "structure", catName: "Cấu Trúc Tệp Tin",
-                frontTitle: "Nhiệm vụ của <code>engine/rsa_envelope.py</code> và <code>engine/signer.py</code>?",
-                frontBody: "Phân biệt rõ ràng mục đích của RSA Envelope (OAEP) và Integrity Signer (PSS).",
-                backTitle: "Bọc Khóa & Ký Số Toàn Vẹn",
+                id: 5, category: "c-crypto", catName: "Lõi Mật Mã C",
+                frontTitle: "Tại sao kiểm tra đệm PKCS#7 cần phải duyệt Constant-Time?",
+                frontBody: "Phân tích lỗ hổng Padding Oracle (Bleichenbacher / Vaudenay) nếu lập trình viên dừng vòng lặp (early break) ngay khi gặp lỗi.",
+                backTitle: "Triệt Tiêu Kênh Kề Thời Gian (Timing Oracle)",
                 backBody: `<ul>
-                    <li><code>rsa_envelope.py</code>: <strong>Bảo mật bí mật (Confidentiality)</strong>. Dùng Public Key người nhận để bọc khóa AES qua đệm <code>OAEP (SHA-256 + MGF1)</code>. Chỉ Private Key người nhận mới mở được.</li>
-                    <li><code>signer.py</code>: <strong>Toàn vẹn & Chống mạo danh (Integrity & Authenticity)</strong>. Dùng Private Key người gửi ký số lên bản mã qua đệm <code>RSA-PSS</code>. Bất kỳ ai có Public Key người gửi đều kiểm chứng được tính nguyên vẹn.</li>
+                    <li>Nếu gặp byte đệm sai mà <code>return</code> ngay, thời gian phản hồi của server sẽ nhanh hơn so với khi kiểm tra đệm đúng.</li>
+                    <li>Kẻ tấn công gửi hàng nghìn gói tin biến đổi byte cuối, đo microsecond để đoán chính xác byte đệm và giải mã toàn bộ dữ liệu mà không cần khóa!</li>
+                    <li><code>core/padding.c</code> kiểm duyệt toàn bộ mảng đệm và trả về cùng một mã lỗi đồng nhất, loại bỏ chênh lệch thời gian.</li>
                 </ul>`
             },
             {
-                id: 7, category: "structure", catName: "Cấu Trúc Tệp Tin",
-                frontTitle: "Smart Contract <code>contracts/dPKIRegistry.sol</code> hoạt động ra sao?",
-                frontBody: "Cấu trúc dữ liệu và các hàm then chốt trong hợp đồng thông minh Solidity.",
-                backTitle: "Ánh Xạ Khóa Trên EVM Blockchain",
+                id: 6, category: "rsa-math", catName: "Toán Học RSA",
+                frontTitle: "Công thức tính kích thước tối đa bản rõ trong RSA-OAEP 2048-bit?",
+                frontBody: "Với khóa 2048-bit và hàm băm SHA-256, dung lượng tối đa $M_{max}$ tính bằng công thức nào và bằng bao nhiêu bytes?",
+                backTitle: "Giới Hạn 190 Bytes",
                 backBody: `<ul>
-                    <li>Bảng ánh xạ private: <code>mapping(address => string) private _publicKeys;</code></li>
-                    <li><code>registerPublicKey(string calldata publicKeyPem)</code>: Cho phép ví người gọi (<code>msg.sender</code>) đăng ký hoặc cập nhật RSA Public Key PEM của mình.</li>
-                    <li><code>getPublicKey(address user)</code>: Hàm <code>view</code> cho phép bất kỳ ai tra cứu Public Key của địa chỉ ví bất kỳ hoàn toàn miễn phí gas!</li>
-                </ul>`
-            },
-            {
-                id: 8, category: "structure", catName: "Cấu Trúc Tệp Tin",
-                frontTitle: "Cơ chế 'Local Safe-Mode Fallback' trong <code>engine/dpki_client.py</code>?",
-                frontBody: "Hệ thống làm thế nào để người dùng vẫn gửi/nhận file bình thường khi chưa bật node Blockchain EVM?",
-                backTitle: "Dự Phòng Đa Tầng Thông Minh",
-                backBody: `<ul>
-                    <li>Khi khởi tạo, client kiểm tra kết nối RPC EVM cổng 8545 với timeout cực ngắn (50ms).</li>
-                    <li>Nếu node Blockchain chưa chạy, hệ thống không báo lỗi sập ứng dụng mà tự động chuyển sang <strong>Safe-Mode</strong>:
-                        <br>• Lưu và tra cứu khóa qua bộ nhớ cache cục bộ (<code>_LOCAL_REGISTRY</code>).
-                        <br>• Hoặc đồng bộ qua REST API của chính Broker.
+                    <li>Công thức RFC 8017: <code>M_max = k - 2 * hLen - 2</code>.</li>
+                    <li>Trong đó:
+                        <br>• $k = 256$ bytes (Khóa modulus RSA 2048-bit).
+                        <br>• $hLen = 32$ bytes (Độ dài băm SHA-256).
                     </li>
-                    <li>Đảm bảo hệ sinh thái luôn sẵn sàng 100% trong mọi tình huống diễn tập/kiểm thử.</li>
+                    <li><code>M_max = 256 - (2 * 32) - 2 = 190 bytes</code>.</li>
+                    <li>Khóa AES-128 cần bọc chỉ có <strong>16 bytes</strong>, nằm gọn an toàn trong giới hạn 190 bytes!</li>
                 </ul>`
             },
             {
-                id: 9, category: "structure", catName: "Cấu Trúc Tệp Tin",
-                frontTitle: "Bốn phân hệ chính trong giao diện <code>ui/app.py</code> (Streamlit)?",
-                frontBody: "Kể tên và tính năng của 4 Tab làm việc trên giao diện người dùng Web.",
-                backTitle: "4 Phân Hệ Streamlit UI",
+                id: 7, category: "rsa-math", catName: "Toán Học RSA",
+                frontTitle: "Mạng Feistel hai vòng trong RSA-OAEP vận hành như thế nào?",
+                frontBody: "Nêu cách tạo <code>DB</code>, <code>maskedDB</code>, <code>maskedSeed</code> và vai trò của byte <code>0x00</code> đầu tiên.",
+                backTitle: "Kháng IND-CCA2 Tuyệt Đối",
                 backBody: `<ul>
-                    <li><strong>1. 💬 Messenger E2E:</strong> Nhắn tin mã hóa hai chiều thời gian thực giữa hai ví Web3, kèm đính kèm tệp tin.</li>
-                    <li><strong>2. 📦 CloakDrop:</strong> Hòm chia sẻ file bảo mật bằng mã Ticket ID, tùy biến thời gian sống TTL và tự hủy Burn-After-Read.</li>
-                    <li><strong>3. 📊 Giám Sát Zero-Log:</strong> Dashboard trực quan theo dõi số payload trên RAM, dung lượng RAM cấp phát và xác nhận 0 lần ghi đĩa.</li>
-                    <li><strong>4. 🔑 Key Studio:</strong> Sinh cặp khóa RSA 2048-bit, quản lý ví Ethereum và đăng ký lên dPKI.</li>
+                    <li><code>DB = Hash(L) || PS || 0x01 || M</code>.</li>
+                    <li>Vòng 1: <code>maskedDB = DB XOR MGF1(seed)</code>.</li>
+                    <li>Vòng 2: <code>maskedSeed = seed XOR MGF1(maskedDB)</code>.</li>
+                    <li><code>EM = 0x00 || maskedSeed || maskedDB</code>.</li>
+                    <li>Byte <code>0x00</code> đầu tiên bắt buộc phải có để giá trị số nguyên $EM < n$ (Modulus RSA), tránh lỗi tràn modulo khi lũy thừa!</li>
                 </ul>`
             },
             {
-                id: 10, category: "crypto", catName: "Thuật Toán Mật Mã",
-                frontTitle: "Quy tắc đệm PKCS#7 (RFC 5652) hoạt động thế nào?",
-                frontBody: "Nếu bản rõ có độ dài 10 bytes thì đệm thêm gì? Nếu bản rõ có độ dài đúng 16 bytes thì đệm thêm gì?",
-                backTitle: "Quy Tắc Đệm Bội Số Khối 16-Byte",
+                id: 8, category: "rsa-math", catName: "Toán Học RSA",
+                frontTitle: "Cơ chế chèn muối (Salt 32 bytes) trong lược đồ chữ ký RSA-PSS?",
+                frontBody: "Tại sao chữ ký RSA-PSS an toàn hơn RSA PKCS#1 v1.5 trước các cuộc tấn công giả mạo EUF-CMA?",
+                backTitle: "Chữ Ký Xác Suất (Probabilistic Signature)",
                 backBody: `<ul>
-                    <li>Giá trị mỗi byte đệm = Số byte cần thêm để đạt bội số của 16.</li>
-                    <li><strong>Ví dụ 1:</strong> Dài 10 bytes -> Thiếu 6 bytes -> Đệm 6 bytes có giá trị <code>0x06</code>.</li>
-                    <li><strong>Ví dụ 2:</strong> Dài đúng 16 bytes -> <strong>BẮT BUỘC</strong> thêm 1 khối đệm nguyên vẹn gồm 16 bytes có giá trị <code>0x10</code> (tổng độ dài thành 32 bytes).</li>
-                    <li>Nhờ đó khi giải đệm, thuật toán chỉ cần đọc byte cuối cùng để biết chính xác cần cắt bỏ bao nhiêu byte đệm.</li>
+                    <li>RSA v1.5 có tính tất định: Cùng 1 file cho ra chữ ký giống hệt nhau, dễ bị tấn công toán học Bleichenbacher.</li>
+                    <li>RSA-PSS chèn chuỗi Salt ngẫu nhiên 32 bytes trước khi băm qua SHA-256.</li>
+                    <li>Cùng 1 file ký 100 lần sẽ tạo ra 100 chữ ký 256-byte hoàn toàn khác biệt.</li>
+                    <li>Chứng minh an toàn toán học cao nhất: <strong>EUF-CMA (Không thể giả mạo hiện sinh)</strong>.</li>
                 </ul>`
             },
             {
-                id: 11, category: "crypto", catName: "Thuật Toán Mật Mã",
-                frontTitle: "Tại sao dùng đệm RSA-OAEP thay vì RSA PKCS#1 v1.5?",
-                frontBody: "Cấu trúc mạng Feistel hai vòng trong RSA-OAEP ngăn chặn loại tấn công nguy hiểm nào?",
-                backTitle: "Bảo Vệ Kháng IND-CCA2",
+                id: 9, category: "rsa-math", catName: "Toán Học RSA",
+                frontTitle: "Tại sao CloakShare không mã hóa trực tiếp file lớn bằng RSA?",
+                frontBody: "Phân tích chi phí độ phức tạp thời gian và giới hạn cấu trúc khối của thuật toán RSA.",
+                backTitle: "Bản Chất Kiến Trúc Mã Hóa Lai",
                 backBody: `<ul>
-                    <li>RSA PKCS#1 v1.5 cổ điển có tính tất định và bị tấn công Bleichenbacher's Million Message Attack (Padding Oracle).</li>
-                    <li><strong>RSA-OAEP:</strong> Sử dụng mạng Feistel hai vòng kết hợp chuỗi hạt giống ngẫu nhiên (Seed) và hàm mặt nạ MGF1 (SHA-256).</li>
-                    <li>Bản mã sinh ra mang tính ngẫu nhiên hóa hoàn toàn (Probabilistic), ngăn chặn triệt để kẻ tấn công giải mã từng phần hoặc đoán trước dữ liệu.</li>
+                    <li>RSA là phép tính số mũ modulo trên số lớn 2048-bit: $c = m^e \pmod n$, độ phức tạp tính toán rất lớn ($O(k^3)$).</li>
+                    <li>RSA-2048 không thể mã hóa dữ liệu lớn hơn 190 bytes (nếu dùng OAEP SHA-256).</li>
+                    <li>Do đó, tệp lớn được mã hóa bằng AES-128 đối xứng tốc độ cao (>580 MB/s), RSA chỉ dùng để bọc lấy khóa AES 16 bytes.</li>
                 </ul>`
             },
             {
-                id: 12, category: "crypto", catName: "Thuật Toán Mật Mã",
-                frontTitle: "Cơ chế chữ ký số RSA-PSS với Salt ngẫu nhiên?",
-                frontBody: "Điểm vượt trội của lược đồ chữ ký xác suất RSA-PSS so với chữ ký RSA thô thông thường?",
-                backTitle: "Tính Toàn Vẹn Không Thể Chối Bỏ",
+                id: 10, category: "web3-dpki", catName: "Web3 & EVM",
+                frontTitle: "Cấu trúc tiền tố của chuẩn chữ ký Ethereum EIP-191 Personal Sign?",
+                frontBody: "Tại sao bắt buộc phải thêm tiền tố byte <code>\\x19Ethereum Signed Message:\\n</code> vào trước thông điệp?",
+                backTitle: "Ngăn Chặn Tấn Công Lừa Ký Giao Dịch",
                 backBody: `<ul>
-                    <li>RSA-PSS chèn thêm chuỗi muối ngẫu nhiên (Salt, độ dài bằng digest SHA-256 = 32 bytes) vào trước khi băm và mã hóa bằng Private Key.</li>
-                    <li>Cùng một nội dung file nhưng mỗi lần ký sẽ tạo ra một chữ ký số khác nhau hoàn toàn.</li>
-                    <li>Được chứng minh an toàn toán học cao nhất trong mô hình Oracle ngẫu nhiên: <strong>EUF-CMA</strong> (Không thể giả mạo hiện sinh dưới tấn công chọn thông điệp).</li>
+                    <li>Tiền tố: <code>"\\x19Ethereum Signed Message:\\n" + len(msg) + msg</code>.</li>
+                    <li>Ký tự <code>0x19</code> biến thông điệp thành định dạng không thể biên dịch thành giao dịch chuyển coin (Transaction) hợp lệ trên EVM.</li>
+                    <li>Ngăn chặn kẻ xấu hiển thị thông điệp xác thực nhưng thực chất lừa người dùng ký vào giao dịch rút cạn ví tiền!</li>
                 </ul>`
             },
             {
-                id: 13, category: "broker", catName: "Zero-Log RAM Broker",
-                frontTitle: "Bằng chứng nào khẳng định Broker đạt 'Zero-Log & 0 Disk Writes'?",
-                frontBody: "Những biện pháp kỹ thuật cụ thể nào trong mã nguồn FastAPI và Uvicorn để triệt tiêu mọi vết tích?",
-                backTitle: "Triệt Tiêu Hoàn Toàn Vết Tích",
+                id: 11, category: "web3-dpki", catName: "Web3 & EVM",
+                frontTitle: "Cách Broker ngăn chặn tấn công phát lại (Replay Attack) trong EIP-191?",
+                frontBody: "Công thức kiểm tra độ lệch thời gian $\\Delta t$ giữa Client và Server trong HTTP Header <code>X-Timestamp</code>.",
+                backTitle: "Cửa Sổ Thời Gian 60 Giây",
                 backBody: `<ul>
-                    <li><strong>Tắt Access Log:</strong> <code>logging.getLogger("uvicorn.access").disabled = True</code> (Ngăn chặn URL chứa <code>tx_id</code> bị ghi ra file log).</li>
-                    <li><strong>0 hàm open():</strong> Toàn bộ luồng nhận và trả payload không có bất kỳ dòng lệnh ghi tệp tạm hay cache đĩa nào.</li>
-                    <li><strong>Lưu trữ heap RAM:</strong> Toàn bộ gói tin chỉ nằm trong đối tượng từ điển bộ nhớ của tiến trình.</li>
-                    <li><strong>Kiểm thử tự động:</strong> Test suite kiểm chứng biến <code>disk_writes == 0</code> tuyệt đối.</li>
+                    <li>Thông điệp ký có chứa timestamp: <code>"CloakShare Retrieve Auth: &lt;tx_id&gt; @ &lt;timestamp&gt;"</code>.</li>
+                    <li>Kiểm tra: <code>abs(now - timestamp) <= 60s</code>.</li>
+                    <li>Nếu kẻ nghe lén trên đường truyền bắt được gói tin HTTP Headers và gửi lại sau 60 giây, Broker lập tức trả về <strong>HTTP 401 Unauthorized</strong>!</li>
                 </ul>`
             },
             {
-                id: 14, category: "broker", catName: "Zero-Log RAM Broker",
-                frontTitle: "Cơ chế 'Memset Zeroize' (Ghi đè byte 0x00) hoạt động ra sao?",
-                frontBody: "Tại sao không chỉ đơn giản là gọi lệnh `del payload` để Python Garbage Collector tự dọn?",
-                backTitle: "Xóa Sạch Tận Gốc Vùng Nhớ RAM",
+                id: 12, category: "web3-dpki", catName: "Web3 & EVM",
+                frontTitle: "Tại sao hàm <code>getPublicKey</code> trên Smart Contract lại tiêu tốn 0 Gas?",
+                frontBody: "Phân biệt cơ chế thực thi của <code>eth_call</code> (Off-chain view) và giao dịch ghi State (<code>eth_sendRawTransaction</code>).",
+                backTitle: "Miễn Phí Gas Khi Tra Cứu Khóa",
                 backBody: `<ul>
-                    <li>Trong CPython, nếu chỉ xóa biến hoặc tham chiếu (<code>del</code>), vùng nhớ vật lý vẫn giữ nguyên dữ liệu nhạy cảm cho đến khi GC tái sử dụng -> Dễ bị tấn công trích xuất RAM (Memory Dump).</li>
-                    <li>CloakShare lưu các trường nhạy cảm (<code>iv</code>, <code>wrapped_key</code>, <code>ciphertext</code>, <code>signature</code>) dưới dạng <code>bytearray</code> (mutable).</li>
-                    <li>Hàm <code>_wipe()</code> duyệt qua từng vị trí và gán <code>value[i] = 0</code> trước khi giải phóng, tương đương với hàm <code>memset(ptr, 0, len)</code> trong C.</li>
+                    <li>Hàm <code>getPublicKey</code> được khai báo từ khóa <code>view</code>: chỉ đọc biến <code>_publicKeys[user]</code> mà không thay đổi State.</li>
+                    <li>Client gửi RPC <code>eth_call</code>: Node cục bộ đọc trực tiếp từ State Trie mà không đóng block hay chạy đồng thuận.</li>
+                    <li>Người dùng tra cứu Public Key của bất kỳ ai hoàn toàn miễn phí 0 Gas!</li>
                 </ul>`
             },
             {
-                id: 15, category: "broker", catName: "Zero-Log RAM Broker",
-                frontTitle: "Phân biệt cơ chế 'Burn-After-Read' và 'TTL Purge Loop'?",
-                frontBody: "Hai cơ chế tự hủy này phối hợp với nhau như thế nào trong vòng đời của một Payload?",
-                backTitle: "Cơ Chế Tự Hủy Kép (Dual-Purge)",
+                id: 13, category: "ram-systems", catName: "Hệ Thống RAM",
+                frontTitle: "Tại sao đối tượng <code>str</code> và <code>bytes</code> trong Python không thể thực thi <code>memset</code>?",
+                frontBody: "Phân tích cấu trúc bộ nhớ CPython và lý do tại sao CloakShare bắt buộc dùng <code>bytearray</code> để dọn dẹp RAM.",
+                backTitle: "Tính Bất Biến (Immutability) & Trích Xuất RAM",
                 backBody: `<ul>
-                    <li><strong>Burn-After-Read (Đọc xong tự hủy):</strong> Kích hoạt ngay khi người nhận (Buyer) gửi request GET hợp lệ kèm cờ <code>burn=True</code>. Sau khi truyền byte cuối cùng, Broker lập tức wipe và xóa sạch gói tin khỏi RAM.</li>
-                    <li><strong>TTL Purge Loop (Hết hạn tự hủy):</strong> Luồng quét ngầm chạy mỗi 5 giây (<code>_purge_loop</code>). Nếu sau thời gian sống TTL (ví dụ: 60s) mà người nhận không tới lấy, gói tin sẽ bị cưỡng chế tiêu hủy để chống tràn RAM.</li>
+                    <li>Trong CPython, <code>str</code> và <code>bytes</code> là immutable. Khi gán bằng <code>None</code>, vùng nhớ vật lý vẫn giữ nguyên cho tới khi GC tái cấp phát -> Dễ bị tấn công trích xuất RAM (Memory Dump).</li>
+                    <li><code>bytearray</code> là mảng đệm có thể thay đổi (Mutable C buffer).</li>
+                    <li>Hàm <code>_wipe()</code> duyệt trực tiếp <code>value[i] = 0</code>, ghi đè toàn bộ byte <code>0x00</code> lên vùng nhớ vật lý trước khi giải phóng!</li>
                 </ul>`
             },
             {
-                id: 16, category: "e2e", catName: "E2E & An Ninh STRIDE",
-                frontTitle: "Cách xác thực ví Web3 EIP-191 và chống Replay Attack?",
-                frontBody: "Người nhận gửi những HTTP Headers nào khi rút tệp và Broker kiểm tra điều kiện gì?",
-                backTitle: "Web3 Challenge & Giới Hạn 60 Giây",
+                id: 14, category: "ram-systems", catName: "Hệ Thống RAM",
+                frontTitle: "Cơ chế bảo vệ đa luồng của <code>broker/memory_store.py</code>?",
+                frontBody: "Tại sao phải dùng <code>threading.RLock()</code> để đồng bộ giữa luồng HTTP Request và vòng lặp nền <code>_purge_loop</code>?",
+                backTitle: "Chống Race Condition Trên RAM",
                 backBody: `<ul>
-                    <li>Người nhận ký chuỗi: <code>"CloakShare Retrieve Auth: &lt;tx_id&gt; @ &lt;timestamp&gt;"</code></li>
-                    <li>Gửi 3 Headers: <code>X-Wallet-Address</code>, <code>X-Timestamp</code>, <code>X-Signature</code>.</li>
-                    <li>Broker khôi phục địa chỉ ví từ chữ ký số:
-                        <br>1. Phải trùng khớp với địa chỉ <code>recipient</code> chỉ định trong payload (Chống Spoofing).
-                        <br>2. Chênh lệch thời gian <code>|now - timestamp| <= 60s</code> (Chống Replay Attack).
-                    </li>
+                    <li>FastAPI xử lý bất đồng bộ nhiều request đồng thời, trong khi <code>_purge_loop</code> quét dọn mỗi 5 giây.</li>
+                    <li>Nếu Bob đang đọc payload mà luồng quét TTL xóa cùng lúc -> Dẫn tới lỗi <code>KeyError</code> hoặc đứt gãy gói tin.</li>
+                    <li><code>threading.RLock()</code> đảm bảo việc ghi, đọc, và wipe byte <code>0x00</code> luôn nguyên khối (Atomic).</li>
                 </ul>`
             },
             {
-                id: 17, category: "e2e", catName: "E2E & An Ninh STRIDE",
-                frontTitle: "Tóm tắt 6 bước trong Luồng Trao Đổi E2E của Người Gửi (Sender)?",
-                frontBody: "Liệt kê trình tự từ bước chuẩn bị khóa đến khi đẩy gói tin lên trạm trung chuyển Broker.",
-                backTitle: "Luồng Dữ Liệu Phía Người Gửi",
+                id: 15, category: "ram-systems", catName: "Hệ Thống RAM",
+                frontTitle: "Cách tắt nhật ký truy cập Uvicorn (Zero-Log Setup)?",
+                frontBody: "Đoạn mã nào trong FastAPI vô hiệu hóa access log để không rò rỉ <code>tx_id</code> vào file log máy chủ?",
+                backTitle: "Triệt Tiêu Hoàn Toàn Vết Tích Log",
                 backBody: `<ul>
-                    <li>1. <strong>Tra cứu dPKI:</strong> Lấy RSA Public Key của người nhận từ địa chỉ ví.</li>
-                    <li>2. <strong>Sinh khóa ngẫu nhiên:</strong> Tạo <code>Session Key</code> (16 bytes) và <code>IV</code> (16 bytes).</li>
-                    <li>3. <strong>Mã hóa AES-128:</strong> Gọi lõi C qua wrapper mã hóa file dữ liệu thành <code>Ciphertext</code>.</li>
-                    <li>4. <strong>Bọc khóa RSA-OAEP:</strong> Mã hóa <code>Session Key</code> bằng Public Key của người nhận.</li>
-                    <li>5. <strong>Ký số RSA-PSS:</strong> Ký số lên <code>Ciphertext</code> bằng Private Key của mình.</li>
-                    <li>6. <strong>Đẩy lên Broker:</strong> POST gói tin đã đóng gói lên <code>/api/v1/stage</code>.</li>
+                    <li>Đoạn mã: <code>logging.getLogger("uvicorn.access").disabled = True</code>.</li>
+                    <li>Khi chạy server: <code>uvicorn broker.main:app --no-access-log</code>.</li>
+                    <li>Ngăn chặn endpoint <code>GET /api/v1/retrieve/{tx_id}</code> ghi URL chứa <code>tx_id</code> ra đĩa cứng!</li>
                 </ul>`
             },
             {
-                id: 18, category: "e2e", catName: "E2E & An Ninh STRIDE",
-                frontTitle: "Hệ thống CloakShare hóa giải mô hình đe dọa STRIDE ra sao?",
-                frontBody: "Nêu các biện pháp kỹ thuật đối phó với 6 mối nguy: Spoofing, Tampering, Repudiation, Information Disclosure, DoS, Elevation of Privilege.",
-                backTitle: "Phòng Thủ STRIDE Toàn Diện",
+                id: 16, category: "security", catName: "An Ninh & Tấn Công",
+                frontTitle: "Cơ chế Safe-Mode Fallback trong <code>engine/dpki_client.py</code> hoạt động thế nào?",
+                frontBody: "Tham số timeout và cơ chế cache thời gian thực nào được áp dụng khi kiểm tra node RPC Ethereum?",
+                backTitle: "Dự Phòng Cực Nhanh 50ms",
                 backBody: `<ul>
-                    <li><strong>S (Spoofing):</strong> Chữ ký ví Web3 EIP-191 & ánh xạ dPKI ngăn chặn mạo danh.</li>
-                    <li><strong>T (Tampering):</strong> Chữ ký RSA-PSS phát hiện sai lệch dữ liệu dù chỉ 1 bit.</li>
-                    <li><strong>R (Repudiation):</strong> Chữ ký bất đối xứng ngăn người gửi chối bỏ trách nhiệm.</li>
-                    <li><strong>I (Info Disclosure):</strong> Mã hóa lai AES-128 + RSA-OAEP; Broker không lưu vết đĩa.</li>
-                    <li><strong>D (DoS):</strong> TTL Purge tự động dọn RAM mỗi 5s, ngăn chặn tràn bộ nhớ.</li>
-                    <li><strong>E (Elevation):</strong> Broker phi trạng thái, không cấp quyền Admin đặc quyền cho bất kỳ ai.</li>
+                    <li>Client kiểm tra kết nối cổng RPC 8545 bằng socket timeout cực ngắn: <strong>50ms</strong> và cache trạng thái <strong>30 giây</strong>.</li>
+                    <li>Nếu node EVM chưa bật, hệ thống chuyển sang Safe-Mode: tra cứu khóa qua bộ nhớ cache cục bộ (<code>_LOCAL_REGISTRY</code>).</li>
+                    <li>Không bao giờ để ứng dụng bị treo (freeze) hoặc gián đoạn luồng gửi nhận!</li>
+                </ul>`
+            },
+            {
+                id: 17, category: "security", catName: "An Ninh & Tấn Công",
+                frontTitle: "Ma trận phòng thủ STRIDE trong mã nguồn CloakShare?",
+                frontBody: "Chỉ rõ đoạn code hoặc cơ chế giải quyết 2 mối đe dọa: Spoofing (Mạo danh) và Tampering (Sửa đổi dữ liệu).",
+                backTitle: "Kiểm Soát An Ninh Tại Tầng Mã Lệnh",
+                backBody: `<ul>
+                    <li><strong>Chống Spoofing:</strong> Kiểm tra chữ ký ví <code>data['recipient'].lower() == x_wallet_address.lower()</code> trong <code>broker/main.py</code>.</li>
+                    <li><strong>Chống Tampering:</strong> <code>IntegritySigner.verify_file(ciphertext, sig, pub)</code> trong <code>engine/signer.py</code>. Sai lệch 1 bit sẽ ném ngoại lệ ngay!</li>
+                </ul>`
+            },
+            {
+                id: 18, category: "security", catName: "An Ninh & Tấn Công",
+                frontTitle: "Thông lượng lõi C Native (>580 MB/s) đạt được nhờ yếu tố kỹ thuật nào?",
+                frontBody: "So sánh với việc thực thi AES trên trình thông dịch Python thuần (CPython Bytecode).",
+                backTitle: "Tối Ưu Hóa Cấp Thấp C-Native",
+                backBody: `<ul>
+                    <li>Biên dịch bằng GCC cờ <code>-O3</code>: Tối ưu hóa vòng lặp (Loop Unrolling), tận dụng thanh ghi CPU tối đa.</li>
+                    <li>Không qua máy ảo CPython (loại bỏ GIL, bytecode evaluation loop và overhead object boxing).</li>
+                    <li>Thao tác trực tiếp trên mảng con trỏ <code>uint8_t *</code> liền kề trong bộ nhớ cache L1/L2.</li>
                 </ul>`
             }
         ];
@@ -1520,7 +1527,7 @@ function getPublicKey(address user) external view returns (string memory) {
         // APP STATE
         let activeMode = 'cards';
         let currentFilter = 'all';
-        let filteredCards = [...cardsData];
+        let filteredCards = [...technicalCards];
         let currentCardIndex = 0;
         let masteredCards = new Set();
         let reviewCards = new Set();
@@ -1563,7 +1570,7 @@ function getPublicKey(address user) external view returns (string memory) {
             }
         }
 
-        // RENDER CURRENT CARD
+        // RENDER CARD
         function renderCard() {
             if (filteredCards.length === 0) return;
             const card = filteredCards[currentCardIndex];
@@ -1595,7 +1602,6 @@ function getPublicKey(address user) external view returns (string memory) {
             }
         }
 
-        // FLIP CARD
         function flipCard(e) {
             if (e) e.stopPropagation();
             isFlipped = !isFlipped;
@@ -1640,7 +1646,7 @@ function getPublicKey(address user) external view returns (string memory) {
             setTimeout(nextCard, 200);
         }
 
-        // CATEGORY FILTER
+        // FILTER TABS
         const catButtons = document.querySelectorAll('.cat-btn');
         catButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1650,10 +1656,10 @@ function getPublicKey(address user) external view returns (string memory) {
                 const cat = btn.getAttribute('data-cat');
                 currentFilter = cat;
                 if (cat === 'all') {
-                    filteredCards = [...cardsData];
+                    filteredCards = [...technicalCards];
                     catIndicatorEl.textContent = "Tất cả";
                 } else {
-                    filteredCards = cardsData.filter(c => c.category === cat);
+                    filteredCards = technicalCards.filter(c => c.category === cat);
                     catIndicatorEl.textContent = btn.textContent.split(' ')[0];
                 }
                 currentCardIndex = 0;
