@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloakShare - Flashcards Học Thuộc Cấu Trúc Dự Án</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Hệ màu chuẩn yêu cầu: Xanh biển, Đen/Xám, Đỏ */
+            --bg-deep: #090d16;
+            --bg-card: #111827;
+            --bg-surface: #1e293b;
+            --border-color: #334155;
+            --border-hover: #2563eb;
+            
+            --blue-primary: #2563eb;
+            --blue-accent: #3b82f6;
+            --blue-light: #60a5fa;
+            --blue-dim: rgba(37, 99, 235, 0.15);
+
+            --red-primary: #dc2626;
+            --red-accent: #ef4444;
+            --red-light: #fee2e2;
+            --red-dim: rgba(220, 38, 38, 0.15);
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(220, 38, 38, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px 60px 16px;
+        }
+
+        /* HEADER */
+        header {
+            text-align: center;
+            max-width: 900px;
+            margin-bottom: 24px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--blue-dim);
+            color: var(--blue-light);
+            border: 1px solid var(--blue-primary);
+            padding: 4px 14px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        h1 span {
+            color: var(--blue-light);
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* STATS & PROGRESS BAR */
+        .progress-section {
+            width: 100%;
+            max-width: 760px;
+            margin-bottom: 20px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88rem;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        .stats-row strong {
+            color: var(--text-main);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-surface);
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--blue-primary), var(--blue-light));
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        /* FILTER CATEGORIES */
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 860px;
+            margin-bottom: 24px;
+        }
+
+        .cat-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cat-btn:hover {
+            border-color: var(--blue-light);
+            color: var(--text-main);
+        }
+
+        .cat-btn.active {
+            background: var(--blue-primary);
+            border-color: var(--blue-primary);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        }
+
+        /* FLASHCARD CONTAINER */
+        .flashcard-wrapper {
+            perspective: 1200px;
+            width: 100%;
+            max-width: 760px;
+            height: 440px;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: left;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flashcard-wrapper.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 36px 36px 30px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 16px 35px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .card-face:hover {
+            border-color: var(--blue-primary);
+            box-shadow: 0 20px 45px rgba(37, 99, 235, 0.15);
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, #111827 0%, #0d1322 100%);
+            border-color: #2563eb;
+        }
+
+        /* CARD HEADER */
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-cat-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--blue-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .flip-indicator {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* CARD CONTENT */
+        .card-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 14px;
+            line-height: 1.35;
+        }
+
+        .card-title code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(37, 99, 235, 0.2);
+            color: var(--blue-light);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 1.25rem;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .card-body {
+            font-size: 0.98rem;
+            line-height: 1.65;
+            color: #cbd5e1;
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 6px;
+        }
+
+        .card-body ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .card-body li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .card-body li::before {
+            content: "•";
+            position: absolute;
+            left: 4px;
+            color: var(--blue-light);
+            font-size: 1.3rem;
+            line-height: 1;
+            top: 1px;
+        }
+
+        .card-body strong {
+            color: #ffffff;
+        }
+
+        .card-body code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1e293b;
+            color: #93c5fd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .card-body .alert-box {
+            background: var(--red-dim);
+            border-left: 3px solid var(--red-accent);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #fca5a5;
+            margin-top: 10px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 12px;
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* CONTROLS */
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 760px;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: var(--bg-surface);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            border-color: var(--blue-primary);
+            background: #273549;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--blue-primary);
+            border-color: var(--blue-primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-success {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: var(--blue-primary);
+            color: var(--blue-light);
+        }
+
+        .btn-success:hover {
+            background: var(--blue-primary);
+            color: #ffffff;
+        }
+
+        .btn-danger {
+            background: var(--red-dim);
+            border-color: var(--red-primary);
+            color: #fca5a5;
+        }
+
+        .btn-danger:hover {
+            background: var(--red-primary);
+            color: #ffffff;
+        }
+
+        /* HINT FOOTER */
+        .keyboard-hints {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        kbd {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--blue-light);
+        }
+
+        /* CHEAT SHEET TABLE SECTION */
+        .cheatsheet-section {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .cheatsheet-section h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-surface);
+            color: var(--blue-light);
+            padding: 10px 14px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+        }
+
+        tr:hover td {
+            background: rgba(37, 99, 235, 0.04);
+        }
+
+        td code {
+            font-family: 'JetBrains Mono', monospace;
+            color: #93c5fd;
+            background: #1e293b;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--blue-primary);
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.6rem; }
+            .flashcard-wrapper { height: 480px; }
+            .card-face { padding: 24px 20px; }
+            .controls-row { flex-wrap: wrap; justify-content: center; }
+            .btn { flex: 1 1 40%; font-size: 0.8rem; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="badge">CloakShare Master Study Deck</div>
+        <h1>Bộ Thẻ Ghi Nhớ <span>CloakShare</span></h1>
+        <p class="subtitle">Ôn tập cấu trúc toàn diện, mã nguồn, thuật toán mật mã và cơ chế Zero-Log</p>
+    </header>
+
+    <!-- PROGRESS SECTION -->
+    <div class="progress-section">
+        <div class="stats-row">
+            <div>Thẻ <strong id="current-idx">1</strong> / <strong id="total-cards">18</strong> (<span id="cat-indicator">Tất cả</span>)</div>
+            <div>Đã thuộc: <strong id="mastered-count" style="color: var(--blue-light)">0</strong> | Cần ôn: <strong id="review-count" style="color: var(--red-accent)">0</strong></div>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- CATEGORY FILTER TABS -->
+    <div class="category-tabs" id="category-tabs">
+        <button class="cat-btn active" data-cat="all">Tất cả (18)</button>
+        <button class="cat-btn" data-cat="pillar">3 Trụ Cột (3)</button>
+        <button class="cat-btn" data-cat="structure">Cấu Trúc Tệp (6)</button>
+        <button class="cat-btn" data-cat="crypto">Mật Mã Học (3)</button>
+        <button class="cat-btn" data-cat="broker">Zero-Log RAM (3)</button>
+        <button class="cat-btn" data-cat="e2e">E2E & An Ninh (3)</button>
+    </div>
+
+    <!-- FLASHCARD COMPONENT -->
+    <div class="flashcard-wrapper" id="flashcard" onclick="flipCard()">
+        <div class="flashcard-inner">
+            <!-- MẶT TRƯỚC (CÂU HỎI / KHÁI NIỆM) -->
+            <div class="card-face card-front">
+                <div class="card-top">
+                    <span class="card-cat-badge" id="front-cat">3 TRỤ CỘT</span>
+                    <span class="flip-indicator">Nhấp để lật ⟳</span>
+                </div>
+                <div>
+                    <h2 class="card-title" id="front-title">Tiêu Đề Thẻ</h2>
+                    <div class="card-body" id="front-body">
+                        Nội dung câu hỏi hoặc gợi ý...
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>Mặt trước: Câu hỏi kiểm tra</span>
+                    <span>Phím <kbd>Space</kbd> để lật</span>
+                </div>
+            </div>
+
+            <!-- MẶT SAU (CÂU TRẢ LỜI / BẢN CHẤT KỸ THUẬT) -->
+            <div class="card-face card-back">
+                <div class="card-top">
+                    <span class="card-cat-badge" id="back-cat">ĐÁP ÁN KỸ THUẬT</span>
+                    <span class="flip-indicator">Nhấp để quay lại ⟳</span>
+                </div>
+                <div>
+                    <h2 class="card-title" id="back-title">Giải Thích Bản Chất</h2>
+                    <div class="card-body" id="back-body">
+                        Chi tiết giải pháp, mã nguồn và kiến trúc...
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>Mặt sau: Kiến thức cốt lõi</span>
+                    <span>Đánh dấu trạng thái bên dưới</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS ROW -->
+    <div class="controls-row">
+        <button class="btn" onclick="prevCard()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Trước
+        </button>
+        
+        <button class="btn btn-danger" onclick="markCard(false, event)">
+            ✕ Cần ôn lại
+        </button>
+
+        <button class="btn btn-primary" onclick="flipCard(event)">
+            ⟳ Lật thẻ (Space)
+        </button>
+
+        <button class="btn btn-success" onclick="markCard(true, event)">
+            ✓ Đã thuộc
+        </button>
+
+        <button class="btn" onclick="nextCard()">
+            Sau
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+    </div>
+
+    <div class="keyboard-hints">
+        Mẹo phím tắt: <kbd>←</kbd> Thẻ trước | <kbd>→</kbd> Thẻ sau | <kbd>Space</kbd> Lật mặt thẻ | <kbd>1</kbd> Cần ôn | <kbd>2</kbd> Đã thuộc
+    </div>
+
+    <!-- CHEAT SHEET SUMMARY TABLE -->
+    <section class="cheatsheet-section">
+        <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue-light)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Bảng Tra Nhanh Tệp Cốt Lõi (Architecture Cheat Sheet)
+        </h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Đường dẫn tệp</th>
+                        <th>Công nghệ / Ngôn ngữ</th>
+                        <th>Nhiệm vụ cốt tử trong hệ thống CloakShare</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>core/aes128.c</code></td>
+                        <td>C thuần (FIPS-197)</td>
+                        <td>Mã hóa AES-128-CBC 10 vòng, thông lượng cực cao (>580 MB/s).</td>
+                    </tr>
+                    <tr>
+                        <td><code>core/padding.c</code></td>
+                        <td>C thuần (RFC 5652)</td>
+                        <td>Đệm PKCS#7 và gỡ đệm thời gian hằng số (chống Padding Oracle).</td>
+                    </tr>
+                    <tr>
+                        <td><code>engine/wrappers/aes_wrapper.py</code></td>
+                        <td>Python + ctypes</td>
+                        <td>Cầu nối con trỏ bộ nhớ giữa Python và thư viện C (.dll / .so).</td>
+                    </tr>
+                    <tr>
+                        <td><code>engine/rsa_envelope.py</code></td>
+                        <td>RSA-OAEP 2048-bit</td>
+                        <td>Bọc và mở khóa phiên AES (Session Key) bảo mật IND-CCA2.</td>
+                    </tr>
+                    <tr>
+                        <td><code>engine/signer.py</code></td>
+                        <td>RSA-PSS (RFC 8017)</td>
+                        <td>Ký số xác suất và kiểm tra toàn vẹn bản mã (lệch 1 bit bị từ chối ngay).</td>
+                    </tr>
+                    <tr>
+                        <td><code>contracts/dPKIRegistry.sol</code></td>
+                        <td>Solidity (EVM)</td>
+                        <td>Ánh xạ bất biến: Ethereum Address -> RSA Public Key PEM.</td>
+                    </tr>
+                    <tr>
+                        <td><code>engine/wallet_auth.py</code></td>
+                        <td>Web3 / EIP-191</td>
+                        <td>Tạo và xác thực chữ ký ví Web3 (SIWE challenge), chống Replay (<60s).</td>
+                    </tr>
+                    <tr>
+                        <td><code>broker/memory_store.py</code></td>
+                        <td>Python RAM Store</td>
+                        <td>Lưu trữ bytearray trên RAM, 0 ghi ổ cứng, memset ghi đè 0x00 tự hủy.</td>
+                    </tr>
+                    <tr>
+                        <td><code>broker/main.py</code></td>
+                        <td>FastAPI (Uvicorn)</td>
+                        <td>Tắt uvicorn.access log, xử lý POST /stage, GET /retrieve kèm TTL loop.</td>
+                    </tr>
+                    <tr>
+                        <td><code>ui/app.py</code></td>
+                        <td>Streamlit</td>
+                        <td>Giao diện Web: Chat E2E, CloakDrop Vault, RAM Monitor, Key Studio.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const cardsData = [
+            // --- 3 TRỤ CỘT ---
+            {
+                id: 1,
+                category: "pillar",
+                catName: "3 Trụ Cột Kiến Trúc",
+                frontTitle: "Ba Trụ Cột (Core Pillars) của CloakShare là gì?",
+                frontBody: "Nêu tên và vai trò cốt tử của 3 phân hệ công nghệ nền tảng cấu thành nên hệ sinh thái CloakShare.",
+                backTitle: "3 Trụ Cột Cốt Lõi",
+                backBody: `<ul>
+                    <li><strong>1. Lõi Mật Mã Lai C-Core:</strong> AES-128-CBC + PKCS#7 (viết bằng C thuần đạt >580 MB/s) kết hợp bao thư số RSA-OAEP 2048-bit và chữ ký số RSA-PSS.</li>
+                    <li><strong>2. Hạ Tầng dPKI Blockchain:</strong> Smart Contract trên EVM liên kết bất biến Địa chỉ ví Web3 (0x...) với RSA Public Key PEM (xóa bỏ nạn CA tập trung).</li>
+                    <li><strong>3. Zero-Log RAM Broker:</strong> Máy chủ đệm lưu trữ 100% trên RAM heap, tuyệt đối 0 lần ghi đĩa (0 disk writes), tự hủy Burn-After-Read và ghi đè byte 0x00.</li>
+                </ul>`
+            },
+            {
+                id: 2,
+                category: "pillar",
+                catName: "3 Trụ Cột Kiến Trúc",
+                frontTitle: "Tại sao CloakShare kết hợp cả C và Python?",
+                frontBody: "Mô hình phân tầng kiến trúc giữa C và Python mang lại lợi ích gì mà nếu chỉ dùng thuần Python sẽ không đạt được?",
+                backTitle: "Tối Ưu Hiệu Năng & Bộ Nhớ",
+                backBody: `<ul>
+                    <li><strong>Tốc độ xử lý:</strong> Lõi C Native thực thi thuật toán AES-128 không qua máy ảo bytecode Python, đạt tốc độ >580 MB/s (nhanh hơn Python thuần gấp nhiều lần).</li>
+                    <li><strong>Quản lý bộ nhớ cấp thấp:</strong> Ngôn ngữ C cho phép thao tác con trỏ mảng byte trực tiếp, không bị overhead rác của GC.</li>
+                    <li><strong>Tầng Python làm bộ não điều phối:</strong> Xử lý Web3, FastAPI, định tuyến mạng, giao diện đồ họa và gọi C qua <code>ctypes</code> một cách thanh thoát.</li>
+                </ul>`
+            },
+            {
+                id: 3,
+                category: "pillar",
+                catName: "3 Trụ Cột Kiến Trúc",
+                frontTitle: "Khái niệm 'Mã Hóa Lai' (Hybrid Cryptosystem) vận hành ra sao?",
+                frontBody: "Tại sao không mã hóa toàn bộ file bằng RSA, hoặc không chia sẻ khóa AES bằng mật khẩu thông thường?",
+                backTitle: "Cơ Chế Khóa Phiên (Session Key)",
+                backBody: `<ul>
+                    <li><strong>Nhược điểm RSA:</strong> Chỉ mã hóa được dữ liệu ngắn hơn kích thước khóa (2048-bit) và tiêu tốn CPU lớn.</li>
+                    <li><strong>Giải pháp Lai ghép:</strong>
+                        <br>1. Sinh khóa phiên ngẫu nhiên <code>Session Key</code> (128-bit) cho mỗi tệp.
+                        <br>2. Dùng AES mã hóa toàn bộ nội dung tệp lớn cực nhanh.
+                        <br>3. Dùng RSA-OAEP của người nhận bọc lấy <code>Session Key</code> nhỏ này.
+                    </li>
+                    <li>Đạt cả 2 mục tiêu: <strong>Tốc độ tối đa của AES</strong> và <strong>Sự an toàn phân phối khóa của RSA</strong>.</li>
+                </ul>`
+            },
+
+            // --- CẤU TRÚC TỆP TIN ---
+            {
+                id: 4,
+                category: "structure",
+                catName: "Cấu Trúc Tệp Tin",
+                frontTitle: "Vai trò của <code>core/aes128.c</code> và <code>core/padding.c</code>?",
+                frontBody: "Hai tệp nguồn C này hiện thực những hàm số nào theo tiêu chuẩn bảo mật quốc tế?",
+                backTitle: "Lõi C Thuần FIPS-197 & RFC 5652",
+                backBody: `<ul>
+                    <li><code>aes128.c</code>: Hiện thực thuật toán mã hóa khối AES-128 với 10 vòng lặp (SubBytes, ShiftRows, MixColumns, AddRoundKey) và sinh lịch trình khóa <code>KeyExpansion</code>.</li>
+                    <li>Chế độ CBC: Sử dụng vector khởi tạo IV 16 bytes thực hiện phép XOR trước mỗi khối.</li>
+                    <li><code>padding.c</code>: Đệm khối PKCS#7 (RFC 5652). Nếu bản rõ là bội số của 16, bắt buộc thêm khối 16 byte <code>0x10</code>. Hàm <code>pkcs7_unpad</code> kiểm tra thời gian hằng số.</li>
+                </ul>`
+            },
+            {
+                id: 5,
+                category: "structure",
+                catName: "Cấu Trúc Tệp Tin",
+                frontTitle: "Tệp <code>engine/wrappers/aes_wrapper.py</code> làm nhiệm vụ gì?",
+                frontBody: "Cách Python kết nối và truyền nhận dữ liệu với thư viện C đã biên dịch (DLL/SO).",
+                backTitle: "Cầu Nối ctypes Binding",
+                backBody: `<ul>
+                    <li>Tự động định vị file thư viện động theo hệ điều hành (<code>aes128.dll</code> trên Windows, <code>libaes.so</code> trên Linux).</li>
+                    <li>Khai báo nguyên mẫu con trỏ (<code>argtypes</code>, <code>restype</code>) khớp chính xác với C header.</li>
+                    <li>Cung cấp 2 phương thức Python cấp cao:
+                        <br>• <code>encrypt(plaintext, key)</code> -> Trả về (IV, Ciphertext)
+                        <br>• <code>decrypt(ciphertext, key, iv)</code> -> Trả về Plaintext gốc
+                    </li>
+                </ul>`
+            },
+            {
+                id: 6,
+                category: "structure",
+                catName: "Cấu Trúc Tệp Tin",
+                frontTitle: "Nhiệm vụ của <code>engine/rsa_envelope.py</code> và <code>engine/signer.py</code>?",
+                frontBody: "Phân biệt rõ ràng mục đích của RSA Envelope (OAEP) và Integrity Signer (PSS).",
+                backTitle: "Bọc Khóa & Ký Số Toàn Vẹn",
+                backBody: `<ul>
+                    <li><code>rsa_envelope.py</code>: <strong>Bảo mật bí mật (Confidentiality)</strong>. Dùng Public Key người nhận để bọc khóa AES qua đệm <code>OAEP (SHA-256 + MGF1)</code>. Chỉ Private Key người nhận mới mở được.</li>
+                    <li><code>signer.py</code>: <strong>Toàn vẹn & Chống mạo danh (Integrity & Authenticity)</strong>. Dùng Private Key người gửi ký số lên bản mã qua đệm <code>RSA-PSS</code>. Bất kỳ ai có Public Key người gửi đều kiểm chứng được tính nguyên vẹn.</li>
+                </ul>`
+            },
+            {
+                id: 7,
+                category: "structure",
+                catName: "Cấu Trúc Tệp Tin",
+                frontTitle: "Smart Contract <code>contracts/dPKIRegistry.sol</code> hoạt động ra sao?",
+                frontBody: "Cấu trúc dữ liệu và các hàm then chốt trong hợp đồng thông minh Solidity.",
+                backTitle: "Ánh Xạ Khóa Trên EVM Blockchain",
+                backBody: `<ul>
+                    <li>Bảng ánh xạ private: <code>mapping(address => string) private _publicKeys;</code></li>
+                    <li><code>registerPublicKey(string calldata publicKeyPem)</code>: Cho phép ví người gọi (<code>msg.sender</code>) đăng ký hoặc cập nhật RSA Public Key PEM của mình.</li>
+                    <li><code>getPublicKey(address user)</code>: Hàm <code>view</code> cho phép bất kỳ ai tra cứu Public Key của địa chỉ ví bất kỳ hoàn toàn miễn phí gas!</li>
+                </ul>`
+            },
+            {
+                id: 8,
+                category: "structure",
+                catName: "Cấu Trúc Tệp Tin",
+                frontTitle: "Cơ chế 'Local Safe-Mode Fallback' trong <code>engine/dpki_client.py</code>?",
+                frontBody: "Hệ thống làm thế nào để người dùng vẫn gửi/nhận file bình thường khi chưa bật node Blockchain EVM?",
+                backTitle: "Dự Phòng Đa Tầng Thông Minh",
+                backBody: `<ul>
+                    <li>Khi khởi tạo, client kiểm tra kết nối RPC EVM cổng 8545 với timeout cực ngắn (50ms).</li>
+                    <li>Nếu node Blockchain chưa chạy, hệ thống không báo lỗi sập ứng dụng mà tự động chuyển sang <strong>Safe-Mode</strong>:
+                        <br>• Lưu và tra cứu khóa qua bộ nhớ cache cục bộ (<code>_LOCAL_REGISTRY</code>).
+                        <br>• Hoặc đồng bộ qua REST API của chính Broker.
+                    </li>
+                    <li>Đảm bảo hệ sinh thái luôn sẵn sàng 100% trong mọi tình huống diễn tập/kiểm thử.</li>
+                </ul>`
+            },
+            {
+                id: 9,
+                category: "structure",
+                catName: "Cấu Trúc Tệp Tin",
+                frontTitle: "Bốn phân hệ chính trong giao diện <code>ui/app.py</code> (Streamlit)?",
+                frontBody: "Kể tên và tính năng của 4 Tab làm việc trên giao diện người dùng Web.",
+                backTitle: "4 Phân Hệ Streamlit UI",
+                backBody: `<ul>
+                    <li><strong>1. 💬 Messenger E2E:</strong> Nhắn tin mã hóa hai chiều thời gian thực giữa hai ví Web3, kèm đính kèm tệp tin.</li>
+                    <li><strong>2. 📦 CloakDrop:</strong> Hòm chia sẻ file bảo mật bằng mã Ticket ID, tùy biến thời gian sống TTL và tự hủy Burn-After-Read.</li>
+                    <li><strong>3. 📊 Giám Sát Zero-Log:</strong> Dashboard trực quan theo dõi số payload trên RAM, dung lượng RAM cấp phát và xác nhận 0 lần ghi đĩa.</li>
+                    <li><strong>4. 🔑 Key Studio:</strong> Sinh cặp khóa RSA 2048-bit, quản lý ví Ethereum và đăng ký lên dPKI.</li>
+                </ul>`
+            },
+
+            // --- MẬT MÃ HỌC ---
+            {
+                id: 10,
+                category: "crypto",
+                catName: "Thuật Toán Mật Mã",
+                frontTitle: "Quy tắc đệm PKCS#7 (RFC 5652) hoạt động thế nào?",
+                frontBody: "Nếu bản rõ có độ dài 10 bytes thì đệm thêm gì? Nếu bản rõ có độ dài đúng 16 bytes thì đệm thêm gì?",
+                backTitle: "Quy Tắc Đệm Bội Số Khối 16-Byte",
+                backBody: `<ul>
+                    <li>Giá trị mỗi byte đệm = Số byte cần thêm để đạt bội số của 16.</li>
+                    <li><strong>Ví dụ 1:</strong> Dài 10 bytes -> Thiếu 6 bytes -> Đệm 6 bytes có giá trị <code>0x06</code>.</li>
+                    <li><strong>Ví dụ 2:</strong> Dài đúng 16 bytes -> <strong>BẮT BUỘC</strong> thêm 1 khối đệm nguyên vẹn gồm 16 bytes có giá trị <code>0x10</code> (tổng độ dài thành 32 bytes).</li>
+                    <li>Nhờ đó khi giải đệm, thuật toán chỉ cần đọc byte cuối cùng để biết chính xác cần cắt bỏ bao nhiêu byte đệm.</li>
+                </ul>`
+            },
+            {
+                id: 11,
+                category: "crypto",
+                catName: "Thuật Toán Mật Mã",
+                frontTitle: "Tại sao dùng đệm RSA-OAEP thay vì RSA PKCS#1 v1.5?",
+                frontBody: "Cấu trúc mạng Feistel hai vòng trong RSA-OAEP ngăn chặn loại tấn công nguy hiểm nào?",
+                backTitle: "Bảo Vệ Kháng IND-CCA2",
+                backBody: `<ul>
+                    <li>RSA PKCS#1 v1.5 cổ điển có tính tất định và bị tấn công Bleichenbacher's Million Message Attack (Padding Oracle).</li>
+                    <li><strong>RSA-OAEP:</strong> Sử dụng mạng Feistel hai vòng kết hợp chuỗi hạt giống ngẫu nhiên (Seed) và hàm mặt nạ MGF1 (SHA-256).</li>
+                    <li>Bản mã sinh ra mang tính ngẫu nhiên hóa hoàn toàn (Probabilistic), ngăn chặn triệt để kẻ tấn công giải mã từng phần hoặc đoán trước dữ liệu.</li>
+                </ul>`
+            },
+            {
+                id: 12,
+                category: "crypto",
+                catName: "Thuật Toán Mật Mã",
+                frontTitle: "Cơ chế chữ ký số RSA-PSS với Salt ngẫu nhiên?",
+                frontBody: "Điểm vượt trội của lược đồ chữ ký xác suất RSA-PSS so với chữ ký RSA thô thông thường?",
+                backTitle: "Tính Toàn Vẹn Không Thể Chối Bỏ",
+                backBody: `<ul>
+                    <li>RSA-PSS chèn thêm chuỗi muối ngẫu nhiên (Salt, độ dài bằng digest SHA-256 = 32 bytes) vào trước khi băm và mã hóa bằng Private Key.</li>
+                    <li>Cùng một nội dung file nhưng mỗi lần ký sẽ tạo ra một chữ ký số khác nhau hoàn toàn.</li>
+                    <li>Được chứng minh an toàn toán học cao nhất trong mô hình Oracle ngẫu nhiên: <strong>EUF-CMA</strong> (Không thể giả mạo hiện sinh dưới tấn công chọn thông điệp).</li>
+                </ul>`
+            },
+
+            // --- ZERO-LOG RAM & BROKER ---
+            {
+                id: 13,
+                category: "broker",
+                catName: "Zero-Log RAM Broker",
+                frontTitle: "Bằng chứng nào khẳng định Broker đạt 'Zero-Log & 0 Disk Writes'?",
+                frontBody: "Những biện pháp kỹ thuật cụ thể nào trong mã nguồn FastAPI và Uvicorn để triệt tiêu mọi vết tích?",
+                backTitle: "Triệt Tiêu Hoàn Toàn Vết Tích",
+                backBody: `<ul>
+                    <li><strong>Tắt Access Log:</strong> <code>logging.getLogger("uvicorn.access").disabled = True</code> (Ngăn chặn URL chứa <code>tx_id</code> bị ghi ra file log).</li>
+                    <li><strong>0 hàm open():</strong> Toàn bộ luồng nhận và trả payload không có bất kỳ dòng lệnh ghi tệp tạm hay cache đĩa nào.</li>
+                    <li><strong>Lưu trữ heap RAM:</strong> Toàn bộ gói tin chỉ nằm trong đối tượng từ điển bộ nhớ của tiến trình.</li>
+                    <li><strong>Kiểm thử tự động:</strong> Test suite kiểm chứng biến <code>disk_writes == 0</code> tuyệt đối.</li>
+                </ul>`
+            },
+            {
+                id: 14,
+                category: "broker",
+                catName: "Zero-Log RAM Broker",
+                frontTitle: "Cơ chế 'Memset Zeroize' (Ghi đè byte 0x00) hoạt động ra sao?",
+                frontBody: "Tại sao không chỉ đơn giản là gọi lệnh `del payload` để Python Garbage Collector tự dọn?",
+                backTitle: "Xóa Sạch Tận Gốc Vùng Nhớ RAM",
+                backBody: `<ul>
+                    <li>Trong CPython, nếu chỉ xóa biến hoặc tham chiếu (<code>del</code>), vùng nhớ vật lý vẫn giữ nguyên dữ liệu nhạy cảm cho đến khi GC tái sử dụng -> Dễ bị tấn công trích xuất RAM (Memory Dump).</li>
+                    <li>CloakShare lưu các trường nhạy cảm (<code>iv</code>, <code>wrapped_key</code>, <code>ciphertext</code>, <code>signature</code>) dưới dạng <code>bytearray</code> (mutable).</li>
+                    <li>Hàm <code>_wipe()</code> duyệt qua từng vị trí và gán <code>value[i] = 0</code> trước khi giải phóng, tương đương với hàm <code>memset(ptr, 0, len)</code> trong C.</li>
+                </ul>`
+            },
+            {
+                id: 15,
+                category: "broker",
+                catName: "Zero-Log RAM Broker",
+                frontTitle: "Phân biệt cơ chế 'Burn-After-Read' và 'TTL Purge Loop'?",
+                frontBody: "Hai cơ chế tự hủy này phối hợp với nhau như thế nào trong vòng đời của một Payload?",
+                backTitle: "Cơ Chế Tự Hủy Kép (Dual-Purge)",
+                backBody: `<ul>
+                    <li><strong>Burn-After-Read (Đọc xong tự hủy):</strong> Kích hoạt ngay khi người nhận (Buyer) gửi request GET hợp lệ kèm cờ <code>burn=True</code>. Sau khi truyền byte cuối cùng, Broker lập tức wipe và xóa sạch gói tin khỏi RAM.</li>
+                    <li><strong>TTL Purge Loop (Hết hạn tự hủy):</strong> Luồng quét ngầm chạy mỗi 5 giây (<code>_purge_loop</code>). Nếu sau thời gian sống TTL (ví dụ: 60s) mà người nhận không tới lấy, gói tin sẽ bị cưỡng chế tiêu hủy để chống tràn RAM.</li>
+                </ul>`
+            },
+
+            // --- E2E & AN NINH ---
+            {
+                id: 16,
+                category: "e2e",
+                catName: "E2E & An Ninh STRIDE",
+                frontTitle: "Cách xác thực ví Web3 EIP-191 và chống Replay Attack?",
+                frontBody: "Người nhận gửi những HTTP Headers nào khi rút tệp và Broker kiểm tra điều kiện gì?",
+                backTitle: "Web3 Challenge & Giới Hạn 60 Giây",
+                backBody: `<ul>
+                    <li>Người nhận ký chuỗi: <code>"CloakShare Retrieve Auth: &lt;tx_id&gt; @ &lt;timestamp&gt;"</code></li>
+                    <li>Gửi 3 Headers: <code>X-Wallet-Address</code>, <code>X-Timestamp</code>, <code>X-Signature</code>.</li>
+                    <li>Broker khôi phục địa chỉ ví từ chữ ký số:
+                        <br>1. Phải trùng khớp với địa chỉ <code>recipient</code> chỉ định trong payload (Chống Spoofing).
+                        <br>2. Chênh lệch thời gian <code>|now - timestamp| <= 60s</code> (Chống Replay Attack).
+                    </li>
+                </ul>`
+            },
+            {
+                id: 17,
+                category: "e2e",
+                catName: "E2E & An Ninh STRIDE",
+                frontTitle: "Tóm tắt 6 bước trong Luồng Trao Đổi E2E của Người Gửi (Sender)?",
+                frontBody: "Liệt kê trình tự từ bước chuẩn bị khóa đến khi đẩy gói tin lên trạm trung chuyển Broker.",
+                backTitle: "Luồng Dữ Liệu Phía Người Gửi",
+                backBody: `<ul>
+                    <li>1. <strong>Tra cứu dPKI:</strong> Lấy RSA Public Key của người nhận từ địa chỉ ví.</li>
+                    <li>2. <strong>Sinh khóa ngẫu nhiên:</strong> Tạo <code>Session Key</code> (16 bytes) và <code>IV</code> (16 bytes).</li>
+                    <li>3. <strong>Mã hóa AES-128:</strong> Gọi lõi C qua wrapper mã hóa file dữ liệu thành <code>Ciphertext</code>.</li>
+                    <li>4. <strong>Bọc khóa RSA-OAEP:</strong> Mã hóa <code>Session Key</code> bằng Public Key của người nhận.</li>
+                    <li>5. <strong>Ký số RSA-PSS:</strong> Ký số lên <code>Ciphertext</code> bằng Private Key của mình.</li>
+                    <li>6. <strong>Đẩy lên Broker:</strong> POST gói tin đã đóng gói lên <code>/api/v1/stage</code>.</li>
+                </ul>`
+            },
+            {
+                id: 18,
+                category: "e2e",
+                catName: "E2E & An Ninh STRIDE",
+                frontTitle: "Hệ thống CloakShare hóa giải mô hình đe dọa STRIDE ra sao?",
+                frontBody: "Nêu các biện pháp kỹ thuật đối phó với 6 mối nguy: Spoofing, Tampering, Repudiation, Information Disclosure, DoS, Elevation of Privilege.",
+                backTitle: "Phòng Thủ STRIDE Toàn Diện",
+                backBody: `<ul>
+                    <li><strong>S (Spoofing):</strong> Chữ ký ví Web3 EIP-191 & ánh xạ dPKI ngăn chặn mạo danh.</li>
+                    <li><strong>T (Tampering):</strong> Chữ ký RSA-PSS phát hiện sai lệch dữ liệu dù chỉ 1 bit.</li>
+                    <li><strong>R (Repudiation):</strong> Chữ ký bất đối xứng ngăn người gửi chối bỏ trách nhiệm.</li>
+                    <li><strong>I (Info Disclosure):</strong> Mã hóa lai AES-128 + RSA-OAEP; Broker không lưu vết đĩa.</li>
+                    <li><strong>D (DoS):</strong> TTL Purge tự động dọn RAM mỗi 5s, ngăn chặn tràn bộ nhớ.</li>
+                    <li><strong>E (Elevation):</strong> Broker phi trạng thái, không cấp quyền Admin đặc quyền cho bất kỳ ai.</li>
+                </ul>`
+            }
+        ];
+
+        // STATE VARIABLES
+        let currentFilter = 'all';
+        let filteredCards = [...cardsData];
+        let currentCardIndex = 0;
+        let masteredCards = new Set();
+        let reviewCards = new Set();
+        let isFlipped = false;
+
+        // DOM ELEMENTS
+        const flashcardEl = document.getElementById('flashcard');
+        const frontCatEl = document.getElementById('front-cat');
+        const frontTitleEl = document.getElementById('front-title');
+        const frontBodyEl = document.getElementById('front-body');
+        const backCatEl = document.getElementById('back-cat');
+        const backTitleEl = document.getElementById('back-title');
+        const backBodyEl = document.getElementById('back-body');
+        const currentIdxEl = document.getElementById('current-idx');
+        const totalCardsEl = document.getElementById('total-cards');
+        const catIndicatorEl = document.getElementById('cat-indicator');
+        const progressBarEl = document.getElementById('progress-bar');
+        const masteredCountEl = document.getElementById('mastered-count');
+        const reviewCountEl = document.getElementById('review-count');
+
+        // RENDER CURRENT CARD
+        function renderCard() {
+            if (filteredCards.length === 0) return;
+            const card = filteredCards[currentCardIndex];
+
+            // Reset flip state
+            isFlipped = false;
+            flashcardEl.classList.remove('flipped');
+
+            // Populate content
+            frontCatEl.textContent = card.catName;
+            frontTitleEl.innerHTML = card.frontTitle;
+            frontBodyEl.innerHTML = card.frontBody;
+
+            backCatEl.textContent = card.catName + " (ĐÁP ÁN)";
+            backTitleEl.innerHTML = card.backTitle;
+            backBodyEl.innerHTML = card.backBody;
+
+            // Update indices & indicators
+            currentIdxEl.textContent = currentCardIndex + 1;
+            totalCardsEl.textContent = filteredCards.length;
+
+            const progressPct = ((currentCardIndex + 1) / filteredCards.length) * 100;
+            progressBarEl.style.width = progressPct + '%';
+
+            // Border color feedback based on mastery status
+            if (masteredCards.has(card.id)) {
+                flashcardEl.querySelector('.card-front').style.borderColor = 'var(--blue-light)';
+            } else if (reviewCards.has(card.id)) {
+                flashcardEl.querySelector('.card-front').style.borderColor = 'var(--red-accent)';
+            } else {
+                flashcardEl.querySelector('.card-front').style.borderColor = 'var(--border-color)';
+            }
+        }
+
+        // FLIP CARD
+        function flipCard(e) {
+            if (e) e.stopPropagation();
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                flashcardEl.classList.add('flipped');
+            } else {
+                flashcardEl.classList.remove('flipped');
+            }
+        }
+
+        // NEXT / PREV
+        function nextCard() {
+            if (currentCardIndex < filteredCards.length - 1) {
+                currentCardIndex++;
+                renderCard();
+            } else {
+                // Loop to beginning
+                currentCardIndex = 0;
+                renderCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                renderCard();
+            } else {
+                // Loop to end
+                currentCardIndex = filteredCards.length - 1;
+                renderCard();
+            }
+        }
+
+        // MARK MASTERY STATUS
+        function markCard(isMastered, e) {
+            if (e) e.stopPropagation();
+            const currentCard = filteredCards[currentCardIndex];
+            if (isMastered) {
+                masteredCards.add(currentCard.id);
+                reviewCards.delete(currentCard.id);
+            } else {
+                reviewCards.add(currentCard.id);
+                masteredCards.delete(currentCard.id);
+            }
+            masteredCountEl.textContent = masteredCards.size;
+            reviewCountEl.textContent = reviewCards.size;
+            renderCard();
+            setTimeout(nextCard, 200);
+        }
+
+        // FILTER LOGIC
+        const catButtons = document.querySelectorAll('.cat-btn');
+        catButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                catButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const cat = btn.getAttribute('data-cat');
+                currentFilter = cat;
+                if (cat === 'all') {
+                    filteredCards = [...cardsData];
+                    catIndicatorEl.textContent = "Tất cả";
+                } else {
+                    filteredCards = cardsData.filter(c => c.category === cat);
+                    catIndicatorEl.textContent = btn.textContent.split(' ')[0];
+                }
+                currentCardIndex = 0;
+                renderCard();
+            });
+        });
+
+        // KEYBOARD SHORTCUTS
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                flipCard();
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                nextCard();
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                prevCard();
+            } else if (e.key === '1') {
+                markCard(false);
+            } else if (e.key === '2') {
+                markCard(true);
+            }
+        });
+
+        // INITIAL LOAD
+        renderCard();
+    </script>
+</body>
+</html>
