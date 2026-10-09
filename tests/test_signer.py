@@ -152,3 +152,27 @@ def test_sign_is_non_deterministic_but_all_valid(keypair_pem, sample_data):
     assert sig1 != sig2  # PSS salt ngẫu nhiên mỗi lần ký
     assert IntegritySigner.verify_file(sample_data, sig1, public_pem) is True
     assert IntegritySigner.verify_file(sample_data, sig2, public_pem) is True
+
+
+def test_ecdsa_signing_and_verification(sample_data):
+    """Kiểm tra ký số và xác thực chữ ký Web3 SECP256K1 ECDSA từ ví EVM."""
+    import eth_keys
+    from eth_account import Account
+
+    acc = Account.create()
+    priv_hex = acc.key.hex()
+    pub_hex = eth_keys.keys.PrivateKey(acc.key).public_key.to_hex()
+
+    sig = IntegritySigner.sign_file(sample_data, priv_hex)
+    assert len(sig) == 65
+    assert IntegritySigner.verify_file(sample_data, sig, pub_hex) is True
+
+    # Tampered data
+    tampered = bytearray(sample_data)
+    tampered[0] ^= 0xFF
+    assert IntegritySigner.verify_file(bytes(tampered), sig, pub_hex) is False
+
+    # Wrong public key
+    other_acc = Account.create()
+    other_pub = eth_keys.keys.PrivateKey(other_acc.key).public_key.to_hex()
+    assert IntegritySigner.verify_file(sample_data, sig, other_pub) is False

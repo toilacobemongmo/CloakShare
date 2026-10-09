@@ -247,4 +247,113 @@ class InMemoryStore:
 
 
 # Instance dùng chung toàn ứng dụng (singleton đơn giản).
-store = InMemoryStore()
+
+import os
+import json
+try:
+    import redis
+except ImportError:
+    redis = None
+
+class RedisStore:
+    def __init__(self, url: str):
+        self.client = redis.Redis.from_url(url, decode_responses=True)
+        self.start_time = time.time()
+        self.total_staged = 0
+        self.total_retrieved = 0
+        self.total_purged_expired = 0
+
+    def stage(self, tx_id: str, recipient: str, iv: str, wrapped_key: str, ciphertext: str, signature: str, ttl_seconds: int) -> float:
+        expires_at = time.time() + ttl_seconds
+        payload = {
+            "recipient": recipient,
+            "iv": iv,
+            "wrapped_key": wrapped_key,
+            "ciphertext": ciphertext,
+            "signature": signature,
+            "expires_at": expires_at,
+        }
+        self.client.setex(f"cloakshare:tx:{tx_id}", ttl_seconds, json.dumps(payload))
+        self.total_staged += 1
+        return expires_at
+
+    def retrieve(self, tx_id: str) -> dict | None:
+        key = f"cloakshare:tx:{tx_id}"
+        data = self.client.get(key)
+        if not data:
+            return None
+        payload = json.loads(data)
+        if time.time() >= payload["expires_at"]:
+            self.purge(tx_id)
+            return None
+        self.total_retrieved += 1
+        return {
+            "tx_id": tx_id,
+            "recipient": payload["recipient"],
+            "iv": payload["iv"],
+            "wrapped_key": payload["wrapped_key"],
+            "ciphertext": payload["ciphertext"],
+            "signature": payload["signature"],
+        }
+
+    def exists(self, tx_id: str) -> bool:
+        return self.client.exists(f"cloakshare:tx:{tx_id}") > 0
+
+    def purge(self, tx_id: str) -> bool:
+        return self.client.delete(f"cloakshare:tx:{tx_id}") > 0
+
+    def purge_expired(self) -> int:
+        return 0  # Redis handles TTL automatically
+
+    def purge_all(self) -> int:
+        keys = self.client.keys("cloakshare:tx:*")
+        if keys:
+            self.client.delete(*keys)
+            return len(keys)
+        return 0
+
+    def active_count(self) -> int:
+        return len(self.client.keys("cloakshare:tx:*"))
+
+    def approx_ram_bytes(self) -> int:
+        info = self.client.info("memory")
+        return int(info.get("used_memory", 0))
+
+    def stats(self) -> dict:
+        return {
+            "active_payloads": self.active_count(),
+            "total_staged": self.total_staged,
+            "total_retrieved": self.total_retrieved,
+            "total_purged_expired": self.total_purged_expired,
+            "disk_writes": 0,
+            "approx_ram_bytes": self.approx_ram_bytes(),
+            "uptime_seconds": int(time.time() - self.start_time),
+        }
+
+    def get_inbox(self, recipient: str) -> list:
+        inbox_items = []
+        for key in self.client.keys("cloakshare:tx:*"):
+            data = self.client.get(key)
+            if data:
+                payload = json.loads(data)
+                if time.time() < payload["expires_at"] and payload["recipient"].lower() == recipient.lower():
+                    tx_id = key.split(":")[-1]
+                    inbox_items.append({
+                        "tx_id": tx_id,
+                        "recipient": payload["recipient"],
+                        "iv": payload["iv"],
+                        "wrapped_key": payload["wrapped_key"],
+                        "ciphertext": payload["ciphertext"],
+                        "signature": payload["signature"],
+                    })
+        return inbox_items
+
+
+# Khởi tạo store: Ưu tiên Redis nếu có REDIS_URL (Giải quyết Nút thắt cổ chai và tính sẵn sàng)
+redis_url = os.environ.get("REDIS_URL")
+if redis_url and redis:
+    print(f"[i] Đang kết nối tới Redis Store tại: {redis_url}")
+    store = RedisStore(redis_url)
+else:
+    store = InMemoryStore()
+

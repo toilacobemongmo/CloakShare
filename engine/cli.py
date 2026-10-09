@@ -13,6 +13,7 @@ import os
 import sys
 import uuid
 import time
+import getpass
 from pathlib import Path
 
 # Đảm bảo UTF-8 stream trên Windows console
@@ -73,7 +74,7 @@ def main():
     # 2. Register
     parser_reg = subparsers.add_parser("register", help="Đăng ký Public Key lên dPKI Smart Contract")
     parser_reg.add_argument("--pub", required=True, help="Đường dẫn file Public Key (.pem)")
-    parser_reg.add_argument("--private-key", required=True, help="Private Key ví Ethereum")
+    parser_reg.add_argument("--private-key", default=None, help="Private Key ví Ethereum (hoặc nhập qua prompt/env CLOAKSHARE_PRIVATE_KEY)")
     parser_reg.add_argument("--contract", default=DEFAULT_CONTRACT, help="Địa chỉ Smart Contract")
     parser_reg.add_argument("--rpc", default=DEFAULT_RPC, help="URL RPC Blockchain (mặc định: http://127.0.0.1:8545)")
 
@@ -92,7 +93,7 @@ def main():
     parser_recv.add_argument("--tx", required=True, help="Mã Ticket / TX ID")
     parser_recv.add_argument("--out", required=True, help="Đường dẫn lưu file tải về")
     parser_recv.add_argument("--priv-key", default="my_keys/private.pem", help="Đường dẫn RSA Private Key của người nhận (.pem)")
-    parser_recv.add_argument("--wallet-key", required=True, help="Private Key ví Ethereum của người nhận")
+    parser_recv.add_argument("--wallet-key", default=None, help="Private Key ví Ethereum của người nhận (hoặc nhập qua prompt/env CLOAKSHARE_WALLET_KEY)")
     parser_recv.add_argument("--sender-pub", help="Đường dẫn file RSA Public Key người gửi (để xác thực chữ ký)")
     parser_recv.add_argument("--broker", default=DEFAULT_BROKER, help="URL RAM Broker")
     parser_recv.add_argument("--burn", action="store_true", help="Tự huỷ dữ liệu khỏi RAM Broker sau khi nhận (burn-after-read)")
@@ -110,12 +111,16 @@ def main():
         print(f"    - Khóa công khai: {out_dir / 'public.pem'}")
 
     elif args.command == "register":
+        priv_key = args.private_key or os.environ.get("CLOAKSHARE_PRIVATE_KEY")
+        if not priv_key:
+            priv_key = getpass.getpass("Nhập Private Key ví Ethereum: ")
+            
         pub_text = Path(args.pub).read_text(encoding="utf-8")
         dpki = DPKIClient(contract_address=args.contract, rpc_url=args.rpc)
-        account = Account.from_key(args.private_key)
+        account = Account.from_key(priv_key)
         print(f"[*] Đang đăng ký Public Key cho ví {account.address}...")
         tx_hash_hex = dpki.register_public_key(
-            private_key_hex=args.private_key,
+            private_key_hex=priv_key,
             public_key_pem=pub_text,
         )
         print(f"[+] Đăng ký thành công! Tx Hash / Ref: {tx_hash_hex}")
@@ -174,12 +179,16 @@ def main():
             sys.exit(1)
 
     elif args.command == "receive":
+        wallet_key = args.wallet_key or os.environ.get("CLOAKSHARE_WALLET_KEY")
+        if not wallet_key:
+            wallet_key = getpass.getpass("Nhập Private Key ví Ethereum: ")
+            
         timestamp = int(time.time())
-        account = Account.from_key(args.wallet_key)
+        account = Account.from_key(wallet_key)
         wallet_address = account.address
 
         print(f"[*] Ký challenge xác thực ví Web3 (EIP-191) cho Ticket: {args.tx}...")
-        ts, signature_hex = Web3Auth.sign_retrieve_request(args.tx, args.wallet_key, timestamp)
+        ts, signature_hex = Web3Auth.sign_retrieve_request(args.tx, wallet_key, timestamp)
 
         headers = {
             "X-Wallet-Address": wallet_address,

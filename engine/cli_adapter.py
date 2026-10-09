@@ -6,11 +6,10 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from engine.rsa_envelope import RSAEnvelope
+from engine.ecies_envelope import ECIESEnvelope
 from engine.wrappers.aes_wrapper import AESWrapper
 
 _aes = AESWrapper()
-
 
 class CLIAdapter:
     @staticmethod
@@ -51,10 +50,10 @@ class CLIAdapter:
         Path(output_path).write_bytes(plaintext)
 
     @staticmethod
-    def wrap_aes_key(aes_key: bytes, iv: bytes, receiver_pub_pem: str) -> bytes:
-        return RSAEnvelope.wrap_key(aes_key + iv, receiver_pub_pem)
+    def wrap_aes_key(aes_key: bytes, iv: bytes, receiver_pub_hex: str) -> bytes:
+        return ECIESEnvelope.wrap_key(aes_key + iv, receiver_pub_hex)
 
     @staticmethod
-    def unwrap_aes_key(wrapped: bytes, receiver_priv_pem: str) -> tuple[bytes, bytes]:
-        combined = RSAEnvelope.unwrap_key(wrapped, receiver_priv_pem)
-        return combined[:16], combined[16:]
+    def unwrap_aes_key(wrapped: bytes, receiver_priv_hex: str) -> tuple[bytes, bytes]:
+        combined = ECIESEnvelope.unwrap_key(wrapped, receiver_priv_hex)
+        return combined[:32], combined[32:]
