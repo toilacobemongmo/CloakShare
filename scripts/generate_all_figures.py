@@ -539,9 +539,12 @@ def draw_fig_06():
     # 3.3 Cột 2: MGF1(H) sinh dbMask
     draw_academic_box(ax, 3.5, 2.3, 2.4, 0.8, title="MGF1 (SHA-256)",
                       subtitle="Sinh mặt nạ dbMask từ H", bg="#F8FAFC")
-    # Nhánh H sang MGF1 (Góc vuông: từ H tại (6.3, 4.125) sang trái xuống MGF1)
-    ax.plot([6.3, 5.9, 5.9], [4.125, 4.125, 2.7], color=DARK_SLATE, lw=1.2)
-    ax.annotate("", xy=(5.9, 2.7), xytext=(5.9, 2.71), arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.2))
+    # Nhánh H sang MGF1 (Góc vuông: từ H tại (6.3, 4.125) sang x=4.7 rồi đi thẳng đứng xuống đỉnh MGF1)
+    ax.plot([6.3, 4.7], [4.125, 4.125], color=DARK_SLATE, lw=1.2)
+    ax.annotate("", xy=(4.7, 3.1), xytext=(4.7, 4.125),
+                arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.2))
+    ax.text(5.5, 4.3, "H (32B)", fontsize=7.5, color=MID_SLATE, ha="center",
+            bbox=dict(boxstyle="square,pad=0.15", fc="#FFFFFF", ec="none"))
     # MGF1 cấp dbMask sang XOR (Ngang hoàn toàn)
     ax.annotate("", xy=(2.12, 2.7), xytext=(3.5, 2.7), arrowprops=dict(arrowstyle="->", color=DARK_SLATE, lw=1.2))
     ax.text(2.8, 2.9, "dbMask", fontsize=7.5, color=MID_SLATE, ha="center",
