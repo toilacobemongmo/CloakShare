@@ -2,20 +2,21 @@ import os
 import socket
 import base64
 import json
+import gzip
 import time
 import uuid
 from pathlib import Path
 
 import requests
 import streamlit as st
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 from eth_account import Account
 from eth_account.messages import encode_defunct
+from web3 import Web3
 
 from engine.cli_adapter import CLIAdapter
 from engine.dpki_client import DPKIClient
-from engine.rsa_envelope import RSAEnvelope
+from engine.ecies_envelope import ECIESEnvelope
+import eth_keys
 from engine.signer import IntegritySigner
 from engine.wallet_auth import Web3Auth
 from engine.wrappers.aes_wrapper import AESWrapper
@@ -26,6 +27,93 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+st.markdown('''
+<style>
+/* PREMIUM UI/UX: Glassmorphism & Animations */
+
+/* Background */
+.stApp {
+    background: radial-gradient(circle at 10% 20%, rgb(18, 20, 29) 0%, rgb(28, 32, 48) 90%);
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Chat Bubbles */
+.chat-bubble-user {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 20px 20px 0px 20px;
+    margin-bottom: 10px;
+    max-width: 80%;
+    float: right;
+    clear: both;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    animation: fadeInRight 0.3s ease-out;
+}
+.chat-bubble-peer {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    padding: 12px 18px;
+    border-radius: 20px 20px 20px 0px;
+    margin-bottom: 10px;
+    max-width: 80%;
+    float: left;
+    clear: both;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    animation: fadeInLeft 0.3s ease-out;
+}
+
+/* Clearfix for chat container */
+.chat-container {
+    overflow: hidden;
+    padding: 20px;
+    border-radius: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    height: 50vh;
+    overflow-y: auto;
+}
+
+/* Metric Boxes */
+.metric-box {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.metric-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
+}
+.metric-num {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.metric-sub {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Animations */
+@keyframes fadeInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+</style>
+''', unsafe_allow_html=True)
+
 
 def get_local_ip() -> str:
     try:
@@ -326,14 +414,10 @@ if "accounts" not in st.session_state:
 if "active_user" not in st.session_state or st.session_state.active_user not in st.session_state.accounts:
     st.session_state.active_user = list(st.session_state.accounts.keys())[0]
 
-if "main_acc_select" in st.session_state and st.session_state.main_acc_select not in st.session_state.accounts:
-    st.session_state.main_acc_select = st.session_state.active_user
-
 if "contacts" not in st.session_state:
     st.session_state.contacts = {
         "Alice (Seller)": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
         "Bob (Buyer)": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
-        "Mobile (0x84bE)": "0x84bE462356eD3626C242D2aa21f7D257bE926E10",
     }
 
 if "selected_peer" not in st.session_state or st.session_state.selected_peer not in st.session_state.contacts:
@@ -352,28 +436,22 @@ if "last_drop_ticket" not in st.session_state:
     st.session_state.last_drop_ticket = None
 
 
-def get_or_create_keys(wallet_address: str) -> tuple[str, str]:
-    key_store_id = f"rsa_{wallet_address.lower()}"
-    if key_store_id not in st.session_state:
-        priv_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        priv_pem = priv_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
-        ).decode("utf-8")
-        pub_pem = (
-            priv_key.public_key()
-            .public_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo,
-            )
-            .decode("utf-8")
-        )
-        st.session_state[key_store_id] = (priv_pem, pub_pem)
-    return st.session_state[key_store_id]
+def to_checksum(addr: str) -> str:
+    try:
+        return Web3.to_checksum_address(addr.strip())
+    except Exception:
+        return addr.strip()
 
 
-def ensure_dpki_registered(wallet_pk: str, pub_pem: str):
+def get_or_create_keys(wallet_pk: str) -> tuple[str, str]:
+    acc = Account.from_key(wallet_pk)
+    priv_hex = acc.key.hex()
+    priv = eth_keys.keys.PrivateKey(acc.key)
+    pub_hex = priv.public_key.to_hex()
+    return priv_hex, pub_hex
+
+
+def fund_and_register_dpki(wallet_pk: str, pub_pem: str) -> bool:
     try:
         dpki = DPKIClient(
             contract_address=DEFAULT_CONTRACT,
@@ -382,7 +460,7 @@ def ensure_dpki_registered(wallet_pk: str, pub_pem: str):
         )
         dpki.register_public_key(wallet_pk, pub_pem)
     except Exception:
-        pass
+        return False
 
 
 if "dpki_initialized" not in st.session_state:
@@ -391,20 +469,31 @@ if "dpki_initialized" not in st.session_state:
 for acc_name, acc_pk in st.session_state.accounts.items():
     if acc_name not in st.session_state.dpki_initialized:
         acc_obj = Account.from_key(acc_pk)
-        _, p_pem = get_or_create_keys(acc_obj.address)
-        ensure_dpki_registered(acc_pk, p_pem)
+        _, p_pem = get_or_create_keys(acc_pk)
+        fund_and_register_dpki(acc_pk, p_pem)
         st.session_state.dpki_initialized.add(acc_name)
 
 my_pk = st.session_state.accounts.get(st.session_state.active_user, list(st.session_state.accounts.values())[0])
 my_account = Account.from_key(my_pk)
-my_address = my_account.address
-my_priv_pem, my_pub_pem = get_or_create_keys(my_address)
+my_address = to_checksum(my_account.address)
+
+my_priv_pem, my_pub_pem = get_or_create_keys(my_pk)
 dpki_client = DPKIClient(
     contract_address=DEFAULT_CONTRACT,
     rpc_url=DEFAULT_RPC,
     broker_url=st.session_state.broker_url,
 )
-ensure_dpki_registered(my_pk, my_pub_pem)
+
+# Fetch balance
+balance_eth = 0.0
+try:
+    if dpki_client.is_live_chain():
+        balance_wei = dpki_client.w3.eth.get_balance(my_address)
+        balance_eth = balance_wei / 10**18
+except Exception:
+    pass
+
+fund_and_register_dpki(my_pk, my_pub_pem)
 
 # Tự động đồng bộ các đối tác từ Broker dPKI vào danh bạ
 try:
@@ -430,9 +519,10 @@ def poll_inbox():
     try:
         res = requests.get(f"{st.session_state.broker_url}/api/v1/inbox", headers=req_headers, timeout=2)
         if res.status_code == 200:
+            existing_ids = {m["id"] for m in st.session_state.messages}
             for item in res.json():
                 tx_id = item["tx_id"]
-                if tx_id in st.session_state.processed_tx_ids:
+                if tx_id in existing_ids:
                     continue
 
                 try:
@@ -442,9 +532,9 @@ def poll_inbox():
                     sig_hex = item.get("signature", "")
                     sig_bytes = bytes.fromhex(sig_hex) if sig_hex else b""
 
-                    aes_key = RSAEnvelope.unwrap_key(wrapped_key, my_priv_pem)
+                    aes_key = ECIESEnvelope.unwrap_key(wrapped_key, my_priv_pem)
                     decrypted_raw = CLIAdapter.decrypt_bytes(ciphertext, aes_key, iv)
-                    parsed = json.loads(decrypted_raw.decode("utf-8"))
+                    parsed = json.loads(gzip.decompress(decrypted_raw).decode("utf-8"))
 
                     sender_addr = parsed.get("sender", "Unknown")
                     sender_name = parsed.get("sender_name", sender_addr[:8])
@@ -474,7 +564,6 @@ def poll_inbox():
                         "verified": is_verified,
                         "has_signature": bool(sig_bytes),
                     })
-                    st.session_state.processed_tx_ids.add(tx_id)
                 except Exception:
                     pass
     except Exception:
@@ -492,8 +581,9 @@ net_label = f"🦎 Tailscale: {TAILSCALE_IP}" if TAILSCALE_IP else f"🏠 LAN: {
 st.markdown(f"""
 <div class="user-card">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div class="user-header-title">
-            🛡️ CloakShare <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Messenger</span>
+        <div class="user-header-title" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+            <div>🛡️ CloakShare <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Messenger</span></div>
+            <div style="font-size: 0.8rem; color: #10b981; font-weight: 500;">💰 Số dư: {balance_eth:.4f} ETH | Gửi tin/file: 0 ETH (Off-chain)</div>
         </div>
         <div class="user-badge-net">{net_label}</div>
     </div>
@@ -597,59 +687,64 @@ with tab_chat:
             poll_inbox()
             st.rerun()
 
-    # Lọc lịch sử tin nhắn
-    conversation = []
-    if active_peer_addr:
-        for msg in st.session_state.messages:
-            from_me = (msg["from"].lower() == my_address.lower() and msg["to"].lower() == active_peer_addr.lower())
-            from_peer = (msg["from"].lower() == active_peer_addr.lower() and msg["to"].lower() == my_address.lower())
-            if from_me or from_peer:
-                conversation.append((msg, "right" if from_me else "left"))
+    @st.fragment(run_every=2)
+    def render_chat_stream():
+        poll_inbox()
+        # Lọc lịch sử tin nhắn
+        conversation = []
+        if active_peer_addr:
+            for msg in st.session_state.messages:
+                from_me = (msg["from"].lower() == my_address.lower() and msg["to"].lower() == active_peer_addr.lower())
+                from_peer = (msg["from"].lower() == active_peer_addr.lower() and msg["to"].lower() == my_address.lower())
+                if from_me or from_peer:
+                    conversation.append((msg, "right" if from_me else "left"))
 
-    # Cửa sổ chat cuộn
-    with st.container(height=380):
-        if not conversation:
-            st.markdown(
-                '<div style="color: #64748b; text-align: center; margin-top: 140px;">'
-                '🔒 Kênh bảo mật E2E đã sẵn sàng. Chưa có tin nhắn nào!<br>Hãy gửi lời chào đầu tiên.'
-                '</div>',
-                unsafe_allow_html=True,
-            )
-        else:
-            for m, side in conversation:
-                wrap_cls = "bubble-wrapper-right" if side == "right" else "bubble-wrapper-left"
-                b_cls = "chat-bubble-right" if side == "right" else "chat-bubble-left"
-                sender_label = "Bạn" if side == "right" else m.get("from_name", active_peer_name)
-
-                sig_badge = (
-                    '<span class="badge-tag badge-ok">🛡️ RSA-PSS Chuẩn</span>'
-                    if m.get("verified")
-                    else '<span class="badge-tag badge-enc">🔒 AES-128</span>'
+        # Cửa sổ chat cuộn
+        with st.container(height=380):
+            if not conversation:
+                st.markdown(
+                    '<div style="color: #64748b; text-align: center; margin-top: 140px;">'
+                    '🔒 Kênh bảo mật E2E đã sẵn sàng. Chưa có tin nhắn nào!<br>Hãy gửi lời chào đầu tiên.'
+                    '</div>',
+                    unsafe_allow_html=True,
                 )
+            else:
+                for m, side in conversation:
+                    wrap_cls = "bubble-wrapper-right" if side == "right" else "bubble-wrapper-left"
+                    b_cls = "chat-bubble-right" if side == "right" else "chat-bubble-left"
+                    sender_label = "Bạn" if side == "right" else m.get("from_name", active_peer_name)
 
-                bubble_html = f"""
-                    <div class="{wrap_cls}">
-                        <div class="{b_cls}">
-                            <div class="bubble-sender">{sender_label}</div>
-                            <div class="bubble-text">{m['text']}</div>
-                            <div class="bubble-badges">
-                                {sig_badge}
-                                <span class="badge-tag badge-enc">🔑 RSA-OAEP</span>
-                            </div>
-                            <div class="chat-time">{m['time']}</div>
-                        </div>
-                    </div>
-                """
-                st.markdown(bubble_html, unsafe_allow_html=True)
-
-                if m.get("is_file") and m.get("file_data"):
-                    st.download_button(
-                        label=f"💾 Tải file đính kèm: {m['filename']}",
-                        data=m["file_data"],
-                        file_name=m["filename"],
-                        key=f"dl_msg_{m['id']}",
-                        use_container_width=True,
+                    sig_badge = (
+                        '<span class="badge-tag badge-ok">🛡️ ECDSA Ký Chuẩn</span>'
+                        if m.get("verified")
+                        else '<span class="badge-tag badge-enc">🔒 AES-128 C</span>'
                     )
+
+                    bubble_html = f"""
+                        <div class="{wrap_cls}">
+                            <div class="{b_cls}">
+                                <div class="bubble-sender">{sender_label}</div>
+                                <div class="bubble-text">{m['text']}</div>
+                                <div class="bubble-badges">
+                                    {sig_badge}
+                                    <span class="badge-tag badge-enc">🔑 ECIES (SECP256K1)</span>
+                                </div>
+                                <div class="chat-time">{m['time']}</div>
+                            </div>
+                        </div>
+                    """
+                    st.markdown(bubble_html, unsafe_allow_html=True)
+
+                    if m.get("is_file") and m.get("file_data"):
+                        st.download_button(
+                            label=f"💾 Tải file đính kèm: {m['filename']}",
+                            data=m["file_data"],
+                            file_name=m["filename"],
+                            key=f"dl_msg_{m['id']}",
+                            use_container_width=True,
+                        )
+
+    render_chat_stream()
 
     # Form nhập tin nhắn
     with st.form("chat_send_form", clear_on_submit=True):
@@ -684,8 +779,8 @@ with tab_chat:
                     raw_bytes = json.dumps(payload_content).encode("utf-8")
 
                     # Mã hóa 100% RAM
-                    aes_key, iv, ciphertext = CLIAdapter.encrypt_bytes(raw_bytes)
-                    wrapped_key = RSAEnvelope.wrap_key(aes_key, peer_pub)
+                    aes_key, iv, ciphertext = CLIAdapter.encrypt_bytes(gzip.compress(raw_bytes))
+                    wrapped_key = ECIESEnvelope.wrap_key(aes_key, peer_pub)
                     signature = IntegritySigner.sign_file(ciphertext, my_priv_pem)
 
                     body = {
@@ -717,6 +812,11 @@ with tab_chat:
                         st.rerun()
                     else:
                         st.error(f"Lỗi Broker: {res.text}")
+                except ValueError as err:
+                    if "chưa đăng ký" in str(err):
+                        st.error(f"Thất bại: Đối tác chưa trực tuyến hoặc chưa có khóa bảo mật. Hãy chắc chắn đối tác đã tạo/đăng nhập ví!")
+                    else:
+                        st.error(f"Lỗi dữ liệu: {err}")
                 except Exception as err:
                     st.error(f"Thao tác thất bại: {err}")
 
@@ -755,7 +855,7 @@ with tab_drop:
                     }
                     raw_b = json.dumps(content).encode("utf-8")
                     k, iv_b, ct_b = CLIAdapter.encrypt_bytes(raw_b)
-                    wk_b = RSAEnvelope.wrap_key(k, r_pub)
+                    wk_b = ECIESEnvelope.wrap_key(k, r_pub)
                     sig_b = IntegritySigner.sign_file(ct_b, my_priv_pem)
 
                     body = {
@@ -805,7 +905,7 @@ with tab_drop:
                         ct_b = bytes.fromhex(d["ciphertext"])
                         sig_hex = d.get("signature", "")
 
-                        aes_k = RSAEnvelope.unwrap_key(wk_b, my_priv_pem)
+                        aes_k = ECIESEnvelope.unwrap_key(wk_b, my_priv_pem)
                         plain_b = CLIAdapter.decrypt_bytes(ct_b, aes_k, iv_b)
                         f_info = json.loads(plain_b.decode("utf-8"))
 
