@@ -3,6 +3,7 @@ import socket
 import base64
 import json
 import gzip
+from decimal import Decimal
 import time
 import uuid
 from pathlib import Path
@@ -138,7 +139,7 @@ def get_tailscale_ip() -> str | None:
 LOCAL_IP = get_local_ip()
 TAILSCALE_IP = get_tailscale_ip()
 DEFAULT_RPC = os.getenv("RPC_URL", "http://127.0.0.1:8545")
-DEFAULT_CONTRACT = os.getenv("CONTRACT_ADDRESS", "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0")
+DEFAULT_CONTRACT = os.getenv("CONTRACT_ADDRESS", "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512")
 
 if "broker_url" not in st.session_state:
     st.session_state.broker_url = os.getenv("BROKER_URL", "http://127.0.0.1:8000")
@@ -507,6 +508,99 @@ except Exception:
     pass
 
 
+def transfer_text(m: dict) -> str:
+    """Câu chữ tin nhắn chuyển tiền, tính theo người đang xem."""
+    if m["from"].lower() == my_address.lower():
+        who = m.get("to_name") or (m["to"][:8] + "...")
+        return f"💸 Đã chuyển cho {who} {m['amount']} ETH"
+    who = m.get("from_name") or (m["from"][:8] + "...")
+    return f"💰 Đã nhận {m['amount']} ETH từ {who}"
+
+
+def notify_transfer(to_addr: str, to_name: str, amt: str, tx_id: str) -> None:
+    """Gửi thông báo chuyển tiền qua kênh E2E (đi qua broker nên máy nào cũng nhận được)."""
+    try:
+        peer_pub = dpki_client.get_public_key(to_addr)
+        payload = {
+            "sender": my_address,
+            "sender_name": st.session_state.active_user,
+            "text": f"💰 Đã nhận {amt} ETH từ {st.session_state.active_user}",
+            "kind": "transfer",
+            "amount": amt,
+            "is_file": False,
+            "filename": "",
+            "file_b64": "",
+        }
+        raw_bytes = json.dumps(payload).encode("utf-8")
+        aes_key, iv, ciphertext = CLIAdapter.encrypt_bytes(gzip.compress(raw_bytes))
+        wrapped_key = ECIESEnvelope.wrap_key(aes_key, peer_pub)
+        signature = IntegritySigner.sign_file(ciphertext, my_priv_pem)
+        requests.post(
+            f"{st.session_state.broker_url}/api/v1/stage",
+            json={
+                "tx_id": tx_id,
+                "recipient": to_addr,
+                "iv": iv.hex(),
+                "wrapped_key": wrapped_key.hex(),
+                "ciphertext": ciphertext.hex(),
+                "signature": signature.hex(),
+                "ttl_seconds": 600,
+            },
+            timeout=5,
+        )
+    except Exception:
+        pass
+
+
+def send_eth(to_addr: str, to_name: str, amount: float) -> tuple[bool, str]:
+    """Chuyển ETH thật trên chain (Anvil) từ tài khoản đang dùng sang đối tác."""
+    try:
+        w3 = dpki_client.w3
+        if not dpki_client.is_live_chain():
+            return False, "Chưa kết nối được blockchain (Anvil). Kiểm tra RPC_URL và Anvil có chạy với --host 0.0.0.0 không."
+        to = Web3.to_checksum_address(to_addr)
+        if to.lower() == my_address.lower():
+            return False, "Không thể tự chuyển cho chính mình."
+        value = Web3.to_wei(Decimal(str(amount)), "ether")
+        gas_price = w3.eth.gas_price
+        if w3.eth.get_balance(my_address) < value + 21000 * gas_price:
+            return False, "Không đủ số dư (cần dư thêm một chút phí gas)."
+        tx = {
+            "to": to,
+            "value": value,
+            "gas": 21000,
+            "gasPrice": gas_price,
+            "nonce": w3.eth.get_transaction_count(my_address),
+            "chainId": w3.eth.chain_id,
+        }
+        signed = w3.eth.account.sign_transaction(tx, my_pk)
+        tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+        w3.eth.wait_for_transaction_receipt(tx_hash, timeout=15)
+    except Exception as e:
+        return False, f"Chuyển thất bại: {e}"
+
+    amt = f"{amount:.4f}".rstrip("0").rstrip(".")
+    tf_id = f"0x{uuid.uuid4().hex}"
+    st.session_state.messages.append({
+        "id": tf_id,
+        "kind": "transfer",
+        "amount": amt,
+        "from": my_address,
+        "from_name": st.session_state.active_user,
+        "to": to,
+        "to_name": to_name,
+        "text": "",
+        "is_file": False,
+        "file_data": None,
+        "filename": "",
+        "time": time.strftime("%H:%M"),
+        "verified": True,
+        "has_signature": True,
+    })
+    notify_transfer(to, to_name, amt, tf_id)
+    return True, f"Đã chuyển {amt} ETH cho {to_name}."
+
+
 def poll_inbox():
     now_ts = int(time.time())
     sign_msg = f"CloakShare Inbox Access:{now_ts}"
@@ -563,6 +657,8 @@ def poll_inbox():
                         "time": time.strftime("%H:%M"),
                         "verified": is_verified,
                         "has_signature": bool(sig_bytes),
+                        "kind": parsed.get("kind", ""),
+                        "amount": parsed.get("amount", ""),
                     })
                 except Exception:
                     pass
@@ -578,7 +674,19 @@ poll_inbox()
 # ==========================================
 net_label = f"🦎 Tailscale: {TAILSCALE_IP}" if TAILSCALE_IP else f"🏠 LAN: {LOCAL_IP}"
 
-st.markdown(f"""
+def _read_balance() -> float:
+    try:
+        if dpki_client.is_live_chain():
+            return dpki_client.w3.eth.get_balance(my_address) / 10**18
+    except Exception:
+        pass
+    return 0.0
+
+
+@st.fragment(run_every=5)
+def render_header():
+    balance_eth = _read_balance()
+    st.markdown(f"""
 <div class="user-card">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <div class="user-header-title" style="flex-direction: column; align-items: flex-start; gap: 2px;">
@@ -589,6 +697,9 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+
+render_header()
 
 # HÀNG CHUYỂN TÀI KHOẢN VÀ TẠO TÀI KHOẢN TRỰC TIẾP
 top_col1, top_col2 = st.columns([2.5, 1])
@@ -720,11 +831,13 @@ with tab_chat:
                         else '<span class="badge-tag badge-enc">🔒 AES-128 C</span>'
                     )
 
+                    bubble_txt = transfer_text(m) if m.get("kind") == "transfer" else m["text"]
+
                     bubble_html = f"""
                         <div class="{wrap_cls}">
                             <div class="{b_cls}">
                                 <div class="bubble-sender">{sender_label}</div>
-                                <div class="bubble-text">{m['text']}</div>
+                                <div class="bubble-text">{bubble_txt}</div>
                                 <div class="bubble-badges">
                                     {sig_badge}
                                     <span class="badge-tag badge-enc">🔑 ECIES (SECP256K1)</span>
@@ -745,6 +858,25 @@ with tab_chat:
                         )
 
     render_chat_stream()
+
+    if "transfer_flash" in st.session_state:
+        st.success(st.session_state.pop("transfer_flash"))
+
+    if active_peer_addr:
+        with st.expander(f"💸 Chuyển tiền cho {active_peer_name}"):
+            with st.form("transfer_form", clear_on_submit=True):
+                t_amount = st.number_input("Số ETH", min_value=0.0001, value=None, step=0.1, format="%.4f", placeholder="Nhập số ETH")
+                t_submit = st.form_submit_button("Chuyển", type="primary")
+            if t_submit:
+                if t_amount is None:
+                    st.error("Hãy nhập số ETH cần chuyển.")
+                else:
+                    ok, t_msg = send_eth(active_peer_addr, active_peer_name, float(t_amount))
+                    if ok:
+                        st.session_state.transfer_flash = t_msg
+                        st.rerun()
+                    else:
+                        st.error(t_msg)
 
     # Form nhập tin nhắn
     with st.form("chat_send_form", clear_on_submit=True):

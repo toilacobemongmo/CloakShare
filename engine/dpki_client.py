@@ -32,7 +32,7 @@ _REGISTRY_LOCK = threading.Lock()
 class DPKIClient:
     def __init__(
         self,
-        contract_address: str = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+        contract_address: str = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
         rpc_url: str = "http://127.0.0.1:8545",
         broker_url: str = "http://127.0.0.1:8000",
         fallback_to_local: bool = True,
@@ -53,14 +53,16 @@ class DPKIClient:
     def is_connected(self) -> bool:
         """Kiểm tra cực nhanh xem node RPC 8545 có chạy không (timeout 50ms, cache 30s)."""
         import time, socket
+        from urllib.parse import urlparse
         now = time.time()
         if now - DPKIClient._last_check_ts < 30.0:
             return DPKIClient._cached_status
         DPKIClient._last_check_ts = now
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(0.05)
-            s.connect(("127.0.0.1", 8545))
+            _u = urlparse(self.rpc_url)
+            s.settimeout(0.5)
+            s.connect((_u.hostname or "127.0.0.1", _u.port or 8545))
             s.close()
             DPKIClient._cached_status = True
         except Exception:
@@ -137,6 +139,12 @@ class DPKIClient:
         # 1. Thử gửi on-chain transaction nếu node hoạt động
         if self.is_live_chain():
             try:
+                try:
+                    # Đã đăng ký đúng khóa này rồi thì không gửi giao dịch nữa (tránh tốn gas mỗi lần tải lại trang)
+                    if self.contract.functions.getPublicKey(account.address).call() == public_key_pem:
+                        return f"0xonchain_{checksum_addr.lower()[2:10]}"
+                except Exception:
+                    pass
                 nonce = self.w3.eth.get_transaction_count(account.address)
                 tx = self.contract.functions.registerPublicKey(public_key_pem).build_transaction({
                     "from": account.address,
