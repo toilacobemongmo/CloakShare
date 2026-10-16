@@ -1340,8 +1340,9 @@ def _render_admin_dashboard() -> None:
             color="Thao tác",
             color_discrete_sequence=["#3b82f6", "#f97316", "#a855f7"],
         )
+        # Gộp dict rồi override (không truyền keyword trùng `height` hai lần).
         fig_events.update_layout(
-            **_PL_LAYOUT, showlegend=False, height=280,
+            {**_PL_LAYOUT, "showlegend": False, "height": 280},
             xaxis_title="", yaxis_title="Lượt",
         )
         fig_events.update_traces(marker_line_width=0, opacity=0.92)
@@ -1367,7 +1368,7 @@ def _render_admin_dashboard() -> None:
             color_discrete_sequence=["#38bdf8", "#f97316", "#10b981"],
         )
         fig_mem.update_layout(
-            **_PL_LAYOUT, showlegend=False, height=280,
+            {**_PL_LAYOUT, "showlegend": False, "height": 280},
             xaxis_title="", yaxis_title="KB",
         )
         fig_mem.update_traces(marker_line_width=0, opacity=0.92)
@@ -1433,7 +1434,9 @@ def _render_admin_dashboard() -> None:
                         fillcolor="rgba(56,189,248,0.10)",
                     )
                 )
-            fig_rt.update_layout(**_PL_LAYOUT, height=300, xaxis_title="", yaxis_title="KB")
+            fig_rt.update_layout(
+                {**_PL_LAYOUT, "height": 300}, xaxis_title="", yaxis_title="KB"
+            )
             st.plotly_chart(fig_rt, use_container_width=True, config={"displayModeBar": False})
             _last = hist[-1]
             st.caption(
