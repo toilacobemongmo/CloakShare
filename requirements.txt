@@ -13,4 +13,9 @@ web3>=6.15.0
 eth-account>=0.11.0
 py-solc-x>=2.0.5
 streamlit>=1.64.0
+plotly>=5.18.0
 redis>=5.0.0
+
+# Sinh mã QR offline cho phần chia sẻ đa thiết bị (bạn cùng lớp quét dùng thử)
+qrcode>=7.4.2
+pillow>=10.0.0

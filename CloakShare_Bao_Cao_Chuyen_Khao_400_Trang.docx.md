@@ -1,9 +1,9 @@
-**HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG**  
+**HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG**
 **KHOA AN TOÀN THÔNG TIN**
 
-**![][image1]**
+![Huy hiệu Học viện Công nghệ Bưu chính Viễn thông](figures/ptit_logo.png)
 
-**BÁO CÁO BÀI TẬP LỚN**  
+**BÁO CÁO BÀI TẬP LỚN**
 **HỌC PHẦN: MẬT MÃ HỌC CƠ SỞ**  
 **MÃ HỌC PHẦN: AT1403 - MẬT MÃ HỌC CƠ SỞ**
 
@@ -22,6 +22,10 @@ B24DCAT097	NGÔ MINH HIẾU
 Giảng viên hướng dẫn: TS. Quản Trọng Thế
 
 **HÀ NỘI 2026**
+
+![Hình 1. Mô hình kiến trúc tổng thể của hệ thống CloakShare đa tầng](figures/hinh_01_kien_truc_tong_the.png)
+
+**Hình 1.** Mô hình kiến trúc tổng thể của hệ thống CloakShare đa tầng, thể hiện sự phân tách trách nhiệm giữa tầng giao diện, tầng mật mã lai (AES/RSA), tầng định danh phi tập trung dPKI và tầng trung chuyển RAM không lưu vết.
 
 **LỜI CAM ĐOAN**
 
@@ -109,6 +113,7 @@ Kết quả kiểm thử thực nghiệm trên 36 bài test tự động cho th�
 | Hình 15 | So sánh kích thước khóa và bản mã: RSA cổ điển vs Mật mã Hậu lượng tử PQC | 285 |
 | Hình 16 | Sơ đồ lớp (Class Diagram) tầng điều phối Engine trong CloakShare | 310 |
 | Hình 17 | Giao diện ứng dụng nhắn tin mã hóa thời gian thực Streamlit UI | 325 |
+| Hình 18 | Minh chứng thực nghiệm kết nối và vận hành CloakShare trên thiết bị di động qua mạng Tailscale | 340 |
 
 **DANH MỤC CÁC BẢNG BIỂU**
 
@@ -284,7 +289,11 @@ Hiện thực hóa máy chủ trung chuyển phi trạng thái trên nền FastA
 \- Chương 8: Mô hình hóa đe dọa STRIDE và ma trận đánh giá rủi ro DREAD, phân tích 6 nguy cơ an ninh cốt lõi và các kịch bản tấn công thực nghiệm chuyên sâu (giả mạo chữ ký ví, replay attack, tráo khóa dPKI, từ chối dịch vụ DoS).  
 \- Chương 9: Thực nghiệm đo đạc hiệu năng, benchmark thông lượng C Native vs Python, đo đạc tiêu thụ Gas Smart Contract, phân tích độ trễ toàn trình E2E, đo đạc tải RAM Broker và báo cáo chi tiết 36 ca kiểm thử tự động Pytest (100% PASS).  
 \- Chương 10: Đánh giá thành tựu, các giới hạn kỹ thuật hiện tại, phân tích mối đe dọa lượng tử (thuật toán Shor & Grover), các tiêu chuẩn NIST PQC mới (FIPS 203 ML-KEM Kyber, FIPS 204 ML-DSA Dilithium) và lộ trình nâng cấp Kháng Lượng Tử Lai.  
-\- Danh mục Tài liệu tham khảo: Hơn 40 tài liệu khoa học chuẩn quốc tế định dạng IEEE.  
+\- Danh mục Tài liệu tham khảo: Hơn 40 tài liệu khoa học chuẩn quốc tế định dạng IEEE.
+
+![Hình 2. Biểu đồ tuần tự (Sequence Diagram) trao đổi dữ liệu E2E](figures/hinh_02_sequence_diagram.png)
+
+**Hình 2.** Biểu đồ tuần tự (Sequence Diagram) mô tả toàn trình trao đổi dữ liệu đầu cuối E2E: Sender sinh khóa phiên và mã hóa tệp, tra cứu khóa công khai qua dPKI, đẩy gói tin lên RAM Broker, Buyer rút gói tin bằng xác thực ví Web3 EIP-191 và giải mã khôi phục bản rõ.
 \- Phụ lục A đến F: Toàn văn mã nguồn C-Native, Solidity EVM, Python Engine, Broker, Streamlit UI, các bộ kiểm thử và sổ tay hướng dẫn cài đặt vận hành chi tiết.
 
 **CHƯƠNG 2**  
@@ -299,6 +308,10 @@ Cuộc thi đã thu hút 15 thuật toán ứng viên hàng đầu thế giới 
 NIST đã chính thức ban hành Rijndael thành tiêu chuẩn liên bang FIPS-197 (Federal Information Processing Standards Publication 197\) vào ngày 26 tháng 11 năm 2001\. Tiêu chuẩn này quy định thuật toán AES hoạt động trên các khối dữ liệu có kích thước cố định là 128 bit (16 byte), hỗ trợ ba độ dài khóa tiêu chuẩn: 128 bit (10 vòng lặp), 192 bit (12 vòng lặp) và 256 bit (14 vòng lặp).
 
 Khác với cấu trúc mạng Feistel truyền thống của DES (chỉ mã hóa một nửa khối dữ liệu trong mỗi vòng), Rijndael được xây dựng dựa trên mạng hoán vị \- thay thế toàn phần (Substitution-Permutation Network \- SPN). Trong SPN, toàn bộ 128 bit của khối dữ liệu đều được biến đổi đồng thời trong mỗi vòng lặp, mang lại tốc độ thực thi cao hơn và tính khuếch tán dữ liệu nhanh chóng hơn rất nhiều.
+
+![Hình 3. Mạng biến đổi vòng lặp trong thuật toán FIPS-197 AES-128](figures/hinh_03_aes_round_transformation.png)
+
+**Hình 3.** Mạng biến đổi vòng lặp (Round Transformation) trong thuật toán FIPS-197 AES-128, bao gồm bốn phép biến đổi SubBytes, ShiftRows, MixColumns và AddRoundKey áp dụng đồng thời trên toàn bộ khối 128-bit trong mỗi vòng lặp.
 
 **2.2. Đại số trừu tượng trên trường hữu hạn Galois GF(2^8)**
 
@@ -402,9 +415,17 @@ Bản thân thuật toán AES là một hàm mã hóa khối (Block Cipher), ch�
 
 CloakShare lựa chọn chế độ CBC kết hợp với chữ ký số RSA-PSS ngoài chuỗi. Lợi thế của việc tách biệt giữa mã hóa bulk data bằng AES-CBC và xác thực toàn vẹn bằng RSA-PSS là phân tách rõ ràng trách nhiệm an ninh: AES-CBC đảm bảo tính bí mật, còn RSA-PSS cung cấp tính xác thực nguồn gốc và tính chống chối bỏ (Non-repudiation) của người gửi \- điều mà các chế độ AEAD đối xứng thuần túy như GCM không thể mang lại.
 
+![Hình 9. Vòng đời Staging - Retrieval - Purge của Payload trong RAM Store](figures/hinh_09_ram_store_lifecycle.png)
+
+**Hình 9.** Vòng đời Staging – Retrieval – Purge của Payload trong RAM Store của Zero-Log Broker, thể hiện luồng dữ liệu khép kín trong bộ nhớ khả biến cùng cơ chế tự hủy TTL và ghi đè byte `0x00`.
+
 **2.9. Tiêu chuẩn đệm khối PKCS\#7 (RFC 5652\) và cơ chế chống tấn công Padding Oracle**
 
 Vì AES-128 hoạt động trên khối 16 byte, nên nếu dung lượng tệp tin không phải là bội số của 16, khối cuối cùng phải được chèn thêm các byte đệm (Padding). Tiêu chuẩn PKCS\#7 (RFC 5652\) quy định giá trị của mỗi byte đệm chính bằng tổng số byte được thêm vào.
+
+![Hình 4. Cơ chế đệm khối PKCS#7 và ma trận kiểm tra tính hợp lệ](figures/hinh_04_pkcs7_padding.png)
+
+**Hình 4.** Cơ chế đệm khối PKCS#7 (RFC 5652) và ma trận kiểm tra tính hợp lệ của khối đệm, minh họa cách byte đệm mã hóa tổng số byte được chèn vào khối cuối cùng.
 
 Tấn công Padding Oracle do Serge Vaudenay công bố năm 2002 là một trong những cuộc tấn công kinh điển vào chế độ CBC. Nếu máy chủ phản hồi lỗi giải mã đệm (Invalid Padding Error) khác biệt với lỗi xác thực, kẻ tấn công có thể sửa đổi IV và khối bản mã để giải mã toàn bộ thông điệp trong thời gian trung bình \$16 \\times 256\$ truy vấn.
 
@@ -479,6 +500,10 @@ RSA-OAEP áp dụng một mạng Feistel đối xứng 2 vòng lặp kết hợp
 1\. Hàm sinh mặt nạ MGF1 (Mask Generation Function 1\) dựa trên thuật toán băm an toàn SHA-256.  
 2\. Chuỗi hạt giống ngẫu nhiên (Seed) có độ dài 32 byte được sinh mới hoàn toàn cho mỗi lần mã hóa.
 
+![Hình 5. Kiến trúc mạng Feistel hai vòng trong cơ chế đệm RSA-OAEP](figures/hinh_05_rsa_oaep_feistel.png)
+
+**Hình 5.** Kiến trúc mạng Feistel hai vòng trong cơ chế đệm RSA-OAEP, thể hiện hai hàm sinh mặt nạ MGF1-SHA256 và chuỗi hạt giống ngẫu nhiên Seed, tuân thủ chuẩn RFC 8017.
+
 Quy trình đệm OAEP biến đổi thông điệp \$M\$ thành chuỗi đệm \$EM\$ có độ dài đúng bằng kích thước modulo (256 byte đối với RSA-2048):  
 \- \$DB \= \\text{lHash} \\parallel PS \\parallel 0x01 \\parallel M\$  
 \- \$dbMask \= \\text{MGF1}(seed, len(DB))\$  
@@ -500,6 +525,10 @@ Bất kỳ sự thay đổi dù chỉ 1 bit trên bản mã \$c\$ sẽ dẫn đ�
 Tương tự như trong mã hóa, các lược đồ chữ ký số xác định (Deterministic Signatures) dễ bị tấn công giả mạo khi hàm băm bị va chạm. Tiêu chuẩn RFC 8017 đưa ra lược đồ chữ ký số xác suất RSA-PSS.
 
 Trong RSA-PSS, một chuỗi muối ngẫu nhiên (Random Salt, độ dài thường là 32 byte) được sinh mới cho mỗi lần ký. Giá trị băm \$H \= \\text{SHA-256}(Padding1 \\parallel mHash \\parallel Salt)\$ được tính toán, sau đó đưa qua mạng Feistel với MGF1 để tạo khối mã hóa \$EM\$. Chữ ký số cuối cùng được tính bằng: \$S \= (EM)^d \\pmod n\$.
+
+![Hình 6. Lược đồ sinh chữ ký số và chèn muối ngẫu nhiên RSA-PSS](figures/hinh_06_rsa_pss_signature.png)
+
+**Hình 6.** Lược đồ sinh chữ ký số và chèn muối ngẫu nhiên (Salt) của RSA-PSS, thể hiện tính chất xác suất của chữ ký đạt chuẩn an toàn EUF-CMA theo RFC 8017.
 
 Nhờ có chuỗi muối ngẫu nhiên Salt, chữ ký RSA-PSS có tính chất xác suất: cùng một tệp tin khi ký nhiều lần sẽ tạo ra các chuỗi chữ ký hoàn toàn khác nhau. RSA-PSS đã được chứng minh an toàn tuyệt đối trong mô hình Random Oracle Model đạt chuẩn EUF-CMA (Existential Unforgeability under Chosen Message Attack).
 
@@ -556,8 +585,12 @@ Mỗi địa chỉ ví 160-bit (20 byte) của người dùng đóng vai trò l�
 Hàm đăng ký \`registerPublicKey(string calldata publicKeyPem)\`:  
 Người dùng gửi một giao dịch được ký bằng khóa riêng của ví Web3. Máy ảo EVM tự động xác thực chữ ký và cung cấp biến toàn cục \`msg.sender\`. Hợp đồng kiểm tra điều kiện độ dài chuỗi khóa phải lớn hơn 0 và ghi đè vào mapping: \`\_publicKeys\[msg.sender\] \= publicKeyPem;\`.
 
-Sự kiện \`event PublicKeyRegistered(address indexed user, string publicKeyPem)\`:  
+Sự kiện \`event PublicKeyRegistered(address indexed user, string publicKeyPem)\`:
 Phát ra sự kiện trên Blockchain để các dịch vụ lập chỉ mục ngoài chuỗi (Off-chain indexers như The Graph) có thể lưu vết và tạo cache nhanh chóng.
+
+![Hình 7. Mô hình tương tác Smart Contract dPKIRegistry trên mạng EVM](figures/hinh_07_dpki_smart_contract.png)
+
+**Hình 7.** Mô hình tương tác Smart Contract dPKIRegistry trên mạng EVM, thể hiện ánh xạ bất biến giữa địa chỉ ví Web3 và chuỗi khóa công khai RSA dưới định dạng PEM.
 
 **4.4. Phân tích chi phí tiêu thụ Gas và các kỹ thuật tối ưu hóa mã nguồn Solidity**
 
@@ -568,6 +601,10 @@ CloakShare áp dụng 3 kỹ thuật tối ưu hóa Gas then chốt:
 2\. Khai báo hàm getPublicKey là external view: Hàm đọc khóa được gán nhãn \`view\`, giúp các nút RPC thực thi truy vấn hoàn toàn ngoài chuỗi (Off-chain call qua \`eth\_call\`) với chi phí Gas bằng đúng 0\.  
 3\. Hạn chế kích thước chuỗi PEM: Chuỗi khóa công khai RSA-2048 ở định dạng PEM SubjectPublicKeyInfo có độ dài khoảng 451 ký tự (\~15 slot lưu trữ 32-byte). Chi phí ghi dữ liệu \`SSTORE\` tiêu tốn trung bình khoảng 89.450 Gas \- một mức chi phí rất thấp trên các mạng Layer-2 như Polygon hay Arbitrum.
 
+![Hình 11. Phân tích chi phí tiêu thụ Gas của Smart Contract dPKIRegistry trên EVM](figures/hinh_11_gas_analysis.png)
+
+**Hình 11.** Phân tích chi phí tiêu thụ Gas của Smart Contract dPKIRegistry trên EVM, so sánh chi phí của các kỹ thuật tối ưu hóa Calldata, hàm `view` ngoài chuỗi và hạn chế kích thước chuỗi PEM.
+
 **4.5. Chuẩn xác thực định danh Web3 Sign-In with Ethereum (EIP-191 & EIP-4361)**
 
 Sau khi người gửi đẩy gói tin mã hóa lên Broker, làm thế nào để Broker biết chắc chắn rằng chỉ có người nhận được chỉ định mới có quyền lấy tệp tin về mà không cần dùng đến tài khoản/mật khẩu truyền thống? Giải pháp của CloakShare là áp dụng tiêu chuẩn EIP-191 Personal Sign (Sign-In with Ethereum).
@@ -577,6 +614,10 @@ Thuật toán ký thông điệp EIP-191 hoạt động trên đường cong ell
 
 Bên xác minh (Broker) sử dụng hàm \`ecrecover\` để phục hồi lại địa chỉ ví công khai từ bộ ba giá trị chữ ký \$(r, s, v)\$:  
 \$\$\\text{Address} \= \\text{Keccak-256}(\\text{ecrecover}(\\text{Hash}, v, r, s))\[-20:\]\$\$
+
+![Hình 8. Cấu trúc gói tin HTTP Headers xác thực Web3 EIP-191 Personal Sign](figures/hinh_08_http_headers_web3_auth.png)
+
+**Hình 8.** Cấu trúc gói tin HTTP Headers xác thực Web3 EIP-191 Personal Sign, bao gồm các trường `X-Wallet-Address`, `X-Timestamp`, `X-Signature` phục vụ xác thực người nhận tại Broker.
 
 **4.6. Mật mã đường cong Elliptic secp256k1 và thuật toán phục hồi ecrecover**
 
@@ -684,15 +725,20 @@ Cơ chế dọn dẹp diễn ra qua 3 kênh độc lập:
 - **Kênh 2 - Đọc xong tự hủy (Burn-After-Read):** Khi người nhận rút tệp thành công với tham số `?burn=true`, gói tin lập tức bị xóa và ghi đè `0x00` ngay tại chỗ. Mọi nỗ lực truy cập lần thứ hai đều nhận về mã lỗi HTTP 404.
 - **Kênh 3 - Tiêu hủy toàn phần khi Shutdown:** Hàm `purge_all()` quét sạch toàn bộ RAM khi dịch vụ dừng.
 
+![Hình 13. Khả năng dọn sạch bộ nhớ (RAM Scrubbing & TTL Purge) của Broker](figures/hinh_13_ram_scrubbing_timeline.png)
+
+**Hình 13.** Khả năng dọn sạch bộ nhớ (RAM Scrubbing & TTL Purge) của Broker theo dòng thời gian, thể hiện mức tiêu thụ RAM tăng và giảm về mức ổn định sau chu kỳ tự hủy TTL.
+
 **5.5. Hệ Thống RESTful API Endpoints và Khế Ước Giao Tiếp**
 
-Máy chủ Zero-Log Broker cung cấp tập hợp 6 điểm cuối API tinh gọn, chuẩn RESTful:
+Máy chủ Zero-Log Broker cung cấp tập hợp 7 điểm cuối API tinh gọn, chuẩn RESTful:
 1. `POST /api/v1/stage` (201 Created): Người gửi tải lên gói tin đã mã hóa. Broker ghi nhận vào RAM heap, thiết lập thời hạn TTL và trả về biên lai `expires_at`.
-2. `GET /api/v1/retrieve/{tx_id}` (200 OK): Người nhận rút gói tin. Yêu cầu bắt buộc phải đính kèm chữ ký ví Web3 EIP-191 hợp lệ qua HTTP Headers (`X-Wallet-Address`, `X-Timestamp`, `X-Signature`).
+2. `GET /api/v1/retrieve/{tx_id}` (200 OK): Người nhận rút gói tin. Yêu cầu bắt buộc phải đính kèm chữ ký ví Web3 EIP-191 hợp lệ qua HTTP Headers (`X-Wallet-Address`, `X-Timestamp`, `X-Signature`). Hỗ trợ tham số `?burn=true` để tự huỷ và ghi đè 0x00 ngay sau khi đọc.
 3. `GET /api/v1/inbox` (200 OK): Hộp thư chờ tức thì. Cho phép client truy vấn tất cả các payload đang chờ dành riêng cho địa chỉ ví của mình sau khi xác thực chữ ký ví.
 4. `GET /api/v1/stats` (200 OK): Cung cấp số liệu thời gian thực cho Bảng giám sát an ninh (Dashboard): số lượng payload đang lưu trên RAM, tổng lượt đã stage, tổng lượt đã rút, và cam kết số lần ghi đĩa bằng 0 tuyệt đối (`disk_writes: 0`).
-5. `GET /health` (200 OK): Endpoint kiểm tra liveness phục vụ cân bằng tải và giám sát hệ thống mạng.
-6. `POST & GET /api/v1/dpki/*`: Trạm chuyển tiếp danh bạ dPKI trong mạng LAN/VPN khi hoạt động ở chế độ phi chuỗi (Off-chain safe mode).
+5. `GET /api/v1/ram` (200 OK): Cung cấp ảnh chụp (snapshot) chi tiết hiện trạng RAM heap: danh sách các vùng nhớ đang lưu trữ payload (tx_id, recipient, kích thước byte, thời gian sống TTL còn lại) cùng luồng sự kiện STAGE/WIPE/EXPIRE trực quan hóa chu trình ghi và ghi đè 0x00 tự hủy.
+6. `GET /health` (200 OK): Endpoint kiểm tra liveness phục vụ cân bằng tải và giám sát hệ thống mạng.
+7. `POST & GET /api/v1/dpki/*`: Trạm chuyển tiếp danh bạ dPKI trong mạng LAN/VPN khi hoạt động ở chế độ phi chuỗi (Off-chain safe mode).
 
 **5.6. Vô Hiệu Hóa Uvicorn Access Log Ngăn Chặn Rò Rỉ Siêu Dữ Liệu**
 
@@ -786,7 +832,7 @@ Từ các phân tích đối sánh trên, CloakShare định vị mình là gi�
 
 Hệ thống dung hòa hoàn hảo giữa ba yếu tố tưởng chừng như mâu thuẫn: Tốc độ truyền tải siêu tốc của C-Native, Độ an toàn mật mã học cấp quân sự của RSA-OAEP/PSS và Tính phi tập trung không thể kiểm duyệt của Blockchain Web3.
 
-**CHƯƠNG 7**  
+**CHƯƠNG 7**
 **THIẾT KẾ CHI TIẾT & HIỆN THỰC HÓA HỆ THỐNG CLOAKSHARE**
 
 **7.1. Kiến trúc phân tầng tổng thể (Layered Architecture)**
@@ -800,6 +846,10 @@ Hệ sinh thái CloakShare được thiết kế tuân theo nguyên lý phân t�
 
 Mỗi tầng chỉ tương tác với tầng liền kề thông qua các hợp đồng giao diện xác định, giúp hệ thống dễ dàng bảo trì, mở rộng và nâng cấp độc lập từng module.
 
+![Hình 16. Sơ đồ lớp (Class Diagram) tầng điều phối Engine trong CloakShare](figures/hinh_16_class_diagram_engine.png)
+
+**Hình 16.** Sơ đồ lớp (Class Diagram) tầng điều phối Engine trong CloakShare, mô tả cấu trúc các lớp `RSAEnvelope`, `IntegritySigner`, `Web3Auth` và cầu nối `AESWrapper` liên kết Python với lõi C.
+
 **7.2. Đặc tả giao thức gói tin Staging Bundle Schema**
 
 Gói dữ liệu trao đổi giữa Sender, Broker và Buyer được định dạng theo cấu trúc JSON chuẩn mực thông qua lớp \`StagePayload\` trong \`broker/schemas.py\`:  
@@ -830,6 +880,10 @@ Tệp \`ui/app.py\` xây dựng một ứng dụng giao diện web hiện đại
 \- Cơ chế Inbox Polling Tự động: Hàm \`poll\_inbox()\` được kích hoạt mỗi khi trang web tải lại. Hàm tự động ký thông điệp \`CloakShare Inbox Access:{timestamp}\`, gửi yêu cầu GET lên \`/api/v1/inbox\`, tự động tải các gói tin mới về, giải mã bằng khóa riêng của tài khoản hiện tại và hiển thị dưới dạng bong bóng chat hai màu.  
 \- Hỗ trợ Đính kèm & Tải về Tệp tin: Người dùng có thể đính kèm bất kỳ loại tệp tin nào (văn bản, hợp đồng PDF, hình ảnh, tài liệu lưu trữ). Tệp tin được mã hóa bằng AES lõi C, chuyển đổi thành chuỗi Base64 nhúng trong payload JSON và cung cấp nút bấm \`st.download\_button\` để người nhận tải về nguyên bản.  
 \- Cơ chế Fallback Ngoại tuyến (Offline Fallback): Nếu mạng Blockchain Anvil chưa khởi động, giao diện tự động sử dụng cặp khóa phiên trong Session State để mã hóa và gửi dữ liệu, bảo đảm tính sẵn sàng 100% của ứng dụng.
+
+![Hình 17. Giao diện ứng dụng nhắn tin mã hóa thời gian thực Streamlit UI](figures/hinh_17_streamlit_ui_layout.png)
+
+**Hình 17.** Giao diện ứng dụng nhắn tin mã hóa thời gian thực Streamlit UI, bao gồm bốn phân hệ chính: Messenger E2E, CloakDrop File Vault, Giám sát Zero-Log & dPKI, và Quản lý khóa/danh tính Web3.
 
 **7.5. Tích hợp mạng riêng ảo Mesh WireGuard và Tailscale DERP**
 
@@ -842,54 +896,34 @@ Mặc dù tầng ứng dụng CloakShare đã được mã hóa đầu cuối E2
 
 **MÔ HÌNH HÓA ĐE DỌA (STRIDE) & PHÂN TÍCH AN TOÀN MẬT MÃ**
 
-**7.1. Kiến trúc phân tầng tổng thể (Layered Architecture)**
+**8.1. Giới thiệu mô hình đe dọa STRIDE và phạm vi áp dụng**
 
-Hệ sinh thái CloakShare được thiết kế tuân theo nguyên lý phân tách trách nhiệm (Separation of Concerns) thành 5 tầng kiến trúc độc lập, giao tiếp với nhau thông qua các giao diện lập trình ứng dụng (API) và chuẩn dữ liệu mở:  
-\- Tầng 1: Presentation Layer (Giao diện dòng lệnh CLI và Web App Streamlit).  
-\- Tầng 2: Cryptographic Engine Layer (Bộ điều phối Python, cầu nối Ctypes, RSA Envelope, Signer, Web3 Auth).  
-\- Tầng 3: Staging & Transport Layer (FastAPI In-Memory RAM Broker phi trạng thái).  
-\- Tầng 4: Decentralized Identity Layer (Smart Contract dPKIRegistry trên máy ảo EVM).  
-\- Tầng 5: Virtual Mesh Network Layer (Mạng lưới riêng ảo P2P WireGuard / Tailscale DERP).
+Mô hình STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) do Microsoft phát triển là nền tảng phân loại đe dọa chuẩn cho các hệ thống phần mềm hướng dịch vụ. Trong CloakShare, phân tích STRIDE được áp dụng cho từng điểm tương tác giữa bốn thực thể tham gia: Sender (người gửi), Buyer (người nhận), RAM Broker (máy chủ trung chuyển) và hợp đồng dPKI trên EVM.
 
-Mỗi tầng chỉ tương tác với tầng liền kề thông qua các hợp đồng giao diện xác định, giúp hệ thống dễ dàng bảo trì, mở rộng và nâng cấp độc lập từng module.
+**8.2. Ma trận đánh giá rủi ro theo từng nhóm đe dọa**
 
-**7.2. Đặc tả giao thức gói tin Staging Bundle Schema**
+| Nhóm đe dọa | Mục tiêu tấn công trong CloakShare | Biện pháp khắc phục | Mức rủi ro |
+| --- | --- | --- | --- |
+| Spoofing (Giả mạo) | Giả mạo địa chỉ ví người nhận để rút tệp | Xác thực chữ ký EIP-191 ecrecover secp256k1 | Thấp |
+| Tampering (Giả mạo nội dung) | Sửa đổi ciphertext trong RAM Broker | Chữ ký RSA-PSS SHA-256 trước khi giải mã | Thấp |
+| Repudiation (Chối bỏ) | Người gửi chối đã gửi tệp | Chữ ký số có khả năng kiểm chứng ngoài hệ thống | Thấp |
+| Information Disclosure (Lộ thông tin) | Đọc trộm payload trên RAM / disk | Zero-Disk, RAM Scrubbing ghi đè 0x00 | Thấp |
+| Denial of Service (Từ chối dịch vụ) | Ngập RAM Broker bằng payload lớn | Giới hạn TTL, cân bằng tải, mạng Mesh | Trung bình |
+| Elevation of Privilege (Leo thang quyền) | Lợi dụng lỗi cấu hình API của Broker | Phân quyền theo recipient, kiểm tra đầu vào | Trung bình |
 
-Gói dữ liệu trao đổi giữa Sender, Broker và Buyer được định dạng theo cấu trúc JSON chuẩn mực thông qua lớp \`StagePayload\` trong \`broker/schemas.py\`:  
-\- \`tx\_id\`: Chuỗi định danh ngẫu nhiên UUID v4 (ví dụ: \`0x7b8f...\`).  
-\- \`recipient\`: Địa chỉ ví Ethereum 20 byte dạng hex checksum (ví dụ: \`0x70997970C51812dc3A010C7d01b50e0d17dc79C8\`).  
-\- \`iv\`: Vector khởi tạo 128-bit (16 byte) được mã hóa chuỗi Hex hoặc Base64.  
-\- \`wrapped\_key\`: Khóa phiên AES-128 được bọc bởi RSA-OAEP 2048-bit (256 byte chuỗi Hex).  
-\- \`ciphertext\`: Toàn bộ nội dung tệp tin đã mã hóa AES-128-CBC với PKCS\#7 padding.  
-\- \`signature\`: Chữ ký số RSA-PSS 2048-bit (256 byte chuỗi Hex) trên mã băm SHA-256 của Ciphertext.  
-\- \`ttl\_seconds\`: Thời gian sống trên RAM của Broker (giới hạn từ 1 đến 86.400 giây, mặc định 300 giây).
+![Hình 14. Đánh giá mức độ rủi ro an ninh theo mô hình mạng nhện STRIDE](figures/hinh_14_stride_radar_chart.png)
 
-**7.3. Giao diện dòng lệnh độc lập engine/cli.py và bộ điều hợp**
+**Hình 14.** Đánh giá mức độ rủi ro an ninh theo mô hình mạng nhện STRIDE, biểu diễn trực quan sáu nhóm nguy cơ Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service và Elevation of Privilege.
 
-Nhằm phục vụ cho việc tích hợp vào các kịch bản tự động hóa (DevOps, CI/CD) hoặc người dùng chuyên nghiệp trên hệ điều hành Linux/Unix không có giao diện đồ họa, CloakShare cung cấp công cụ dòng lệnh \`engine/cli.py\`.
+**8.3. Kịch bản tấn công thực nghiệm và kết quả khắc phục**
 
-Các lệnh chức năng chính bao gồm:  
-\- \`python \-m engine.cli genkey\`: Sinh cặp khóa RSA-2048 và lưu trữ an toàn ở định dạng PEM PKCS\#8.  
-\- \`python \-m engine.cli register \--key \<pem\> \--rpc \<url\>\`: Tương tác với Smart Contract dPKI để đăng ký khóa công khai lên mạng Blockchain.  
-\- \`python \-m engine.cli send \--file \<path\> \--to \<wallet\_addr\>\`: Thực hiện toàn bộ quy trình tra cứu khóa dPKI, sinh khóa phiên AES, mã hóa tệp, bọc khóa, ký số và gửi lên Broker.  
-\- \`python \-m engine.cli receive \--tx \<tx\_id\> \--out \<path\>\`: Ký xác thực Web3 EIP-191, rút gói tin từ Broker, kiểm tra chữ ký, mở khóa và giải mã tệp tin.
+Ba kịch bản tấn công chuyên sâu được mô phỏng trong bộ kiểm thử:
 
-Lớp \`engine/cli\_adapter.py\` đóng vai trò là tầng trung gian (Adapter Pattern), ánh xạ các lời gọi hàm tầng cao từ giao diện đồ họa xuống các hàm điều phối mật mã bên dưới.
+1. **Giả mạo chữ ký ví (Spoofing):** Một địa chỉ ví không phải là recipient hợp lệ cố rút payload. Hệ thống từ chối bằng mã lỗi HTTP 403 Forbidden (`test_retrieve_with_wrong_recipient_returns_403`).
+2. **Tấn công phát lại (Replay Attack):** Chữ ký EIP-191 hợp lệ nhưng đã quá cửa sổ trôi thời gian 60 giây được gửi lại. Hệ thống từ chối bằng HTTP 401 Unauthorized (`test_retrieve_with_drifted_timestamp_returns_401`).
+3. **Giả mạo nội dung (Tampering):** Một bit trên ciphertext bị lật trước khi giải mã. Chữ ký RSA-PSS SHA-256 không khớp nên yêu cầu bị từ chối (`test_verify_fails_when_data_flipped_by_one_bit`).
 
-**7.4. Thiết kế ứng dụng Messenger trực quan ui/app.py trên Streamlit**
-
-Tệp \`ui/app.py\` xây dựng một ứng dụng giao diện web hiện đại, cho phép người dùng trải nghiệm việc trao đổi thông điệp và tài liệu mật một cách trực quan như các ứng dụng chat hàng đầu (Telegram, Signal):  
-\- Quản lý Phiên Đa người dùng (Multi-Account State): Ứng dụng mô phỏng trực tiếp hai người dùng độc lập: Alice và Bob trên cùng một giao diện để thuận tiện cho việc kiểm thử và trình diễn. Khi chuyển đổi tài khoản, hệ thống tự động nạp cặp khóa RSA và ví Web3 tương ứng từ \`st.session\_state\`.  
-\- Cơ chế Inbox Polling Tự động: Hàm \`poll\_inbox()\` được kích hoạt mỗi khi trang web tải lại. Hàm tự động ký thông điệp \`CloakShare Inbox Access:{timestamp}\`, gửi yêu cầu GET lên \`/api/v1/inbox\`, tự động tải các gói tin mới về, giải mã bằng khóa riêng của tài khoản hiện tại và hiển thị dưới dạng bong bóng chat hai màu.  
-\- Hỗ trợ Đính kèm & Tải về Tệp tin: Người dùng có thể đính kèm bất kỳ loại tệp tin nào (văn bản, hợp đồng PDF, hình ảnh, tài liệu lưu trữ). Tệp tin được mã hóa bằng AES lõi C, chuyển đổi thành chuỗi Base64 nhúng trong payload JSON và cung cấp nút bấm \`st.download\_button\` để người nhận tải về nguyên bản.  
-\- Cơ chế Fallback Ngoại tuyến (Offline Fallback): Nếu mạng Blockchain Anvil chưa khởi động, giao diện tự động sử dụng cặp khóa phiên trong Session State để mã hóa và gửi dữ liệu, bảo đảm tính sẵn sàng 100% của ứng dụng.
-
-**7.5. Tích hợp mạng riêng ảo Mesh WireGuard và Tailscale DERP**
-
-Mặc dù tầng ứng dụng CloakShare đã được mã hóa đầu cuối E2EE bằng AES-128 và RSA-2048, nhưng việc truyền tải các gói tin HTTP qua mạng Internet công cộng vẫn có thể làm lộ địa chỉ IP máy chủ Broker. Để che giấu hoàn toàn địa chỉ IP thực tế và bảo vệ trước các cuộc tấn công DDoS tầng mạng, CloakShare được thiết kế để triển khai liền mạch trên các mạng lưới riêng ảo Virtual Private Mesh (như Tailscale hoặc WireGuard):  
-\- Giao thức WireGuard Native: Sử dụng mật mã hiện đại dựa trên đường cong Curve25519, ChaCha20-Poly1305 và BLAKE2s. Mỗi nút mạng tham gia (Sender, Receiver, Broker, EVM Node) được cấp phát một địa chỉ IP ảo tĩnh trong dải mạng riêng (ví dụ: \`100.x.y.z\`).  
-\- Vượt tường lửa & NAT Traversal: Tailscale DERP (Designated Encrypted Relay for Packets) và kỹ thuật STUN/ICE cho phép các máy tính của người dùng thiết lập kết nối ngang hàng (Peer-to-Peer) trực tiếp xuyên qua các bộ định tuyến gia đình hoặc mạng nội bộ doanh nghiệp mà không cần mở cổng Port Forwarding.  
-\- Bảo vệ Kép (Double Encryption): Mọi lưu lượng dữ liệu trao đổi giữa các thành phần CloakShare đều được bọc hai lớp mã hóa độc lập: lớp ngoài do WireGuard bảo vệ đường truyền IP, và lớp trong do CloakShare AES-128 bảo vệ nội dung tệp tin.
+Cả ba kịch bản đều được xác thực tự động trong bộ test Pytest, khẳng định tính toàn vẹn và khả năng chống giả mạo của kiến trúc bảo mật CloakShare.
 
 **CHƯƠNG 9**  
 **THỰC NGHIỆM ĐO ĐẠC HIỆU NĂNG, BENCHMARK & KIỂM THỬ TOÀN DIỆN**
@@ -915,6 +949,10 @@ Thực nghiệm được tiến hành bằng cách tạo ngẫu nhiên các tệ
 
 Kết quả thực nghiệm chứng minh rằng lõi C Native của CloakShare đạt thông lượng xử lý cực kỳ ổn định, tiệm cận mức 582 MB/s đối với các tệp tin lớn. Tốc độ này nhanh gấp hơn 10.5 lần so với việc xử lý bằng Python thuần, giải quyết triệt để bài toán nghẽn tài nguyên CPU.
 
+![Hình 10. So sánh thông lượng thực thi: Lõi C Native FIPS-197 vs Python](figures/hinh_10_throughput_benchmark.png)
+
+**Hình 10.** So sánh thông lượng thực thi giữa lõi C Native FIPS-197 và Pure Python Baseline qua các kích thước tệp từ 10 KB đến 100 MB, cho thấy lõi C đạt tốc độ nhanh hơn hơn 10 lần.
+
 **9.3. Đo đạc độ trễ toàn trình (End-to-End Latency Breakdown)**
 
 Độ trễ toàn trình (E2E Latency) được đo đạc từ khoảnh khắc người gửi bắt đầu chọn tệp tin 10 MB cho đến khi người nhận giải mã thành công bản rõ trên máy tính của mình. Toàn bộ chu trình mất trung bình 54.0 ms, được phân bổ như sau:  
@@ -923,6 +961,10 @@ Kết quả thực nghiệm chứng minh rằng lõi C Native của CloakShare �
 3\. Mã hóa C-Core AES-128 10MB: Chiếm 17.8 ms (33.0%), tốc độ xử lý nhanh chóng của thư viện C.  
 4\. Truyền tải Mạng RAM Broker: Chiếm 8.4 ms (15.5%), qua giao thức HTTP POST và GET.  
 5\. Xác thực Chữ ký Web3 EIP-191: Chiếm 3.1 ms (5.7%), hàm khôi phục ecrecover secp256k1.
+
+![Hình 12. Phân bổ độ trễ trong toàn trình trao đổi tệp CloakShare](figures/hinh_12_latency_breakdown.png)
+
+**Hình 12.** Phân bổ độ trễ trong toàn trình trao đổi tệp CloakShare (tổng cộng ~54.0 ms), chi tiết năm khâu: tra cứu dPKI, bọc khóa/ký RSA, mã hóa AES C-Core, truyền tải RAM Broker và xác thực chữ ký Web3.
 
 **9.4. Đo đạc mức độ tiêu thụ RAM của máy chủ Broker dưới tải nặng**
 
@@ -942,7 +984,18 @@ Dự án CloakShare áp dụng quy trình kiểm thử nghiêm ngặt (Test-Driv
 - `tests/test_signer.py` (9 tests): Xác thực chữ ký số RSA-PSS SHA-256; phát hiện giả mạo khi bị đảo 1 bit ở đầu/cuối payload; từ chối khi dùng sai khóa công khai hoặc khóa hỏng định dạng PEM; xác nhận tính chất chữ ký xác suất không xác định (Probabilistic Signature); và kiểm thử chữ ký số Web3 ECDSA SECP256K1.  
 - `tests/test_e2e_pipeline.py` (1 test): Kiểm thử quy trình lai ghép toàn trình khép kín: sinh cặp khóa RSA, đăng ký dPKI trên mạng blockchain EVM, mã hóa AES-128-CBC với padding PKCS#7, bọc khóa phiên RSA-OAEP, ký số toàn vẹn RSA-PSS, trung chuyển qua máy chủ RAM Zero-Log Broker, xác thực ví người nhận EIP-191, và giải mã khôi phục nguyên vẹn dữ liệu gốc.
 
-**CHƯƠNG 10**  
+**9.6. Thực nghiệm kiểm chứng triển khai mạng đa thiết bị di động (Mobile Multi-Device Verification)**
+
+Nhằm kiểm chứng tính khả thi và khả năng tương thích của hệ thống trong môi trường mạng thực tế đa nền tảng, nhóm nghiên cứu đã triển khai thử nghiệm CloakShare trên thiết bị di động thông minh (Smartphone) kết nối thông qua mạng riêng ảo lưới (Mesh VPN - Tailscale):
+- Nút Broker và Engine mật mã được vận hành trên máy chủ trạm (Workstation).
+- Thiết bị di động của người dùng kết nối tới địa chỉ IP mạng Tailscale (`100.97.253.80`) thông qua giao diện Web di động phản hồi (Responsive Web UI).
+- Quá trình khởi tạo ví Web3 (`0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`), sinh cặp khóa bất đối xứng và thiết lập kênh mã hóa lai E2E diễn ra thông suốt và ổn định trên trình duyệt di động mà không phát sinh lỗi tương thích hệ điều hành.
+
+![Hình 18. Minh chứng thực nghiệm kết nối và vận hành CloakShare trên thiết bị di động thông qua mạng Tailscale](mobile_verified.png)
+
+**Hình 18.** Minh chứng thực nghiệm kết nối và vận hành CloakShare trên thiết bị di động (Smartphone) thông qua mạng Tailscale VPN (địa chỉ 100.97.253.80), kiểm chứng tính sẵn sàng và tính tương thích đa nền tảng của hệ thống.
+
+**CHƯƠNG 10**
 **ĐÁNH GIÁ GIỚI HẠN, KẾT LUẬN & LỘ TRÌNH MẬT MÃ HẬU LƯỢNG TỬ (PQC)**
 
 **10.1. Đánh giá ưu điểm và các giới hạn kỹ thuật hiện tại**
@@ -968,6 +1021,10 @@ Vào năm 1994, Peter Shor đã công bố thuật toán lượng tử nổi ti�
 Sau cuộc thi tiêu chuẩn hóa kéo dài 8 năm (2016 \- 2024), Viện Tiêu chuẩn và Công nghệ Quốc gia Hoa Kỳ (NIST) đã chính thức ban hành các tiêu chuẩn mật mã hậu lượng tử đầu tiên của thế giới vào tháng 8 năm 2024:  
 \- FIPS 203: ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism): Dựa trên thuật toán CRYSTALS-Kyber, hoạt động trên mạng tinh thể đại số (Module Learning with Errors \- M-LWE). Đây là tiêu chuẩn thay thế chính thức cho cơ chế bọc khóa RSA-OAEP.  
 \- FIPS 204: ML-DSA (Module-Lattice-Based Digital Signature Algorithm): Dựa trên thuật toán CRYSTALS-Dilithium, hoạt động trên mạng tinh thể. Đây là tiêu chuẩn thay thế cho cơ chế chữ ký số RSA-PSS và ECDSA.
+
+![Hình 15. So sánh kích thước khóa và bản mã: RSA cổ điển vs Mật mã Hậu lượng tử PQC](figures/hinh_15_pqc_comparison.png)
+
+**Hình 15.** So sánh kích thước khóa và bản mã giữa RSA cổ điển và mật mã hậu lượng tử PQC (FIPS 203 ML-KEM, FIPS 204 ML-DSA), làm cơ sở cho lộ trình nâng cấp Kháng Lượng Tử Lai của CloakShare.
 
 **10.4. Lộ trình nâng cấp CloakShare sang kiến trúc Kháng Lượng Tử Lai (Hybrid PQC)**
 
@@ -1065,7 +1122,7 @@ Mặc dù các tiêu chuẩn được chứng minh an toàn trên lý thuyết t
 
 **1.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-CloakShare kế thừa và hiện thực hóa trực tiếp chuẩn FIPS-197 ở tầng mã nguồn C nguyên bản (core/aes128.c và core/aes128.h). Hệ thống lựa chọn cấu hình AES-128-CBC với 10 vòng mã hóa, biên dịch với cờ tối ưu hóa GCC \-O3. Kết quả đo đạc thực nghiệm trên nền tảng CloakShare cho thấy tốc độ mã hóa C Native đạt 582.4 MB/s, nhanh gấp 14.8 lần so với triển khai Python thuần túy. Đặc biệt, CloakShare áp dụng cơ chế tự hủy con trỏ khóa con trên ngăn xếp (stack scrubbing) ngay sau khi hàm mã hóa kết thúc, ngăn chặn triệt để nguy cơ trích xuất khóa qua kỹ thuật kết xuất bộ nhớ.
+CloakShare kế thừa và hiện thực hóa trực tiếp chuẩn FIPS-197 ở tầng mã nguồn C nguyên bản (core/aes128.c và core/aes128.h). Hệ thống lựa chọn cấu hình AES-128-CBC với 10 vòng mã hóa, biên dịch bằng `core/Makefile` với các cờ tối ưu hóa `gcc -O3 -Wall -Wextra -fPIC`. Kết quả đo đạc thực nghiệm trên nền tảng CloakShare cho thấy tốc độ mã hóa C Native đạt 582.4 MB/s, nhanh gấp 10.5 lần so với triển khai Python thuần túy. Đáng chú ý, mã nguồn C hiện chỉ dùng mảng `round_keys[176]` và ma trận `state[16]` dạng biến cục bộ trên ngăn xếp; các biến này tự động giải phóng khi hàm thoát nhưng KHÔNG được tẩy xóa `0x00` tường minh — đây là hạng mục cải tiến đã được ghi nhận (bổ sung `memset_s`/`explicit_bzero` cho `round_keys`). Ở tầng Broker, cơ chế tẩy xóa RAM thực sự được hiện thực bằng `_wipe()` trên các trường `bytearray` (xem `broker/memory_store.py`).
 
 Thông qua việc đối sánh định lượng và thực nghiệm, CloakShare đã chắt lọc những tinh hoa kỹ thuật của tiêu chuẩn này, đồng thời khắc phục triệt để các nhược điểm cố hữu thông qua kiến trúc lai độc đáo. Sự kết hợp nhuần nhuyễn giữa mã hóa đối xứng, chữ ký số bất đối xứng và sổ cái phân tán Blockchain đã đưa CloakShare trở thành một giải pháp toàn diện và tiên phong.
 
@@ -1137,7 +1194,7 @@ Mặc dù các tiêu chuẩn được chứng minh an toàn trên lý thuyết t
 
 **3.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-CloakShare hiện thực hóa trọn vẹn đặc tả RFC 5652 trong hai hàm C thuần túy \`pkcs7\_pad\` và \`pkcs7\_unpad\` tại tệp \`core/padding.c\`. Để vô hiệu hóa hoàn toàn nguy cơ tấn công Padding Oracle, CloakShare áp dụng mô hình Mã hóa rồi Ký (Encrypt-then-Sign): Mô-đun \`engine/packager.py\` chỉ cho phép gọi hàm \`aes\_decrypt\` và \`pkcs7\_unpad\` sau khi chữ ký RSA-PSS trên toàn bộ khối Ciphertext đã được xác thực thành công 100%. Nếu bản mã bị sửa đổi dù chỉ 1 bit, hàm xác minh chữ ký sẽ ngắt ngay lập tức, kẻ tấn công không bao giờ kích hoạt được hàm kiểm tra đệm của C Core.
+CloakShare hiện thực hóa trọn vẹn đặc tả RFC 5652 trong hai hàm C thuần túy \`pkcs7\_pad\` và \`pkcs7\_unpad\` tại tệp \`core/padding.c\`. Để giảm thiểu nguy cơ tấn công Padding Oracle, CloakShare áp dụng mô hình Mã hóa rồi Ký (Encrypt-then-Sign): Tầng đường ống trong \`ui/app.py\` (cùng \`engine/signer.py\` và \`engine/cli\_adapter.py\`) chỉ cho phép gọi hàm giải mã AES và \`pkcs7\_unpad\` sau khi chữ ký RSA-PSS trên toàn bộ khối Ciphertext đã được xác thực thành công. Nếu bản mã bị sửa đổi dù chỉ 1 bit, hàm xác minh chữ ký sẽ ngắt ngay lập tức, kẻ tấn công không bao giờ kích hoạt được hàm kiểm tra đệm của C Core.
 
 Thông qua việc đối sánh định lượng và thực nghiệm, CloakShare đã chắt lọc những tinh hoa kỹ thuật của tiêu chuẩn này, đồng thời khắc phục triệt để các nhược điểm cố hữu thông qua kiến trúc lai độc đáo. Sự kết hợp nhuần nhuyễn giữa mã hóa đối xứng, chữ ký số bất đối xứng và sổ cái phân tán Blockchain đã đưa CloakShare trở thành một giải pháp toàn diện và tiên phong.
 
@@ -1966,7 +2023,7 @@ Những sự cố an ninh kinh điển trong lịch sử đã chứng minh rằn
 
 **26.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-Máy chủ Zero-Log Broker của CloakShare (\`broker/server.py\`) áp dụng triệt để các khuyến nghị của OWASP API Security: \- Phòng thủ BOLA: Endpoint \`GET /api/v1/retrieve/{tx\_id}\` bắt buộc phải có chữ ký Web3 EIP-191 khớp 100% với địa chỉ ví \`recipient\_address\` được ấn định trong payload. Người dùng khác hoàn toàn không thể tải gói tin; \- Phòng thủ Cạn kiệt Tài nguyên: Broker giới hạn kích thước tệp tối đa 100 MB và giới hạn thời gian sống TTL tối đa 86.400 giây (24 giờ); \- Phòng thủ Lộ Nhật ký: Tắt hoàn toàn cơ chế ghi log truy cập (Access Logging) của Uvicorn/FastAPI, không lưu vết IP khách hàng.
+Máy chủ Zero-Log Broker của CloakShare (\`broker/main.py\`) áp dụng triệt để các khuyến nghị của OWASP API Security: \- Phòng thủ BOLA: Endpoint \`GET /api/v1/retrieve/{tx\_id}\` bắt buộc phải có chữ ký Web3 EIP-191 khớp 100% với địa chỉ ví \`recipient\` được ấn định trong payload. Người dùng khác hoàn toàn không thể tải gói tin; \- Phòng thủ Cạn kiệt Tài nguyên: Broker giới hạn kích thước tệp tối đa 100 MB và giới hạn thời gian sống TTL tối đa 86.400 giây (24 giờ); \- Phòng thủ Lộ Nhật ký: Tắt hoàn toàn cơ chế ghi log truy cập (Access Logging) của Uvicorn/FastAPI, không lưu vết IP khách hàng.
 
 Hệ thống CloakShare đã tích hợp triệt để các bài học quý báu từ tiêu chuẩn này, hiện thực hóa các giải pháp bảo vệ chủ động ở cả tầng mã nguồn C, tầng logic ứng dụng Python và tầng hợp đồng thông minh EVM, tạo nên một chỉnh thể phòng thủ vững chắc.
 
@@ -2002,7 +2059,7 @@ Những sự cố an ninh kinh điển trong lịch sử đã chứng minh rằn
 
 **27.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-Toàn bộ mã nguồn C của CloakShare (\`core/aes128.c\` và \`core/padding.c\`) tuân thủ nghiêm ngặt 100% các quy tắc của CERT C: \- Mọi mảng State và Khóa con đều được định kích thước tĩnh cố định, loại bỏ hoàn toàn cấp phát động \`malloc\` trong vòng lặp mã hóa; \- Mọi hàm đều có kiểm tra con trỏ \`NULL\` và giới hạn kích thước đầu vào; \- Mảng khóa con \`round\_keys\` được chủ động ghi đè bằng \`0x00\` trước khi hàm thoát; \- Mã nguồn được biên dịch với các cờ bảo vệ tối đa: \`-Wall \-Wextra \-Werror \-fstack-protector-strong \-D\_FORTIFY\_SOURCE=2\`.
+Toàn bộ mã nguồn C của CloakShare (\`core/aes128.c\` và \`core/padding.c\`) áp dụng các thực hành phù hợp với khuyến nghị CERT C: \- Mọi mảng State và Khóa con đều được định kích thước tĩnh cố định, loại bỏ hoàn toàn cấp phát động \`malloc\` trong vòng lặp mã hóa; \- Mọi hàm đều có kiểm tra con trỏ \`NULL\` và giới hạn kích thước đầu vào (trả về mã lỗi thay vì truy cập bộ nhớ ngoài); \- Mảng khóa con \`round\_keys\` là biến cục bộ trên stack, tự động giải phóng khi hàm thoát (lưu ý: mã nguồn hiện chưa chủ động ghi đè \`0x00\` trước khi thoát — đây là hạng mục cải tiến được ghi nhận); \- Mã nguồn được biên dịch bằng \`core/Makefile\` với các cờ: \`gcc \-O3 \-Wall \-Wextra \-fPIC\` (mục tiêu \`make shared\` sinh \`libaes.so\`, mục tiêu \`make win\` sinh \`aes128.dll\`).
 
 Hệ thống CloakShare đã tích hợp triệt để các bài học quý báu từ tiêu chuẩn này, hiện thực hóa các giải pháp bảo vệ chủ động ở cả tầng mã nguồn C, tầng logic ứng dụng Python và tầng hợp đồng thông minh EVM, tạo nên một chỉnh thể phòng thủ vững chắc.
 
@@ -2182,7 +2239,7 @@ Những sự cố an ninh kinh điển trong lịch sử đã chứng minh rằn
 
 **32.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-CloakShare hiện thực hóa Zero-Log RAM Broker (\`broker/server.py\`) hoàn toàn trên nền tảng FastAPI và máy chủ ASGI Uvicorn: Hệ thống sử dụng luồng xử lý bất đồng bộ non-blocking, kết hợp cơ chế khóa đồng bộ tiểu chuẩn \`threading.Lock\` trong \`InMemoryStore\`. Kiến trúc này cho phép Broker phục vụ hàng trăm kết nối tải và rút tệp tin đồng thời với độ trễ phản hồi dưới 5 mili-giây mà không xảy ra xung đột dữ liệu bộ nhớ (Race Conditions).
+CloakShare hiện thực hóa Zero-Log RAM Broker (\`broker/main.py\`) hoàn toàn trên nền tảng FastAPI và máy chủ ASGI Uvicorn: Hệ thống sử dụng luồng xử lý đồng bộ các endpoint, kết hợp cơ chế khóa đồng bộ tái nhập \`threading.RLock()\` trong \`InMemoryStore\` để bảo vệ mọi thao tác đọc/ghi lên từ điển \`_data\`. Kiến trúc tách biệt \`InMemoryStore\` (thuần Python, kiểm thử đơn vị độc lập được) khỏi tầng giao thức HTTP cho phép Broker phục vụ nhiều kết nối tải và rút tệp tin đồng thời mà không xảy ra xung đột dữ liệu bộ nhớ (Race Conditions).
 
 Hệ thống CloakShare đã tích hợp triệt để các bài học quý báu từ tiêu chuẩn này, hiện thực hóa các giải pháp bảo vệ chủ động ở cả tầng mã nguồn C, tầng logic ứng dụng Python và tầng hợp đồng thông minh EVM, tạo nên một chỉnh thể phòng thủ vững chắc.
 
@@ -2218,7 +2275,7 @@ Những sự cố an ninh kinh điển trong lịch sử đã chứng minh rằn
 
 **33.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-CloakShare áp dụng Pydantic trong \`broker/schemas.py\` để định nghĩa nghiêm ngặt cấu trúc \`StagingBundle\`: \- \`tx\_id\`: Bắt buộc là chuỗi hex 64 ký tự hợp lệ; \- \`sender\_address\` và \`recipient\_address\`: Bắt buộc tuân theo định dạng địa chỉ ví Ethereum \`^0x\[a-fA-F0-9\]{40}\$\`; \- \`ttl\_seconds\`: Ràng buộc \`1 \<= ttl \<= 86400\`; \- \`ciphertext\` và \`encrypted\_key\`: Bắt buộc là chuỗi Base64 hợp lệ. Sự chặt chẽ này được kiểm chứng bằng 2 ca kiểm thử tự động trong \`tests/test\_broker\_api.py\` (\`test\_stage\_rejects\_missing\_field\` và \`test\_stage\_rejects\_invalid\_ttl\`), đảm bảo Broker vận hành ổn định 100% trước mọi nỗ lực fuzzing dữ liệu của tin tặc.
+CloakShare áp dụng Pydantic trong \`broker/schemas.py\` để định nghĩa nghiêm ngặt cấu trúc \`StagePayload\` (model cho \`POST /api/v1/stage\`): \- \`tx\_id\`: Bắt buộc, chuỗi độ dài 1–128 ký tự; \- \`recipient\`: Bắt buộc, chuỗi độ dài 1–128 ký tự (địa chỉ ví của người nhận); \- \`iv\`, \`wrapped\_key\`, \`ciphertext\`, \`signature\`: Bắt buộc, đều là chuỗi Base64 hợp lệ; \- \`ttl\_seconds\`: Ràng buộc \`0 \< ttl \<= 86400\` (mặc định 300 giây). Sự chặt chẽ này được kiểm chứng bằng các ca kiểm thử tự động trong \`tests/test\_broker\_api.py\` (\`test\_stage\_rejects\_missing\_field\` và \`test\_stage\_rejects\_invalid\_ttl\`), đảm bảo Broker từ chối mọi gói tin sai cấu trúc trước khi dữ liệu chạm tới tầng lưu trữ.
 
 Hệ thống CloakShare đã tích hợp triệt để các bài học quý báu từ tiêu chuẩn này, hiện thực hóa các giải pháp bảo vệ chủ động ở cả tầng mã nguồn C, tầng logic ứng dụng Python và tầng hợp đồng thông minh EVM, tạo nên một chỉnh thể phòng thủ vững chắc.
 
@@ -2578,7 +2635,7 @@ Các cuộc tấn công thám mã và khai thác lỗ hổng trong quá khứ l�
 
 **43.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-Toàn bộ quy trình biên dịch thư viện liên kết động C \`core/aes128.dll\` của CloakShare được cấu hình với các cờ tối ưu hóa và làm cứng GCC cao nhất: \`gcc \-O3 \-shared \-fPIC \-fstack-protector-strong \-D\_FORTIFY\_SOURCE=2 core/aes128.c core/padding.c \-o core/aes128.dll\`. Kết quả là CloakShare vừa đạt tốc độ xử lý dữ liệu đỉnh cao trên 582 MB/s, vừa duy trì sự an toàn tuyệt đối trước các đòn tấn công khai thác bộ nhớ.
+Toàn bộ quy trình biên dịch thư viện liên kết động C của CloakShare được điều khiển bởi \`Makefile\` trong thư mục \`core/\`: trên Linux, mục tiêu \`make shared\` chạy \`gcc \-O3 \-Wall \-Wextra \-fPIC \-shared aes128.c padding.c \-o libaes.so\`; trên Windows, mục tiêu \`make win\` tạo \`aes128.dll\` qua mingw. Cờ \`-O3\` đưa CloakShare đạt tốc độ xử lý dữ liệu đỉnh cao trên 500 MB/s, trong khi \`-fPIC\` đảm bảo thư viện liên kết động nạp đúng qua ctypes. Việc chống khai thác bộ nhớ ở tầng C (kiểm tra con trỏ NULL, từ chối độ dài không chia hết khối) được thực hiện ngay trong logic hàm (\`aes128\_cbc\_encrypt\`/\`\_decrypt\` trả về \`-1\`) chứ không dựa vào cờ \`-fstack-protector\` như bản đặc tả gốc mô tả.
 
 Bằng việc áp dụng một cách sáng tạo và trung thực những nguyên lý cốt lõi của tiêu chuẩn này, CloakShare đã đạt được sự hoàn thiện vượt bậc về mặt kiến trúc, trở thành một minh chứng thuyết phục cho sức mạnh của chủ nghĩa tối giản và kỹ nghệ phần mềm phòng thủ trong thời đại số.
 
@@ -2650,7 +2707,7 @@ Các cuộc tấn công thám mã và khai thác lỗ hổng trong quá khứ l�
 
 **45.5. Đối Sánh Trực Diện và Bài Học Kiến Trúc Ứng Dụng Trong Hệ Thống CloakShare**
 
-CloakShare là một biểu tượng mẫu mực của việc kế thừa và tôn vinh Triết lý Unix trong kỷ nguyên Web3: \- \`core/aes128.c\` chỉ làm một việc duy nhất: Mã hóa khối AES-128 chuẩn FIPS; \- \`contracts/dPKIRegistry.sol\` chỉ làm một việc duy nhất: Ánh xạ địa chỉ ví ra khóa công khai; \- \`broker/server.py\` chỉ làm một việc duy nhất: Chuyển tiếp payload trên bộ nhớ RAM có thời hạn TTL; \- Giao thức truyền thông tách biệt hoàn toàn giữa cơ chế mã hóa đối xứng khối lượng lớn và chính sách xác thực phi tập trung. Nhờ chủ nghĩa tối giản này, toàn bộ hệ thống CloakShare vừa đạt hiệu năng phi thường, vừa đảm bảo tính minh bạch, vững chắc và dễ dàng kiểm toán đối với cộng đồng nghiên cứu khoa học.
+CloakShare là một biểu tượng mẫu mực của việc kế thừa và tôn vinh Triết lý Unix trong kỷ nguyên Web3: \- \`core/aes128.c\` chỉ làm một việc duy nhất: Mã hóa khối AES-128 chuẩn FIPS; \- \`contracts/dPKIRegistry.sol\` chỉ làm một việc duy nhất: Ánh xạ địa chỉ ví ra khóa công khai; \- \`broker/main.py\` chỉ làm một việc duy nhất: Chuyển tiếp payload trên bộ nhớ RAM có thời hạn TTL; \- Giao thức truyền thông tách biệt hoàn toàn giữa cơ chế mã hóa đối xứng khối lượng lớn và chính sách xác thực phi tập trung. Nhờ chủ nghĩa tối giản này, toàn bộ hệ thống CloakShare vừa đạt hiệu năng phi thường, vừa đảm bảo tính minh bạch, vững chắc và dễ dàng kiểm toán đối với cộng đồng nghiên cứu khoa học.
 
 Bằng việc áp dụng một cách sáng tạo và trung thực những nguyên lý cốt lõi của tiêu chuẩn này, CloakShare đã đạt được sự hoàn thiện vượt bậc về mặt kiến trúc, trở thành một minh chứng thuyết phục cho sức mạnh của chủ nghĩa tối giản và kỹ nghệ phần mềm phòng thủ trong thời đại số.
 
@@ -2685,9 +2742,9 @@ Tổng hợp toàn bộ chuỗi trò chơi, ta có giới hạn lợi thế củ
 Adv\_CloakShare\_IND-CCA2(A) \<= Adv\_RSA\_OW(B\_1) \+ q\_D \* 2^(-k\_0) \+ Adv\_RSA\_OAEP\_CCA(B\_2) \+ Adv\_AES\_PRP(B\_3).  
 Vì các số hạng bên vế phải đều vô cùng bé (negligible) đối với kích thước khóa RSA-2048 và AES-128, ta kết luận CloakShare đạt tính an toàn IND-CCA2. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Điểm mấu chốt của chứng minh này là lợi thế của kẻ tấn công bị phân rã thành bốn số hạng độc lập, mỗi số hạng ứng với một đối tượng mật mã cụ thể: bài toán RSA-OW (thao tác ngược hàm một chiều), chất lượng Oracle Ngẫu nhiên MGF1 (q\_D \* 2^(-k\_0)), tính an toàn CCA của bản thân OAEP, và lợi thế PRP của AES-128. Từ đó suy ra hệ quả thiết kế quan trọng cho CloakShare: vì lớp bọc khóa (RSA-OAEP) là mắt xích yếu nhất \-\- RSA-2048 cho lợi thế cỡ 2^(-80) theo các ước lượng thực nghiệm hiện tại \-\- nên nâng cấp bảo mật tương lai nên tập trung vào độ dài khóa RSA hoặc chuyển sang KEM hậu lượng tử, chứ không phải tăng số vòng AES. Lưu ý giới hạn của kết quả: đây là chứng minh trong Mô hình Oracle Ngẫu nhiên, và AES-128 được giả định (không chứng minh) là PRP an toàn. Q.E.D.
 
-**CHƯƠNG CM-02**  
+**CHƯƠNG CM-02**
 **ĐỊNH LÝ TÍNH AN TOÀN HOÁN VỊ GIẢ NGẪU NHIÊN (PRP) CỦA AES-128 MẠNG SPN**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#02<br>\- Mã định lý: PROOF-02<br>\- Nội dung: Hàm mã hóa khối 10 vòng của AES-128 là một Hoán vị Giả ngẫu nhiên (Pseudorandom Permutation \- PRP) an toàn, kháng lại mọi cuộc thám mã vi sai (Differential Cryptanalysis) và thám mã tuyến tính (Linear Cryptanalysis) với số lượng hộp S-Box kích hoạt tối thiểu vượt ngưỡng an toàn toán học.<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2714,9 +2771,9 @@ Qua 8 vòng biến đổi (tương đương 2 cụm 4 vòng), xác suất vi sai
 
 Vì kích thước khối của AES chỉ là 128 bit, một đường vi sai có xác suất 2^(-300) nhỏ hơn rất nhiều so với xác suất ngẫu nhiên 2^(-128). Do đó, để khai thác một đường vi sai trên 8 vòng, kẻ tấn công cần nhiều hơn 2^300 khối dữ liệu bản rõ chọn trước, vượt xa toàn bộ không gian dữ liệu 2^128 của khối. Hệ thống AES-128 với 10 vòng biến đổi hoàn toàn vượt ngưỡng an toàn toán học trước mọi cuộc thám mã vi sai và tuyến tính. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Ý nghĩa thực tiễn của bound P\_8round \<= 2^(-300) nằm ở chỗ nó nhỏ hơn hẳn mật độ dữ liệu khả dụng: kẻ tấn công vi sai cần hơn 2^300 cặp bản rõ chọn trước, trong khi toàn bộ không gian bản rõ của một khối chỉ có 2^128 giá trị. Nói cách khác, ngay cả khi có toàn bộ bảng mã hóa của AES-128, đường vi sai tốt nhất vẫn không thể quan sát được trong giới hạn vật lý của khối 128 bit. Điều đáng lưu ý là biên an toàn này không đến từ việc tăng số vòng một cách tùy tiện, mà từ chiến lược Wide Trail: ma trận MDS với Branch Number B = 5 nhân với chính nó qua hai cụm 4 vòng cho n\_act \>= B^2 = 25 S-Box kích hoạt, khiến xác suất suy giảm theo hàm mũ. Q.E.D.
 
-**CHƯƠNG CM-03**  
+**CHƯƠNG CM-03**
 **ĐỊNH LÝ TÍNH KHÔNG THỂ GIẢ MẠO CHỮ KÝ EUF-CMA CỦA RSASSA-PSS TRONG MÔ HÌNH ROM**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#03<br>\- Mã định lý: PROOF-03<br>\- Nội dung: Lược đồ chữ ký xác suất RSASSA-PSS đạt tính an toàn Không thể Giả mạo Chữ ký Có chọn lựa Dưới Tấn công Chọn Thông điệp (EUF-CMA) trong Mô hình Oracle Ngẫu nhiên (ROM), với độ an toàn tương đương trực tiếp với bài toán Phân tích Thừa số Nguyên lớn RSA.<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2743,9 +2800,9 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 
 Trong CloakShare, với salt\_length \= PSS.MAX\_LENGTH (tối thiểu 32 byte \= 256 bit) và SHA-256 (k\_0 \= 256 bit), sai số suy giảm là cực kỳ nhỏ (nhỏ hơn 2^(-200)). Điều này chứng minh tính giảm chặt (Tight Reduction): Bất kỳ ai làm giả được chữ ký RSA-PSS trong CloakShare đều tương đương với việc bẻ gãy trực tiếp thuật toán phân tích số nguyên lớn RSA. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Khác với các lược đồ chữ ký cổ điển dựa trên giả định tính ngẫu nhiên của hàm băm, điểm mạnh của chứng minh Bellare-Rogaway nằm ở cấu trúc salt ngẫu nhiên bên trong RSASSA-PSS: khi Adversary B xây dựng phản hồi cho Oracle Ký mà không cần khóa riêng d, nó chỉ thành công nếu đoán đúng salt. Đây chính là cơ chế biến một chữ ký xác suất thành một bài toán nghịch đảo RSA thuần túy. Trong cấu hình CloakShare, `salt_length = PSS.DIGEST_LENGTH` (bằng 32 byte với SHA-256) là lựa chọn salt dài nhất được khuyến nghị bởi RFC 8017 \-\- đánh đổi lấy không gian mã hóa EM lớn hơn để tối đa hóa số hạng 2^(-k\_1). Hệ quả: sai số suy giảm dưới 2^(-200) khiến reduction thực sự "chặt" (tight), không có khoảng hở đáng kể giữa lợi thế giả mạo và khó khăn phân tích RSA. Q.E.D.
 
-**CHƯƠNG CM-04**  
+**CHƯƠNG CM-04**
 **ĐỊNH LÝ AN TOÀN KHÁNG TẤN CÔNG PHÁT LẠI VÀ GIỚI HẠN TRÔI THỜI GIAN CỦA EIP-191**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#04<br>\- Mã định lý: PROOF-04<br>\- Nội dung: Cơ chế xác thực rút tệp tin dựa trên EIP-191 và dấu thời gian giới hạn trôi (Time-Drift Window) trong CloakShare kháng được 100% các cuộc tấn công Phát lại Gói tin (Replay Attacks) ngoài cửa sổ Delta\_T cho phép.<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2770,9 +2827,9 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 
 Kết luận: Không gian tấn công phát lại bị thu hẹp về 0 tuyệt đối đối với các yêu cầu ngoài 60s, và bị vô hiệu hóa hoàn toàn đối với các yêu cầu đã tiêu thụ. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Hai rào chắn trên phối hợp theo quan hệ bù trừ: rào chắn thời gian bảo vệ payload còn hiệu lực (kẻ tấn công không thể dùng lại chữ ký cũ), còn cơ chế burn-after-read bảo vệ payload ngay cả khi chữ ký được phát lại trong cửa sổ 60 giây. Điểm cần nhấn mạnh về mặt thiết kế là tính bảo mật ở đây dựa trên **đặc tính dùng-một-lần của trạng thái** phía Broker chứ không dựa trên tính bí mật của chữ ký \-\- chữ ký là công khai và có thể bị chặn bắt; thứ bảo vệ payload là việc `tx_id` biến khỏi từ điển `_data` ngay sau lần đọc đầu tiên. Giới hạn cần thừa nhận: nếu kẻ tấn công chiếm được chữ ký trong vòng 60 giây và payload chưa bị tiêu thụ, yêu cầu độc hại thứ hai sẽ thắng thời điểm và nhận payload thật. Đây là đánh đổi có chủ đích giữa tính linh hoạt (cửa sổ 60 giây cho lệch đồng hồ máy khách) và tính chặt của chống phát lại. Q.E.D.
 
-**CHƯƠNG CM-05**  
+**CHƯƠNG CM-05**
 **ĐỊNH LÝ BẢO TOÀN TÍNH KHÔNG LƯU VẾT (ZERO-DISK TRACE) LÝ THUYẾT THÔNG TIN CỦA BROKER**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#05<br>\- Mã định lý: PROOF-05<br>\- Nội dung: Hệ thống trạm trung chuyển InMemoryStore đảm bảo tính chất Không Lưu Vết Ổ Đĩa (Information-Theoretic Zero-Disk Trace): Không có bất kỳ khối dữ liệu bản rõ hoặc bản mã nào của tệp tin được ghi xuống phân vùng lưu trữ lâu bền (Persistent Storage / HDD / SSD) trong suốt vòng đời của tiến trình.<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2793,15 +2850,15 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 **Chứng Minh 5.2: Chuỗi Biến Đổi Trò Chơi và Đánh Giá Sai Số Giới Hạn**
 
 2\. Phân Tích Cơ Chế Khóa Bộ Nhớ và Chứng Minh Thực Nghiệm:  
-\- Triệt tiêu Kênh 1: Kiểm toán toàn văn mã nguồn của \`broker/server.py\` và \`broker/memory\_store.py\` cho thấy không tồn tại bất kỳ câu lệnh \`open()\` nào thao tác với ciphertext. Ca kiểm thử tự động \`test\_no\_open\_call\_during\_stage\_and\_retrieve\` (\`tests/test\_broker\_api.py\`) áp dụng kỹ thuật Mock Patching chặn bắt toàn bộ các lời gọi \`builtins.open\` trong suốt quá trình nạp (stage) và rút (retrieve) tệp tin, xác nhận số lần gọi mở file bằng 0 tuyệt đối.  
+\- Triệt tiêu Kênh 1: Kiểm toán toàn văn mã nguồn của \`broker/main.py\` và \`broker/memory\_store.py\` cho thấy không tồn tại bất kỳ câu lệnh \`open()\` nào thao tác với ciphertext. Ca kiểm thử tự động \`test\_no\_open\_call\_during\_stage\_and\_retrieve\` (\`tests/test\_broker\_api.py\`) áp dụng kỹ thuật Mock Patching chặn bắt toàn bộ các lời gọi \`builtins.open\` trong suốt quá trình nạp (stage) và rút (retrieve) tệp tin, xác nhận số lần gọi mở file bằng 0 tuyệt đối.
 \- Triệt tiêu Kênh 2: Trên môi trường triển khai thực tế, Broker sử dụng lời gọi hệ thống \`mlock(addr, len)\` (hoặc \`VirtualLock\` trên Windows) để khóa cố định toàn bộ các trang nhớ của \`\_data\` vào bộ nhớ vật lý DRAM, cấm hệ điều hành tráo đổi (swap-out) các trang nhớ này xuống tệp \`swapfile.sys\` hoặc phân vùng Swap.  
 \- Triệt tiêu Kênh 3: Toàn bộ cấu hình máy chủ Uvicorn được khởi chạy với cờ \`access\_log=False\`, vô hiệu hóa ghi vết nhật ký yêu cầu HTTP.
 
 Do đó, lượng thông tin về bản mã tồn tại trên ổ đĩa sau khi tiến trình kết thúc là I(Ciphertext; Disk) \= 0 bit. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Cần phân biệt rõ hai mức độ của kết luận I(Ciphertext; Disk) = 0. Với Kênh 1, kết quả này là chắc chắn và đã được kiểm chứng bằng kỹ thuật Mock Patching trên `builtins.open` \-\- đây là mức bảo đảm có thể chứng minh ở cấp mã nguồn. Với Kênh 2 và Kênh 3, kết quả phụ thuộc vào cấu hình môi trường triển khai (cờ `mlock`/`VirtualLock` và `access_log=False`) chứ không phải vào logic của `InMemoryStore`, nên không thể khẳng định tuyệt đối trong mọi cấu hình. Giới hạn trung thực của mô hình: nếu hệ điều hành buộc swap do thiếu RAM vật lý và tùy chọn khóa trang nhớ không được bật, một phần dữ liệu có thể bị paging xuống `swapfile.sys` \-\- rủi ro này độc lập với CloakShare và phải xử lý ở tầng hardening hệ thống. Q.E.D.
 
-**CHƯƠNG CM-06**  
+**CHƯƠNG CM-06**
 **ĐỊNH LÝ AN TOÀN KHÁNG HIỆN TƯỢNG LƯU ẢNH DRAM VÀ VÔ HIỆU HÓA COLD BOOT**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#06<br>\- Mã định lý: PROOF-06<br>\- Nội dung: Quy trình tẩy xóa bộ nhớ chủ động (Proactive Zeroization) với độ phức tạp thời gian O(N) đảm bảo phục hồi trạng thái entropy cực đại của bộ nhớ RAM, triệt tiêu điện tích dư trên các tụ điện DRAM và vô hiệu hóa hoàn toàn cuộc tấn công Cold Boot.<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2825,9 +2882,9 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 
 Vì điện tích Q đã bị xả triệt để về 0 trước khi máy chủ bị tắt hoặc làm lạnh, dữ liệu khôi phục được từ kỹ thuật Cold Boot chỉ là chuỗi byte 0x00 rỗng, không chứa bất kỳ vết tích nào của tệp tin ban đầu. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Phạm vi bảo đảm của chứng minh này giới hạn ở các ô nhớ mà `_wipe()` thực sự chạm tới. Hàm ghi đè tuần tự `0x00` lên đối tượng `bytearray` trỏ tới bởi các trường trong `_SENSITIVE_FIELDS`, và điều này được kiểm chứng ở cấp con trỏ bộ nhớ bởi `test_purge_wipes_sensitive_bytes_with_zeros`. Tuy nhiên có hai giới hạn cần nêu rõ: (1) nếu trình thông dịch Python đã sao chép dữ liệu sang một `bytes` bất biến (immutable) do thao tác cắt/serialize, bản sao đó nằm ngoài tầm kiểm soát của `_wipe()` và sẽ chờ bộ thu gom rác GC; (2) các tụ điện DRAM lân cận ô bị ghi đè không chịu tác động trực tiếp và có thể còn tàn dư điện tích trong vài mili-giây. Kết quả `Q -> 0 Coulomb` vì thế là một lý tưởng hóa cho **đúng các ô đã bị ghi đè**, không phải một bảo đảm toàn bộ chip. Trong mô hình đe dọa thực tế của CloakShare (kẻ tấn công phần mềm, không có quyền vật lý), đây vẫn là mức phòng vệ hợp lý. Q.E.D.
 
-**CHƯƠNG CM-07**  
+**CHƯƠNG CM-07**
 **CHỨNG MINH GIỚI HẠN TRÊN TIÊU HAO GAS O(1) CỦA HỢP ĐỒNG THÔNG MINH DPKIREGISTRY**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#07<br>\- Mã định lý: PROOF-07<br>\- Nội dung: Mọi hàm thực thi chính trong Hợp đồng thông minh dPKIRegistry (registerPublicKey, getPublicKey, revokePublicKey) đều có độ phức tạp tính toán O(1) và giới hạn trên tiêu hao Gas độc lập hoàn toàn với số lượng người dùng đã đăng ký trong hệ thống.<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2856,9 +2913,9 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 
 Do đó, dPKIRegistry hoàn toàn miễn nhiễm với các cuộc tấn công làm nghẽn Gas do phình to kích thước dữ liệu (Denial of Service via Unbounded State). Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Cần phân biệt hai loại "giá" của thao tác dPKI. Với `getPublicKey`, chi phí bằng 0 Gas theo nghĩa kinh tế, nhưng vẫn phát sinh chi phí tính toán cục bộ ở nút RPC khi thực thi `eth_call` \-\- đây không phải là O(1) miễn phí, chỉ là O(1) không tốn phí mạng. Với `registerPublicKey`, bound G\_register <= 115.000 Gas là một **giới hạn trên phụ thuộc độ dài chuỗi PEM** (~450 byte cho RSA-2048), chứ không phải một hằng số độc lập với dữ liệu người dùng. Điểm bảo đảm thực sự của định lý là: chi phí không phụ thuộc vào **số lượng người dùng đã đăng ký** \-\- do `mapping` định vị slot bằng Keccak-256 thay vì duyệt cấu trúc \-\- nên hệ thống không bị tấn công DoS bằng cách bơm vào nhiều bản ghi để làm chậm các truy vấn sau. Kẻ tấn công không thể làm đắt thao tác của người khác. Q.E.D.
 
-**CHƯƠNG CM-08**  
+**CHƯƠNG CM-08**
 **PHÂN TÍCH TÍNH KHÁNG LỖI BYZANTINE CỦA DANH BẠ KHÓA CÔNG KHAI PHI TẬP TRUNG**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#08<br>\- Mã định lý: PROOF-08<br>\- Nội dung: Hệ thống danh bạ dPKI của CloakShare duy trì tính toàn vẹn và tính sẵn sàng bất biến chừng nào mạng lưới chuỗi khối Ethereum duy trì tỷ lệ nút trung thực lớn hơn 2/3 (thuật toán đồng thuận PoS Gasper / Casper-FFG).<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2881,9 +2938,9 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 
 Tính kháng lỗi Byzantine của dPKI CloakShare do đó kế thừa trực tiếp mức độ an toàn kinh tế mật mã (Cryptoeconomic Security) trị giá hàng chục tỷ USD của mạng Ethereum. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Bổ đề Accountable Safety nói về tính kinh tế nhiều hơn là tính mật mã: "không thể thay đổi trái phép khóa đã finalize" chỉ đúng khi giả định rằng không có thực thể nào sẵn sàng đốt 1/3 tổng stake để tấn công. Với Ethereum, con số đó tương đương hàng chục tỷ USD, nên trong thực tế ràng buộc là rất mạnh \-\- nhưng nó là ràng buộc **kinh tế**, không phải chứng minh toán học tuyệt đối như bound trong CM-01 hay CM-02. Một khác biệt quan trọng nữa cần nêu: dPKI phi tập trung loại bỏ "điểm sập duy nhất" của CA truyền thống, nhưng đổi lại ràng buộc an toàn vào giả định 2/3 validator trung thực. CloakShare do đó thừa hưởng đúng mức độ an toàn của chuỗi nền mà nó chạy trên \-\- không hơn, không kém. Q.E.D.
 
-**CHƯƠNG CM-09**  
+**CHƯƠNG CM-09**
 **ĐỊNH LÝ GIỚI HẠN DƯỚI ĐỘ PHỨC TẠP LƯỢNG TỬ CHO TẤN CÔNG GROVER LÊN AES-128**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#09<br>\- Mã định lý: PROOF-09<br>\- Nội dung: Mọi thuật toán lượng tử tìm kiếm khóa bí mật của AES-128 đều đòi hỏi số lượng truy vấn cổng lượng tử tối thiểu Omega(2^64), chứng minh rằng không gian khóa AES-128 duy trì cấp độ bảo mật lượng tử tương đương 64 bit trong mô hình máy tính lượng tử lý tưởng.<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2911,9 +2968,9 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 
 Do đó, AES-128 trong CloakShare vẫn duy trì một biên an toàn lượng tử thực tế vững chắc trước các cuộc tấn công ngắn hạn và trung hạn. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Ý nghĩa thực tiễn của định lý BBBV là nó **không** hạ thấp AES-128 xuống 64 bit theo nghĩa phá vỡ được trong thực tế \-\- con số Omega(2^64) mô tả giới hạn truy vấn **lý thuyết** của thuật toán lượng tử lý tưởng, chưa tính chi phí hiện thực hóa mạch. Với 2^82 cổng T ước lượng bởi Jaques et al. (2020), một cuộc tấn công Grover thực tế đòi hỏi hạ tầng vượt xa mọi dự báo công nghệ trong nhiều thập kỷ. Tuy nhiên cần trung thực về giới hạn của định lý: AES-128 chỉ còn biên an toàn 64 bit trước máy lượng tử lý tưởng, thấp hơn đáng kể so với AES-256 (128 bit lượng tử). Vì vậy CloakShare nên được coi là an toàn **ngắn và trung hạn** trước lượng tử, chứ không phải một giải pháp kháng lượng tử dài hạn \-\- đây chính là động lực của phần so sánh PQC ở Chương 15 (Hình 15). Q.E.D.
 
-**CHƯƠNG CM-10**  
+**CHƯƠNG CM-10**
 **CHỨNG MINH TÍNH BẤT BIẾN HẰNG SỐ THỜI GIAN KHÁNG TẤN CÔNG KÊNH KỀ CỦA HÀM C**
 
 | 📌 PHÁT BIỂU ĐỊNH LÝ HÌNH THỨC \#10<br>\- Mã định lý: PROOF-10<br>\- Nội dung: Hàm biến đổi trộn cột MixColumns và các phép toán trường hữu hạn Galois GF(2^8) trong lõi C của CloakShare vận hành với thời gian thực thi hằng số (Constant-Time Execution), loại trừ hoàn toàn các kênh rò rỉ thông tin qua bộ nhớ đệm CPU (Cache-Timing Channels).<br>\- Phân loại: Chứng minh An toàn Mật mã học Cơ sở (Theoretical Cryptographic Reduction). |
@@ -2941,7 +2998,7 @@ Mô hình toán học trên được thiết lập dựa trên các nguyên lý 
 
 Vì toàn bộ các hàm biến đổi lõi đều tuân thủ cấu trúc hằng số thời gian không phân nhánh, kẻ tấn công hoàn toàn không đo được bất kỳ sự sai khác định thời nào, chứng minh CloakShare miễn nhiễm với các cuộc tấn công thám mã qua bộ nhớ đệm. Q.E.D.
 
-Kết quả của chuỗi biến đổi trò chơi toán học đã khẳng định tính đúng đắn tuyệt đối của hệ thống. Mọi sai số xác suất đều nằm dưới ngưỡng vô cùng bé (negligible function), đảm bảo tính an toàn thực tiễn không thể bị phá vỡ.
+Mức độ bảo đảm ở đây có giới hạn rõ ràng và cần phát biểu chính xác. Điều chứng minh được là `xtime`/`gmul` không chứa **lệnh nhánh phụ thuộc dữ liệu** và không truy cập **bảng tra cứu phụ thuộc chỉ số khóa** \-\- đây là nguồn rò rỉ cache-timing kinh điển bị loại bỏ. Điều **không** chứng minh được ở cấp C là: (1) trình biên dịch có thể sinh mã khác trên nền tảng khác (ARM, RISC-V) và số chu kỳ có thể không còn cố định; (2) bản thân thao tác truy cập `SBOX[]` trong `sub_bytes` là một bảng tra 256 byte \-\- nhỏ hơn T-table 4 KB nên rủi ro cache-timing thấp hơn nhiều, nhưng không bằng không tuyệt đối. Vì vậy kết luận đúng đắn là: CloakShare loại bỏ được lớp tấn công cache-timing phổ biến nhất và đắt giá nhất, chứ không phải đạt được tính hằng số thời gian tuyệt đối trên mọi vi kiến trúc. Q.E.D.
 
 **Giải Phẫu Thuật Toán \#01: aes128\_encrypt\_block**
 
@@ -2961,11 +3018,11 @@ Mã hóa một khối 16 byte đơn lẻ theo chuẩn NIST FIPS-197 sử dụng 
 
 **Quy Trình Xử Lý Bộ Nhớ và Thuật Toán Chi Tiết**
 
-Nạp ma trận State 4x4, cộng khóa vòng 0, lặp 9 vòng (SubBytes, ShiftRows, MixColumns, AddRoundKey), vòng 10 bỏ qua MixColumns. Stack scrubbing xóa State.
+Nạp ma trận State 4x4, cộng khóa vòng 0, lặp 9 vòng (SubBytes, ShiftRows, MixColumns, AddRoundKey), vòng 10 bỏ qua MixColumns.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng các mảng cục bộ `state[16]` và `s[16]` trên ngăn xếp, không cấp phát heap nên không thể rò rỉ qua bộ nhớ động. Các biến tạm tự giải phóng khi hàm trả về, song chưa được tẩy xóa `0x00` tường minh — đây là hạng mục cải tiến đã được ghi nhận (bổ sung `memset_s`/`explicit_bzero`).
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_ENCRYPT\_BLOCK<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_ENCRYPT\_BLOCK<br>**Bất biến chức năng:** Với mọi khối đầu vào $P$ và mọi lịch khóa $RK$ sinh từ khóa 16 byte hợp lệ, hàm luôn trả về khối $C$ là một song ánh (bijection) trên không gian $\\{0,1\\}^{128}$. Hàm không cấp phát bộ nhớ động (chỉ dùng mảng `state[16]` và `s[16]` trên ngăn xếp) nên không thể rò rỉ dữ liệu qua heap. Ngăn xếp `state` và `s` không được tẩy xóa tường minh sau khi trả về. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#02: aes128\_decrypt\_block**
@@ -2988,9 +3045,9 @@ Giải mã nghịch đảo một khối 16 byte bản mã về bản rõ ban đ�
 
 Quy trình nghịch đảo chính xác: Vòng 0 cộng khóa con Round 10, 9 vòng nghịch đảo (InvShiftRows, InvSubBytes, AddRoundKey, InvMixColumns), vòng 10 kết thúc.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng các mảng `state[16]` cục bộ trên ngăn xếp, không cấp phát động; biến tạm tự giải phóng khi thoát hàm nhưng không tẩy xóa `0x00` tường minh. Không có con trỏ sở hữu bộ nhớ heap nên không gây rò rỉ động.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_DECRYPT\_BLOCK<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_DECRYPT\_BLOCK<br>**Bất biến đối hợp:** Với mọi $P \\in \\{0,1\\}^{128}$ và mọi $RK$ hợp lệ, ta có $\\text{decrypt\\_block}(\\text{encrypt\\_block}(P, RK), RK) = P$. Hàm thực hiện đúng 10 vòng nghịch đảo: cộng khóa vòng 10 trước, sau đó 9 vòng (InvShiftRows → InvSubBytes → AddRoundKey → InvMixColumns) và vòng cuối bỏ InvMixColumns. Không kiểm tra tính hợp lệ của con trỏ đầu vào (tầng gọi đảm bảo). |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#03: aes128\_cbc\_encrypt**
@@ -3013,9 +3070,9 @@ Mã hóa toàn bộ tệp tin nhị phân theo chế độ Cipher Block Chaining
 
 Khởi tạo feedback bằng IV. Duyệt từng khối 16 byte: XOR với feedback, mã hóa qua aes128\_encrypt\_block, cập nhật feedback bằng khối bản mã vừa sinh.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng con trỏ `feedback` trỏ vào IV hoặc vùng đệm do caller cung cấp, cùng biến tạm `i`; không sở hữu và không cấp phát bộ nhớ động, nên không có nguy cơ rò rỉ qua heap.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_CBC\_ENCRYPT<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_CBC\_ENCRYPT<br>**Bất biến kiểm tra biên (fail-closed):** Hàm từ chối xử lý và trả về mã lỗi `-1` nếu bất kỳ con trỏ nào (`plaintext`, `key`, `iv`, `out`) là NULL, nếu `len == 0`, hoặc nếu `len % 16 != 0`. Nhờ vậy không bao giờ có tình trạng đọc/ghi tràn bộ đệm. Bất biến chuỗi khối: $C_i = E_K(P_i \\oplus C_{i-1})$ với $C_{-1} = IV$, đảm bảo hai khối bản rõ giống nhau cho ra hai khối bản mã khác nhau. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#04: aes128\_cbc\_decrypt**
@@ -3038,9 +3095,9 @@ Giải mã toàn bộ luồng dữ liệu bản mã theo chế độ CBC.
 
 Duyệt qua từng khối 16 byte theo chiều thuận, lưu khối bản mã hiện tại, giải mã khối và XOR với khối bản mã trước đó (hoặc IV) để phục hồi bản rõ.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng biến `prev` trỏ vào IV/vùng đệm và ghi kết quả vào vùng đệm đầu ra do caller cấp phát; không cấp phát heap nên không thể rò rỉ qua bộ nhớ động.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_CBC\_DECRYPT<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AES128\_CBC\_DECRYPT<br>**Bất biến đảo ngược CBC:** Với mọi bản mã hợp lệ $C$ chia hết cho 16, ta có $\\text{cbc\\_decrypt}(\\text{cbc\\_encrypt}(P,K,IV),K,IV) = P$. Hàm áp dụng đúng $P_i = D_K(C_i) \\oplus C_{i-1}$ và giữ nguyên khối mã `prev` cho vòng sau. Cơ chế lan truyền lỗi: một bit lật trên $C_i$ phá hủy toàn bộ $P_i$ và lật bit tương ứng trên $P_{i+1}$ — đây là lý do tầng ứng dụng bắt buộc verify chữ ký RSA-PSS trước khi gọi hàm này. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#05: sub\_bytes**
@@ -3063,9 +3120,9 @@ Thực hiện phép thế phi tuyến từng byte của ma trận trạng thái 
 
 Duyệt qua 16 phần tử state\[r\]\[c\] \= sbox\[state\[r\]\[c\]\], tối ưu hóa trên thanh ghi CPU nhằm đạt tốc độ thực thi dưới 4 chu kỳ.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm thao tác in-place trực tiếp trên 16 byte của `state`; không cấp phát bộ nhớ động và không để lại biến tạm nhạy cảm nào tồn lưu sau khi trả về.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM SUB\_BYTES<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM SUB\_BYTES<br>**Bất biến hoán vị (permutation):** Phép thay thế byte áp dụng bảng `SBOX[256]` là một hoán vị trên $\\mathbb{Z}_{256}$ — mọi byte đầu vào ánh xạ tới đúng một byte đầu ra và ngược lại (đảm bảo tồn tại `INV_SBOX`). Bất biến phi tuyến: $S(x \\oplus y) \\neq S(x) \\oplus S(y)$, tạo confusion chống phân tích tuyến tính/vi sai. Trong mã nguồn, phép này được nhúng trực tiếp trong vòng lặp `state[i] = SBOX[state[i]]` của `aes128_encrypt_block`, không tách hàm riêng. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#06: inv\_sub\_bytes**
@@ -3088,9 +3145,9 @@ Thực hiện phép thế nghịch đảo qua bảng tra cứu InvS-Box.
 
 Duyệt qua 16 phần tử state\[r\]\[c\] \= inv\_sbox\[state\[r\]\[c\]\], khôi phục lại giá trị byte trước khi thế.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ đọc/ghi in-place trên 16 byte của `state`, không cấp phát động và không lưu trữ trạng thái nhạy cảm nào ngoài chính ma trận trạng thái.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INV\_SUB\_BYTES<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INV\_SUB\_BYTES<br>**Bất biến nghịch đảo:** `INV_SBOX` là bảng nghịch đảo chính xác của `SBOX`: với mọi $x \\in \\mathbb{Z}_{256}$, $\\text{INV\\_SBOX}[\\text{SBOX}[x]] = x$. Bất biến này được kiểm chứng bởi test vector FIPS-197 (vòng mã hóa rồi giải mã khôi phục đúng bản rõ). Trong mã nguồn, phép nghịch đảo nằm trong dòng `state[i] = INV_SBOX[state[i]]` của `aes128_decrypt_block`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#07: shift\_rows**
@@ -3113,9 +3170,9 @@ Hoán vị dịch vòng các hàng của ma trận trạng thái nhằm tạo t�
 
 Hàng 0 giữ nguyên, Hàng 1 dịch trái 1 byte, Hàng 2 dịch trái 2 byte, Hàng 3 dịch trái 3 byte bằng các biến tạm thanh ghi.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng vài biến tạm kiểu `uint8_t` trên thanh ghi/ngăn xếp để quay byte, tự giải phóng khi thoát hàm; không cấp phát heap và không lưu con trỏ sở hữu tài nguyên.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM SHIFT\_ROWS<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM SHIFT\_ROWS<br>**Bất biến chu kỳ dịch:** Hàng 0 giữ nguyên; hàng 1 dịch trái 1 byte; hàng 2 dịch trái 2 byte; hàng 3 dịch trái 3 byte (theo layout cột của ma trận State 4×4). Đây là hoán vị nội bộ khối: tập 16 byte đầu ra là hoán vị của tập 16 byte đầu vào (không mất mát thông tin). Mục đích: khuếch tán (diffusion) byte giữa các cột. Mã nguồn dùng phép gán đổi chỗ `state[1]=s[5]; state[5]=s[9]...` thay vì dịch mảng. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#08: inv\_shift\_rows**
@@ -3138,9 +3195,9 @@ Hoán vị dịch vòng ngược lại các hàng của ma trận trạng thái.
 
 Hàng 0 giữ nguyên, Hàng 1 dịch phải 1 byte, Hàng 2 dịch phải 2 byte, Hàng 3 dịch phải 3 byte.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng biến tạm `uint8_t` trên ngăn xếp cho phép quay byte, tự giải phóng khi hàm thoát; không cấp phát bộ nhớ động.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INV\_SHIFT\_ROWS<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INV\_SHIFT\_ROWS<br>**Bất biến nghịch đảo của ShiftRows:** Hàng $r$ dịch phải $r$ byte, tức là phép nghịch đảo chính xác của ShiftRows. Bất biến: $\\text{InvShiftRows}(\\text{ShiftRows}(S)) = S$ với mọi ma trận State $S$. Mã nguồn thực hiện bằng phép gán đảo `state[1]=s[13]; state[5]=s[1]...` trong `aes128_decrypt_block`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#09: mix\_columns**
@@ -3163,9 +3220,9 @@ Nhân ma trận trạng thái với ma trận MDS trên trường hữu hạn Ga
 
 Sử dụng hàm nội suy hằng số thời gian xtime để nhân với 0x02 và 0x03, tạo tính khuếch tán dọc cực đại với khoảng cách rẽ nhánh B=5.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng biến tạm `uint8_t` cho các phép nhân trong GF(2^8), không cấp phát động; biến tạm tự giải phóng khi thoát hàm.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM MIX\_COLUMNS<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM MIX\_COLUMNS<br>**Bất biến MDS (Maximum Distance Separable):** Mỗi cột được nhân với ma trận hằng số MDS trên $GF(2^8)$: $[02,03,01,01; 01,02,03,01; 01,01,02,03; 03,01,01,02]$. Ma trận này có Branch Number = 5, nghĩa là nếu 1 byte đầu vào của cột thay đổi thì cả 4 byte đầu ra phải thay đổi. Đây là bất biến khuếch tán then chốt chống thám mã vi sai. Mã nguồn tính trực tiếp bằng `gmul` trong vòng lặp `for (c = 0; c < 4; c++)`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#10: inv\_mix\_columns**
@@ -3186,11 +3243,11 @@ Nhân ma trận trạng thái với ma trận nghịch đảo MDS với các đa
 
 **Quy Trình Xử Lý Bộ Nhớ và Thuật Toán Chi Tiết**
 
-Áp dụng kết hợp đệ quy hàm xtime để tính toán các phép nhân trường hữu hạn một cách chính xác tuyệt đối.
+Áp dụng kết hợp các lời gọi hàm xtime để tính toán các phép nhân trường hữu hạn một cách chính xác.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng biến tạm `uint8_t` trên ngăn xếp cho các phép nhân GF(2^8), không cấp phát động; biến tạm tự giải phóng khi thoát hàm.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INV\_MIX\_COLUMNS<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INV\_MIX\_COLUMNS<br>**Bất biến ma trận nghịch đảo:** Nhân với ma trận $[0e,0b,0d,09; 09,0e,0b,0d; 0d,09,0e,0b; 0b,0d,09,0e]$ — chính là nghịch đảo modulo $m(x)=x^8+x^4+x^3+x+1$ của ma trận MDS. Bất biến: $\\text{InvMixColumns}(\\text{MixColumns}(S)) = S$. Giữ nguyên bất biến MDS (Branch Number = 5). Mã nguồn dùng `gmul` với các hằng số `0x0e, 0x0b, 0x0d, 0x09`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#11: add\_round\_key**
@@ -3213,9 +3270,9 @@ Thực hiện phép cộng XOR ma trận trạng thái với 16 byte khóa con c
 
 Thực hiện thao tác state\[r\]\[c\] ^= round\_key\[r \+ 4 \* c\] trên toàn bộ 16 byte ma trận.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm thao tác in-place trên `state` và chỉ đọc `round_key` do caller truyền vào; không cấp phát hay sở hữu bộ nhớ động nên không gây rò rỉ.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM ADD\_ROUND\_KEY<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM ADD\_ROUND\_KEY<br>**Bất biến tự nghịch đảo (involutory):** Phép XOR với khóa vòng là tự nghịch đảo: $\\text{AddRoundKey}(\\text{AddRoundKey}(S, RK), RK) = S \\oplus RK \\oplus RK = S$. Nhờ đó cùng một phép toán dùng cho cả mã hóa và giải mã. Bất biến an toàn: khóa vòng $RK$ không bị biến đổi hay ghi đè bởi hàm. Mã nguồn: `state[i] = in[i] ^ round_keys[i]`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#12: key\_expansion**
@@ -3238,9 +3295,9 @@ Sinh 44 từ 32-bit (176 byte khóa con) từ khóa gốc 128-bit.
 
 Sử dụng phép quay RotWord, thế byte SubWord và cộng hằng số vòng Rcon để mở rộng khóa đệ quy.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm ghi lịch khóa vào mảng `round_keys[176]` do caller cấp phát; chỉ dùng thêm biến tạm trên ngăn xếp, không cấp phát heap bổ sung.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM KEY\_EXPANSION<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM KEY\_EXPANSION<br>**Bất biến độ dài và tính tất định:** Từ khóa 16 byte, hàm sinh chính xác 176 byte lịch khóa (11 khóa vòng × 16 byte) theo cấu trúc: $W[i] = W[i-4] \\oplus W[i-1]$, với phép RotWord + SubWord + Rcon áp dụng mỗi 16 byte. Bất biến tất định — cùng khóa đầu vào luôn cho cùng lịch khóa. Mã nguồn là hàm `static`, không xuất khẩu ra ngoài file nên không lộ lịch khóa qua ABI. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#13: xtime**
@@ -3263,9 +3320,9 @@ Phép nhân đa thức với x (0x02) trong trường hữu hạn Galois GF(2^8)
 
 Thực hiện dịch trái 1 bit kết hợp XOR có điều kiện với 0x1B bằng phép toán bitwise hằng số thời gian.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ dùng biến tạm `uint8_t` trên ngăn xếp cho phép nhân GF(2^8); không cấp phát động, biến tạm tự giải phóng khi thoát hàm.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM XTIME<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM XTIME<br>**Bất biến số học trên trường $GF(2^8)$:** Phép nhân $x \\cdot a$ (hằng `0x02`) tuân theo quy tắc rút gọn modulo đa thức bất khả quy $m(x) = x^8 + x^4 + x^3 + x + 1$ (giá trị `0x1B`). Cụ thể: `if (hi) a ^= 0x1b`. Bất biến này là nền tảng để `gmul` tính mọi hệ số nhân (`0x02,0x03,0x0e,0x0b,0x0d,0x09`) trong MixColumns. Trong mã nguồn, xtime được nhúng trong vòng lặp của `gmul` chứ không tồn tại như hàm riêng. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#14: pkcs7\_pad**
@@ -3288,9 +3345,9 @@ Chèn đệm dữ liệu theo tiêu chuẩn RFC 5652 PKCS \#7.
 
 Tính toán pad\_len \= 16 \- (in\_len % 16), cấp phát bộ nhớ mới và điền pad\_len byte có giá trị đúng bằng pad\_len.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm cấp phát một vùng đệm đầu ra mới bằng `malloc` với kích thước `out_len`; con trỏ trả về thuộc sở hữu của caller nên caller phải `free`. Hàm không tẩy xóa `0x00` vùng đệm trước khi trả.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PKCS7\_PAD<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PKCS7\_PAD<br>**Bất biến RFC 5652 (đệm luôn tồn tại):** Hàm trả về `PKCS7_ERR_INVALID_PARAM` nếu `in`/`out` NULL, `block_size == 0` hoặc `block_size > 255`. Với đầu vào hợp lệ, luôn thêm đúng $pad\\_val = block\\_size - (in\\_len \\bmod block\\_size)$ byte có giá trị bằng $pad\\_val$ (từ 1 tới `block_size`). Bất biến quan trọng: **luôn thêm đệm ngay cả khi bản rõ đã chia hết khối** (khi đó thêm nguyên một khối `block_size` byte), đảm bảo gỡ đệm không nhập nhằng. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#15: pkcs7\_unpad**
@@ -3313,9 +3370,9 @@ Xác minh và loại bỏ đệm PKCS \#7 một cách an toàn.
 
 Đọc byte cuối cùng pad\_val, kiểm tra tính hợp lệ 1 \<= pad\_val \<= 16 và đối chiếu toàn bộ pad\_val byte cuối cùng.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ ghi/đọc in-place trên vùng đệm do caller cung cấp và trả về độ dài bản rõ thực tế; không cấp phát bộ nhớ động.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PKCS7\_UNPAD<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PKCS7\_UNPAD<br>**Bất biến kiểm tra toàn vẹn đệm (strict validation):** Hàm trả về `PKCS7_ERR_INVALID_PADDING` khi: độ dài không chia hết `block_size`, `pad_val == 0`, `pad_val > block_size`, `pad_val > in_len`, hoặc bất kỳ byte nào trong vùng đệm không bằng `pad_val`. Bất biến đối hợp: $\\text{unpad}(\\text{pad}(P)) = P$ với mọi $P$. Việc kiểm tra từng byte đệm (không chỉ byte cuối) là lớp phòng ngừa bổ sung — dù CloakShare đã vô hiệu hóa Padding Oracle từ tầng trên bằng Encrypt-then-Sign. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#16: test\_aes\_main**
@@ -3338,9 +3395,9 @@ Chương trình C độc lập kiểm thử Known Answer Test (KAT) với vector
 
 Chạy kiểm thử mã hóa và giải mã khối đơn và tệp CBC, đối chiếu với chuỗi hex chuẩn của FIPS-197.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Chương trình kiểm thử dùng bộ đệm tĩnh và một số vùng nhớ động cục bộ, giải phóng ở cuối mỗi ca kiểm thử; không lưu trữ khóa hay bản rõ lâu dài.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM TEST\_AES\_MAIN<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM TEST\_AES\_MAIN<br>**Bất biến kiểm chứng chuẩn (conformance):** Hàm `main` trong `tests/test_padding.c` chạy các vector kiểm thử FIPS-197 (khối `00112233...ff` với khóa `000102...0f` phải cho bản mã `69c4e0d86a7b0430d8cdb78070b4c55a`). Bất biến: nếu bất kỳ vector nào sai, chương trình trả mã thoát khác 0 để CI fail. Đây là "chốt chặn cuối" xác nhận lõi C khớp đặc tả trước khi đóng gói thành `aes128.dll`/`.so`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#17: AESCipher.encrypt**
@@ -3363,9 +3420,9 @@ Phương thức Python bọc gọi thư viện C aes128.dll để mã hóa dữ 
 
 Sinh khóa phiên 16 byte và IV 16 byte ngẫu nhiên, gọi hàm pkcs7\_pad và aes128\_cbc\_encrypt qua ctypes.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Đối tượng giữ khóa và IV trong bộ nhớ tiến trình Python; giá trị `bytes` là bất biến (immutable) nên không thể ghi đè tại chỗ, nghĩa là dữ liệu khóa cũ vẫn tồn tại trong RAM cho tới khi Garbage Collector thu hồi.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AESCIPHER.ENCRYPT<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AESCIPHER.ENCRYPT<br>**Bất biến sinh IV tươi (fresh IV):** Mỗi lần gọi đều sinh IV mới bằng `os.urandom(16)` (CSPRNG của hệ điều hành), nên hai lần mã hóa cùng khóa và cùng bản rõ luôn cho ra bản mã khác nhau — vô hiệu liên kết (non-malleability qua mục đích). Kiểm tra biên: `len(key) != 16` ném `ValueError` trước khi chạm mã C. Bất biến: trả về cặp $(IV, C)$, độ dài $C$ luôn chia hết 16 sau khi đệm PKCS#7. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#18: AESCipher.decrypt**
@@ -3388,9 +3445,9 @@ Phương thức Python giải mã tệp tin nhị phân qua lõi C.
 
 Tách IV 16 byte ở đầu bản mã, gọi aes128\_cbc\_decrypt và pkcs7\_unpad để phục hồi bản rõ ban đầu.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm trả về một đối tượng `bytes` bản rõ mới và tách IV bằng slicing; Python không hỗ trợ tẩy xóa tường minh biến, việc giải phóng do Garbage Collector đảm nhiệm.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AESCIPHER.DECRYPT<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM AESCIPHER.DECRYPT<br>**Bất biến đối hợp kèm fail-closed:** Hàm từ chối (ném `ValueError`) nếu khóa ≠ 16 byte, IV ≠ 16 byte, hoặc độ dài bản mã = 0 hay không chia hết 16 — triệt tiêu đọc tràn. Bất biến: $\\text{decrypt}(\\text{encrypt}(M, K), K, IV) = M$ cho mọi $M$ hợp lệ. Nếu gỡ đệm thất bại (sai khóa/IV/dữ liệu bị sửa), `pkcs7_unpad` trả mã lỗi âm và hàm ném ngoại lệ — không bao giờ trả về dữ liệu rác. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#19: RSAEnvelope.generate\_keypair**
@@ -3413,9 +3470,9 @@ Sinh cặp khóa công khai và khóa riêng RSA-2048 định dạng PEM.
 
 Sử dụng thư viện cryptography với số mũ e \= 65537, mã hóa khóa riêng PKCS\#8 và khóa công khai SubjectPublicKeyInfo.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Khóa riêng và khóa công khai là các đối tượng của thư viện `cryptography` nằm trong bộ nhớ tiến trình; nên mã hóa PEM kèm mật khẩu khi lưu trữ lâu dài.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM RSAENVELOPE.GENERATE\_KEYPAIR<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM RSAENVELOPE.GENERATE\_KEYPAIR<br>**Bất biến sinh khóa (keygen correctness):** Tạo khóa RSA đúng tham số: $e = 65537$, $|N| = 2048$ bit. Bất biến: khóa riêng và khóa công khai tạo thành cặp — $\\text{decrypt}(\\text{encrypt}(m, pk), sk) = m$ với mọi $m$. Khóa riêng được mã hóa PEM theo PKCS#8 với `NoEncryption()` — **lưu ý:** an toàn khóa phụ thuộc vào việc người dùng bảo vệ tệp PEM, hàm không tự mã hóa mật khẩu. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#20: RSAEnvelope.wrap\_key**
@@ -3438,9 +3495,9 @@ Bọc khóa phiên đối xứng 16 byte bằng RSA-OAEP SHA-256.
 
 Áp dụng cơ chế đệm OAEP với hàm sinh mặt nạ MGF1(SHA-256), tạo ra bao thư số 256 byte.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ đọc khóa công khai để tạo bao thư số 256 byte mới; không lưu giữ khóa phiên AES sau khi trả về.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM RSAENVELOPE.WRAP\_KEY<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM RSAENVELOPE.WRAP\_KEY<br>**Bất biến bọc khóa OAEP:** Mã hóa khóa phiên bằng RSA-OAEP với hai tham số SHA-256 độc lập: $mgf = \\text{MGF1(SHA256)}$ và $h = \\text{SHA256}$, `label = None`. Bất biến: bọc khóa 16 byte (AES key) luôn cho ra ciphertext đúng $k = 256$ byte. Bất biến chứng minh khó đảo (OW-CPA) của OAEP: kẻ tấn công chiếm hữu khóa công khai không suy ra được bất kỳ bit nào của khóa phiên. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#21: RSAEnvelope.unwrap\_key**
@@ -3451,7 +3508,7 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 | ----- | ----- |
 | Mã định danh hàm | FUNC-21 |
 | Tệp tin mã nguồn | engine/rsa\_envelope.py |
-| Chữ ký nguyên mẫu | def unwrap\_key(encrypted\_key: bytes, private\_key\_pem: str) \-\> bytes |
+| Chữ ký nguyên mẫu | def decrypt\_aes\_key\_with\_rsa(receiver\_private\_pem: bytes, wrapped\_key: bytes) \-\> bytes |
 | Tầng kiến trúc | Lõi Mật mã C Native / Python Engine / EVM dPKI / RAM Broker |
 | Độ phức tạp tính toán | O(N) đối với dữ liệu khối, O(1) đối với bọc khóa và tra cứu |
 
@@ -3463,9 +3520,9 @@ Mở bao thư số khôi phục khóa phiên đối xứng bằng khóa riêng R
 
 Giải mã OAEP bằng khóa riêng, xác minh độ dài khóa phiên khôi phục bắt buộc phải đúng 16 byte.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Khóa AES phục hồi nằm trong một đối tượng `bytes` mới trong RAM tiến trình; thời gian sống của nó nên được giới hạn trong phạm vi xử lý yêu cầu.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM RSAENVELOPE.UNWRAP\_KEY<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM RSAENVELOPE.UNWRAP\_KEY<br>**Bất biến fail-closed khi sai khóa:** Nếu khóa riêng không khớp hoặc dữ liệu bọc bị sửa đổi 1 bit, phép giải mã OAEP hỏng tại bước kiểm tra checksum nội bộ và hàm ném `ValueError("Decryption failed...")` thay vì trả về byte rác. Bất biến đối hợp: $\\text{unwrap}(\\text{wrap}(k, pk), sk) = k$ chỉ khi $sk$ tương ứng. Hàm nuốt mọi ngoại lệ (`except Exception`) và gói lại thành một lỗi thống nhất cho tầng trên. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#22: FileSigner.sign\_file**
@@ -3488,9 +3545,9 @@ Ký số toàn vẹn bản mã bằng thuật toán xác suất RSASSA-PSS.
 
 Băm dữ liệu bằng SHA-256, áp dụng muối ngẫu nhiên độ dài cực đại PSS.MAX\_LENGTH và ký bằng khóa riêng.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ đọc dữ liệu và khóa riêng để sinh chữ ký; không lưu giữ bản rõ sau khi trả về.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM FILESIGNER.SIGN\_FILE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM FILESIGNER.SIGN\_FILE<br>**Bất biến hai chế độ ký (dual-mode):** Hàm phân nhánh theo định dạng khóa — PEM (`-----BEGIN...`) dùng RSA-PSS với $mgf = \\text{MGF1(SHA256)}$ và $salt\\_length = 32$ byte (DIGEST_LENGTH); khóa hex `0x...` dùng ECDSA secp256k1 trên $\\text{SHA256}(data)$. Bất biến loại: ném `TypeError` nếu `data` không phải `bytes`. Bất biến tạo chữ ký: cùng dữ liệu cho chữ ký PSS khác nhau do muối ngẫu nhiên, nhưng cùng dữ liệu cho cùng khóa đều verify đúng. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#23: FileSigner.verify\_file**
@@ -3513,9 +3570,9 @@ Xác minh chữ ký số RSASSA-PSS trên bản mã tệp tin.
 
 Kiểm tra tính hợp lệ của chữ ký số, phát hiện bất kỳ sự thay đổi nào dù chỉ 1 bit trên dữ liệu.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ xác minh chữ ký và trả về giá trị boolean; không truy cập hay lưu trữ khóa bí mật.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM FILESIGNER.VERIFY\_FILE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM FILESIGNER.VERIFY\_FILE<br>**Bất biến bất biến → boolean (no-throw):** Hàm luôn trả `bool`, không ném ngoại lệ — mọi đường lui (`InvalidSignature`, khóa sai kiểu, byte rác) đều nuốt và trả `False`. Bất biến ECDSA khôi phục khóa công khai: $\\text{recover}(\\text{SHA256}(m), \\sigma)$ và so sánh $= pk$ (xử lý cả khóa nén `02`/`03` và khóa thô 130 hex ký tự). Bất biến: sửa 1 bit dữ liệu làm $\\text{recover}$ cho khóa khác → `False`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#24: WalletAuth.sign\_retrieve\_request**
@@ -3538,9 +3595,9 @@ Tạo thông điệp thách thức và ký xác thực Web3 EIP-191.
 
 Lấy timestamp hiện tại, tạo chuỗi 'CloakShare Retrieve Auth: {tx\_id} @ {ts}' và ký bằng ví Web3.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Chuỗi thông điệp được tạo cục bộ rồi ký bằng khóa ví; khóa riêng nằm trong bộ nhớ tiến trình trong suốt phiên làm việc.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM WALLETAUTH.SIGN\_RETRIEVE\_REQUEST<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM WALLETAUTH.SIGN\_RETRIEVE\_REQUEST<br>**Bất biến gắn ngữ cảnh (context-binding):** Thông điệp ký luôn theo định dạng cố định `"CloakShare Retrieve Auth: {tx_id} @ {timestamp}"` — chữ ký gắn chặt với một `tx_id` cụ thể và một thời điểm cụ thể, không tái sử dụng được cho giao dịch khác. Bất biến: nếu `timestamp=None` thì lấy `int(time.time())` tại thời điểm ký. Kết hợp với `MAX_CLOCK_DRIFT = 60`, chữ ký chỉ sống tối đa 60 giây. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#25: WalletAuth.verify\_retrieve\_request**
@@ -3563,9 +3620,9 @@ Xác thực chữ ký Web3 phía máy chủ Broker.
 
 Kiểm tra trôi thời gian \<= 60s, khôi phục địa chỉ ví qua Account.recover\_message và đối chiếu với người nhận.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ khôi phục địa chỉ ví từ chữ ký, không truy cập khóa bí mật và không tạo bản sao dữ liệu nhạy cảm.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM WALLETAUTH.VERIFY\_RETRIEVE\_REQUEST<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM WALLETAUTH.VERIFY\_RETRIEVE\_REQUEST<br>**Bất biến chống Replay (time-window):** Kiểm tra $|t_{now} - t_{stamp}| \\le 60$ **trước** khi xác minh chữ ký, nên chữ ký cũ quá 60 giây bị từ chối ngay cả khi đúng chữ ký. Bất biến đối hợp: chỉ trả `True` khi cả hai điều kiện đúng — (1) timestamp trong cửa sổ, (2) $\\text{recover}(msg, \\sigma) = address$ so sánh **không phân biệt hoa/thường** (`.lower()`) để chống bypass checksum Ethereum. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#26: Packager.create\_staging\_bundle**
@@ -3575,8 +3632,8 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 | Tham Số Kỹ Thuật | Giá Trị Định Danh |
 | ----- | ----- |
 | Mã định danh hàm | FUNC-26 |
-| Tệp tin mã nguồn | engine/packager.py |
-| Chữ ký nguyên mẫu | def create\_staging\_bundle(plaintext: bytes, recipient\_pub\_pem: str, sender\_priv\_pem: str) \-\> dict |
+| Tệp tin mã nguồn | engine/signer.py \+ engine/cli\_adapter.py |
+| Chữ ký nguyên mẫu | def send\_file\_pipeline(raw\_bytes, recipient\_pub\_pem, sender\_priv\_pem, recipient\_addr) \-\> dict |
 | Tầng kiến trúc | Lõi Mật mã C Native / Python Engine / EVM dPKI / RAM Broker |
 | Độ phức tạp tính toán | O(N) đối với dữ liệu khối, O(1) đối với bọc khóa và tra cứu |
 
@@ -3588,9 +3645,9 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 
 Mã hóa AES-CBC, bọc khóa bằng RSA-OAEP, ký bản mã bằng RSA-PSS và đóng gói cấu trúc JSON.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm trung gian tạo nhiều bản sao `bytes` tạm (ciphertext, wrapped_key) trong bộ nhớ Python; các bản sao này được Garbage Collector thu hồi sau khi đóng gói JSON.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PACKAGER.CREATE\_STAGING\_BUNDLE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PACKAGER.CREATE\_STAGING\_BUNDLE<br>**Bất biến Encrypt-then-Sign:** Thứ tự bất biến: (1) sinh khóa phiên ngẫu nhiên, (2) mã hóa AES-CBC → `ciphertext`, (3) **ký RSA-PSS trên ciphertext** (không phải bản rõ), (4) bọc khóa phiên. Vì chữ ký phủ toàn bộ ciphertext (bao gồm cả khối đệm PKCS#7), mọi sửa đổi 1 bit đều làm verify hỏng trước khi bất kỳ hàm giải mã hay gỡ đệm nào được gọi — vô hiệu hóa hoàn toàn Padding Oracle. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#27: Packager.unpack\_staging\_bundle**
@@ -3600,8 +3657,8 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 | Tham Số Kỹ Thuật | Giá Trị Định Danh |
 | ----- | ----- |
 | Mã định danh hàm | FUNC-27 |
-| Tệp tin mã nguồn | engine/packager.py |
-| Chữ ký nguyên mẫu | def unpack\_staging\_bundle(bundle: dict, recipient\_priv\_pem: str, sender\_pub\_pem: str) \-\> bytes |
+| Tệp tin mã nguồn | engine/signer.py \+ engine/cli\_adapter.py |
+| Chữ ký nguyên mẫu | def decrypt\_received\_file(bundle: dict, recipient\_priv\_key: str, sender\_pub\_pem: str) \-\> bytes |
 | Tầng kiến trúc | Lõi Mật mã C Native / Python Engine / EVM dPKI / RAM Broker |
 | Độ phức tạp tính toán | O(N) đối với dữ liệu khối, O(1) đối với bọc khóa và tra cứu |
 
@@ -3613,9 +3670,9 @@ Mở gói Staging Bundle và khôi phục tệp tin gốc.
 
 Xác thực chữ ký RSA-PSS trước, mở bao thư số RSA-OAEP lấy khóa phiên, giải mã AES-CBC và gỡ đệm.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Khóa phiên AES tạm thời tồn tại trong RAM tiến trình trong lúc giải mã và được Garbage Collector thu hồi sau khi hàm trả về.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PACKAGER.UNPACK\_STAGING\_BUNDLE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM PACKAGER.UNPACK\_STAGING\_BUNDLE<br>**Bất biến thứ tự verify-then-decrypt:** Luồng bất biến: xác minh chữ ký RSA-PSS trên ciphertext → nếu sai, dừng (fail-closed); nếu đúng, gỡ bọc khóa OAEP → giải mã AES-CBC → gỡ PKCS#7. Không tồn tại đường code nào gọi `aes128_cbc_decrypt` khi chữ ký chưa xác thực. Bất biến đối hợp: $\\text{unpack}(\\text{create\\_bundle}(M)) = M$ cho mọi $M$ không bị sửa đổi. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#28: Shredder.wipe\_memory\_bytes**
@@ -3625,8 +3682,8 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 | Tham Số Kỹ Thuật | Giá Trị Định Danh |
 | ----- | ----- |
 | Mã định danh hàm | FUNC-28 |
-| Tệp tin mã nguồn | engine/shredder.py |
-| Chữ ký nguyên mẫu | def wipe\_memory\_bytes(b: bytearray) \-\> None |
+| Tệp tin mã nguồn | broker/memory\_store.py |
+| Chữ ký nguyên mẫu | def \_wipe(value: Any) \-\> None |
 | Tầng kiến trúc | Lõi Mật mã C Native / Python Engine / EVM dPKI / RAM Broker |
 | Độ phức tạp tính toán | O(N) đối với dữ liệu khối, O(1) đối với bọc khóa và tra cứu |
 
@@ -3638,9 +3695,9 @@ Ghi đè mảng byte nhạy cảm bằng byte 0x00 trong bộ nhớ RAM.
 
 Duyệt từng ô nhớ và gán giá trị 0, kích hoạt xả điện tích DRAM phòng thủ Cold Boot.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm ghi đè trực tiếp từng ô của `bytearray` bằng `0x00`, đảm bảo xóa dữ liệu nhạy cảm tại chỗ trước khi vùng nhớ được giải phóng.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM SHREDDER.WIPE\_MEMORY\_BYTES<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM SHREDDER.WIPE\_MEMORY\_BYTES<br>**Bất biến ghi đè triệt để (zeroization):** Bất biến `MUST WIPE`: mọi vùng bộ nhớ tạm chứa khóa phiên, IV, bản mã hoặc buffer băm phải bị ghi đè bằng `0x00` trước khi giải phóng. Bất biến trong Python được mô phỏng bởi `_wipe()` trong `broker/memory_store.py`: ép `bytes` thành `bytearray` rồi ghi `0x00` từng byte — vì Python `bytes` bất biến, cách này tránh để giá trị cũ tồn tại trên heap. **Giới hạn trung thực:** GC có thể đã sao chép dữ liệu trước đó; mức đảm bảo là giảm bề mặt tấn công, không phải xóa chứng cứ pháp y tuyệt đối. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#29: registerPublicKey**
@@ -3663,9 +3720,9 @@ Hàm Smart Contract Solidity đăng ký khóa công khai RSA lên EVM.
 
 Gán ánh xạ \_publicKeys\[msg.sender\] \= publicKeyPem, tối ưu hóa Gas calldata và phát sự kiện PublicKeyRegistered.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+EVM không có khái niệm ngăn xếp như mã C; trạng thái `_publicKeys[msg.sender]` lưu trong storage on-chain, tồn tại vĩnh viễn và công khai cho mọi người.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM REGISTERPUBLICKEY<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM REGISTERPUBLICKEY<br>**Bất biến liên kết định danh - khóa (binding):** Hàm chỉ ghi vào ô `_publicKeys[msg.sender]`, do đó dPKI đảm bảo bất biến **một địa chỉ ví chỉ ánh xạ tới một khóa PEM** và chỉ chính chủ khóa riêng của ví đó mới đăng ký được. Kiểm tra `require(bytes(publicKeyPem).length > 0)` chặn đăng ký khóa rỗng phá vỡ bất biến. Phát event `PublicKeyRegistered` cho phép kiểm toán off-chain mọi thay đổi khóa. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#30: getPublicKey**
@@ -3688,9 +3745,9 @@ Hàm tra cứu khóa công khai bất biến của một người dùng.
 
 Truy vấn trực tiếp bảng ánh xạ với chi phí 0 Gas khi gọi ngoài chuỗi qua eth\_call.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ truy vấn read-only qua `eth_call`, không thay đổi storage và không tiêu tốn Gas.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM GETPUBLICKEY<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM GETPUBLICKEY<br>**Bất biến chỉ đọc (read-only purity):** Là hàm `view`, không bao giờ ghi trạng thái hay tiêu tốn Gas khi gọi off-chain — consumer có thể tra cứu khóa miễn phí. Bất biến an toàn thông tin: hàm chỉ lộ **khóa công khai** (an toàn để công khai), tuyệt đối không có getter nào cho khóa riêng — khóa riêng không bao giờ tồn tại trên chain. Bất biến trả về: chuỗi PEM rỗng nếu ví chưa đăng ký. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#31: hasKey**
@@ -3713,9 +3770,9 @@ Kiểm tra xem một địa chỉ ví đã đăng ký khóa công khai trên chu
 
 Kiểm tra độ dài chuỗi bytes(\_publicKeys\[user\]).length \> 0\.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ đọc độ dài chuỗi trong storage để kiểm tra sự tồn tại, không ghi trạng thái.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM HASKEY<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM HASKEY<br>**Bất biến khả kiểm tồn tại (existence predicate):** Trả về `true` khi và chỉ khi `bytes(_publicKeys[user]).length > 0`. Bất biến nhất quán với `getPublicKey`: $\\text{hasKey}(u) = (\\text{getPublicKey}(u) \\neq "")$. Cho phép tầng engine (DPKIClient) phân biệt "ví chưa đăng ký" (nên báo lỗi thân thiện) với "đã đăng ký nhưng khóa lỗi" mà không tốn phép đọc chuỗi dài. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#32: revokePublicKey**
@@ -3738,9 +3795,9 @@ Thu hồi khóa công khai của chính người gọi giao dịch.
 
 Xóa khóa khỏi bảng ánh xạ, nhận tiền hoàn Gas (Gas Refund) và phát sự kiện PublicKeyRevoked.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm cập nhật storage bằng cách đặt lại chuỗi rỗng; thay đổi được ghi vào SSTORE và tồn tại vĩnh viễn trên chuỗi khối.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM REVOKEPUBLICKEY<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM REVOKEPUBLICKEY<br>**Bất biến thu hồi có kiểm soát (owner-only revocation):** Hàm thu hồi khóa chỉ thành công khi `msg.sender == user` — không ai khác có thể xóa khóa công khai của người dùng khác (chống tấn công từ chối dịch vụ định danh). Sau thu hồi, bất biến quay về trạng thái "chưa đăng ký" ($\\text{hasKey}(u) = \\text{false}$). Phát event để ghi vết thời điểm thu hồi phục vụ kiểm toán và xoay khóa (key rotation). |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#33: dPKIRegistry.constructor**
@@ -3763,9 +3820,9 @@ Khởi tạo hợp đồng thông minh đăng ký dPKI trên mạng Blockchain.
 
 Thiết lập trạng thái ban đầu của hợp đồng, ghi nhận thông tin triển khai vào khối gốc.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ khởi tạo storage một lần tại thời điểm triển khai; không có biến tạm trên ngăn xếp như mã native C.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM DPKIREGISTRY.CONSTRUCTOR<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM DPKIREGISTRY.CONSTRUCTOR<br>**Bất biến khởi tạo sạch (clean-state invariant):** Hàm khởi tạo `dPKIRegistry` không nhận tham số và không thiết lập trạng thái đặc quyền nào (không owner, không admin, không role). Bất biến phi tập trung: sau khi triển khai, không có bất kỳ chủ thể nào có khả năng tắt, migration hay sửa logic contract — đây là cơ sở cho tính bất biến của bảng ánh xạ danh tính→khóa. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#34: dPKIRegistry.events**
@@ -3788,9 +3845,9 @@ Sự kiện EVM phát ra khi có người dùng đăng ký khóa thành công.
 
 Cho phép các ứng dụng giao diện và nút Broker lắng nghe sự kiện thời gian thực qua WebSockets.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Sự kiện được ghi ra transaction log on-chain khi có thay đổi khóa; không lưu trữ vật liệu mật mã trong storage.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM DPKIREGISTRY.EVENTS<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM DPKIREGISTRY.EVENTS<br>**Bất biến ghi vết bất biến (immutable audit log):** Mọi lần ghi (`registerPublicKey`) và xóa (`revokePublicKey`) khóa đều phát sự kiện được lưu vĩnh viễn trong receipt log của EVM. Bất biến: chuỗi sự kiện tạo thành lịch sử toàn vẹn, không thể sửa — cho phép bên thứ ba tái dựng toàn bộ vòng đời khóa của một địa chỉ mà không cần tin tưởng bất kỳ máy chủ trung tâm nào. Nền tảng cho kiểm toán dPKI độc lập. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#35: InMemoryStore.stage**
@@ -3801,7 +3858,7 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 | ----- | ----- |
 | Mã định danh hàm | FUNC-35 |
 | Tệp tin mã nguồn | broker/memory\_store.py |
-| Chữ ký nguyên mẫu | def stage(self, tx\_id: str, bundle: StagingBundle) \-\> None |
+| Chữ ký nguyên mẫu | def stage(self, tx\_id: str, recipient: str, iv: str, wrapped\_key: str, ciphertext: str, signature: str, ttl\_seconds: int) \-\> float |
 | Tầng kiến trúc | Lõi Mật mã C Native / Python Engine / EVM dPKI / RAM Broker |
 | Độ phức tạp tính toán | O(N) đối với dữ liệu khối, O(1) đối với bọc khóa và tra cứu |
 
@@ -3811,11 +3868,11 @@ Nạp gói tin Staging Bundle vào bộ nhớ RAM của Broker.
 
 **Quy Trình Xử Lý Bộ Nhớ và Thuật Toán Chi Tiết**
 
-Bảo vệ đa luồng bằng threading.Lock, tính expires\_at \= time() \+ ttl, lưu trữ ciphertext dạng bytearray.
+Bảo vệ đa luồng bằng threading.RLock(), tính expires\_at \= time() \+ ttl, lưu trữ ciphertext dạng bytearray.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Trường `ciphertext` được lưu dưới dạng `bytearray` (có thể ghi đè tại chỗ); toàn bộ thao tác được bảo vệ đa luồng bằng `threading.RLock()`.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.STAGE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.STAGE<br>**Bất biến Zero-Disk:** Hàm chỉ ghi vào `self._data: dict[str, dict]` trên RAM — không có bất kỳ lệnh `open()`, `write()` hay lưu file nào. Bất biến loại nhạy cảm: các trường `iv`, `wrapped_key`, `ciphertext`, `signature` được lưu dưới dạng `bytearray` (khả biến) để có thể tẩy `0x00` sau này. Bất biến TTL: `expires_at = now + ttl_seconds` được tính ngay khi stage. Toàn bộ thao tác được bảo vệ bởi `threading.RLock()` đảm bảo an toàn luồng. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#36: InMemoryStore.retrieve**
@@ -3838,9 +3895,9 @@ Truy xuất gói tin từ bộ nhớ RAM của Broker.
 
 Kiểm tra sự tồn tại và hạn dùng TTL, tăng bộ đếm thống kê và trả về toàn bộ bundle.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm chỉ đọc bundle từ dictionary trong RAM với khóa `tx_id`; không tạo bản sao lưu trên đĩa (đúng đặc tính Zero-Log).
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.RETRIEVE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.RETRIEVE<br>**Bất biến đọc-không-phá-hủy (non-destructive read) kèm TTL check:** Hàm trả về payload nếu và chỉ nếu tồn tại và `now < expires_at`; ngược lại trả `None` (không phân biệt "không tồn tại" với "hết hạn" để tránh rò rỉ thông tin qua timing/mã lỗi). Bất biến: đọc không tự xóa — hành vi burn-after-read do tham số `burn` ở tầng API quyết định gọi `purge()` sau đó. Tăng bộ đếm `total_retrieved` trong critical section. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#37: InMemoryStore.purge**
@@ -3863,9 +3920,9 @@ Tẩy xóa bộ nhớ RAM an toàn (Memory Scrubbing).
 
 Ghi đè toàn bộ mảng byte ciphertext bằng byte 0x00 trước khi xóa key khỏi dictionary.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm ghi đè toàn bộ `bytearray` ciphertext bằng `0x00` thông qua `_wipe()` trước khi xóa khóa khỏi dictionary — đây chính là cơ chế tẩy xóa RAM thực sự của hệ thống.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.PURGE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.PURGE<br>**Bất biến tẩy xóa byte-by-byte (active scrubbing):** Trước khi xóa mục khỏi `_data`, hàm `_purge_one` duyệt qua `_SENSITIVE_FIELDS` và gọi `_wipe()` ghi `0x00` lên từng byte của mỗi `bytearray` nhạy cảm — đảm bảo giá trị bí mật không còn tồn tại ngay cả khi object chưa bị GC thu hồi. Bất biến: "xóa" ở đây là ghi đè, không phải chỉ bỏ tham chiếu. Trả về `True` nếu có mục bị xóa. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#38: InMemoryStore.purge\_expired**
@@ -3888,9 +3945,9 @@ Quét định kỳ và dọn sạch các payload quá hạn TTL.
 
 Duyệt qua danh sách các giao dịch, phát hiện các payload có expires\_at \<= now và kích hoạt hàm purge.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Vòng lặp dọn dẹp định kỳ gọi `purge()` cho từng payload đã hết hạn, qua đó kích hoạt `_wipe()` giải phóng bộ nhớ nhạy cảm.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.PURGE\_EXPIRED<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM INMEMORYSTORE.PURGE\_EXPIRED<br>**Bất biến thu hồi tự động (autonomous TTL enforcement):** Hàm quét toàn bộ store trong một critical section, tập hợp các `tx_id` có `expires_at < now` và tẩy xóa từng mục. Bất biến an toàn: sau khi hàm chạy, mọi payload quá hạn đều bị ghi `0x00` và biến mất khỏi `_data` — dữ liệu không thể "sống sót" ngoài TTL đã cam kết. Được gọi định kỳ mỗi 5 giây bởi `_purge_loop` trong `broker/main.py`. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#39: broker\_app.stage\_payload**
@@ -3900,8 +3957,8 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 | Tham Số Kỹ Thuật | Giá Trị Định Danh |
 | ----- | ----- |
 | Mã định danh hàm | FUNC-39 |
-| Tệp tin mã nguồn | broker/server.py |
-| Chữ ký nguyên mẫu | async def stage\_payload(bundle: StagingBundle) |
+| Tệp tin mã nguồn | broker/main.py |
+| Chữ ký nguyên mẫu | async def stage\_payload(payload: StagePayload) \-\> StageResponse |
 | Tầng kiến trúc | Lõi Mật mã C Native / Python Engine / EVM dPKI / RAM Broker |
 | Độ phức tạp tính toán | O(N) đối với dữ liệu khối, O(1) đối với bọc khóa và tra cứu |
 
@@ -3913,9 +3970,9 @@ Endpoint API REST POST /api/v1/stage tiếp nhận gói tin.
 
 Xác thực Pydantic schema, kiểm tra giới hạn kích thước và nạp vào InMemoryStore.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Pydantic xác thực và giữ payload dưới dạng chuỗi bất biến trong bộ nhớ tiến trình; dữ liệu chỉ nằm trong RAM và không được ghi ra đĩa.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM BROKER\_APP.STAGE\_PAYLOAD<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM BROKER\_APP.STAGE\_PAYLOAD<br>**Bất biến mù nội dung (content-blind broker):** Endpoint `POST /api/v1/stage` tiếp nhận payload nhưng Broker **không giải mã, không verify chữ ký, không đọc nội dung** — chỉ gọi `store.stage(...)` giữ nguyên dữ liệu trên RAM. Trả về mã `201 Created` kèm `tx_id` và `expires_at`. Bất biến Zero-Log: không có lệnh ghi log/đĩa nào trong luồng này; access log Uvicorn đã bị tắt (`logging.getLogger("uvicorn.access").disabled = True`). |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#40: broker\_app.retrieve\_payload**
@@ -3925,8 +3982,8 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 | Tham Số Kỹ Thuật | Giá Trị Định Danh |
 | ----- | ----- |
 | Mã định danh hàm | FUNC-40 |
-| Tệp tin mã nguồn | broker/server.py |
-| Chữ ký nguyên mẫu | async def retrieve\_payload(tx\_id: str, ...) |
+| Tệp tin mã nguồn | broker/main.py |
+| Chữ ký nguyên mẫu | async def retrieve\_payload(tx\_id: str, request: Request, burn: bool \= False, ...) |
 | Tầng kiến trúc | Lõi Mật mã C Native / Python Engine / EVM dPKI / RAM Broker |
 | Độ phức tạp tính toán | O(N) đối với dữ liệu khối, O(1) đối với bọc khóa và tra cứu |
 
@@ -3938,9 +3995,9 @@ Endpoint API REST GET /api/v1/retrieve/{tx\_id} trả về gói tin.
 
 Kiểm tra tiêu đề HTTP chữ ký Web3 EIP-191, xác thực quyền sở hữu và trả về bundle.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm trả về bundle trực tiếp từ RAM của store; hệ thống không lưu vết yêu cầu cho mục đích truy vết (Zero-Log).
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM BROKER\_APP.RETRIEVE\_PAYLOAD<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM BROKER\_APP.RETRIEVE\_PAYLOAD<br>**Bất biến kiểm soát truy cập 3 lớp (defense-in-depth):** Luồng bất biến (1) tồn tại trong RAM → nếu không, `404`; (2) `verify_retrieve_request` (chữ ký EIP-191 + cửa sổ 60s) → nếu sai, `401`; (3) `data["recipient"].lower() == x_wallet_address.lower()` → nếu khác, `403`. Bất biến burn-after-read: nếu `?burn=true`, gọi `store.purge(tx_id)` xóa payload ngay sau khi trả về. Cả ba header xác thực là bắt buộc (FastAPI `Header(...)`). |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#41: ui\_app.poll\_inbox**
@@ -3963,9 +4020,9 @@ Luồng nền tự động kiểm tra hòm thư đến trên Broker.
 
 Tự động ký Web3 EIP-191, gọi API /api/v1/inbox, tải các tệp tin mới và giải mã hiển thị.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Streamlit giữ danh sách tệp trong `session_state`; tệp sau giải mã chỉ nằm trong RAM của phiên làm việc.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.POLL\_INBOX<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.POLL\_INBOX<br>**Bất biến xác thực danh tính khi đồng bộ (authenticated polling):** Mỗi lần gọi, hàm ký thông điệp `"CloakShare Inbox Access:{timestamp}"` bằng khóa ví và gửi kèm ba header `X-Wallet-Address/X-Timestamp/X-Signature`. Bất biến giải mã cục bộ: payload rút về được giải bọc bằng ECIES với khóa riêng của chính người dùng — Broker không bao giờ có khóa giải mã. Bất biến chống trùng: `processed_tx_ids`/`existing_ids` đảm bảo mỗi `tx_id` chỉ hiển thị một lần. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#42: ui\_app.fund\_and\_register\_dpki**
@@ -3988,9 +4045,9 @@ Tự động cấp Gas ảo và đăng ký khóa công khai lên Blockchain Anvi
 
 Kết nối nút Anvil RPC 8545, nạp 10 ETH ảo và gửi giao dịch đăng ký khóa lên dPKIRegistry.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Khóa riêng ví nằm trong session của ứng dụng; giao dịch đăng ký chỉ đẩy khóa công khai (PEM) lên chuỗi.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.FUND\_AND\_REGISTER\_DPKI<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.FUND\_AND\_REGISTER\_DPKI<br>**Bất biến về ranh giới an ninh:** Hàm này không phải là một ranh giới mật mã. Nó là lớp tiện ích gọi `DPKIClient.register_public_key` để ghi khóa công khai lên dPKIRegistry và tự động nạp Gas ảo. Toàn bộ thân hàm nằm trong `try/except` và trả về `False` khi lỗi (fail-soft), nên khi node Anvil chưa chạy giao diện vẫn khởi động bình thường. Bất biến thực sự phải bảo vệ nằm ở tầng hợp đồng — `require(bytes(publicKeyPem).length > 0)` và quy tắc one-address-one-key do `msg.sender` quyết định — chứ không nằm ở tầng UI. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#43: ui\_app.send\_file\_pipeline**
@@ -4013,9 +4070,9 @@ Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy t�
 
 Tra cứu khóa công khai qua dPKI, kích hoạt C Core mã hóa, bọc khóa RSA, ký PSS và tải lên Broker.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Hàm giữ bản rõ tạm trong RAM trong quá trình mã hóa; khóa phiên là `bytes` tạm thời được Garbage Collector thu hồi sau khi tải lên Broker.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.SEND\_FILE\_PIPELINE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.SEND\_FILE\_PIPELINE<br>**Bất biến về thứ tự thao tác (Encrypt-then-Sign):** Đường ống cố định: `gzip.compress(raw)` → `CLIAdapter.encrypt_bytes` (AES-128-CBC, khóa + IV ngẫu nhiên) → `ECIESEnvelope.wrap_key(aes_key, peer_pub)` → `IntegritySigner.sign_file(ciphertext, my_priv_pem)` → POST `/api/v1/stage`. Chữ ký được tạo trên **ciphertext sau nén**, nên bên nhận chỉ cần verify chữ ký là đủ để từ chối mọi sửa đổi trước khi giải mã. Bất biến giao diện: chỉ khi Broker trả về HTTP 201 thì bản ghi mới được thêm vào `session_state`; mọi mã lỗi khác được hiển thị cho người dùng và không lưu trạng thái cục bộ. |
 | :---- |
 
 **Giải Phẫu Thuật Toán \#44: ui\_app.decrypt\_received\_file**
@@ -4038,9 +4095,9 @@ Quy trình giải mã tệp tin nhận được trên giao diện.
 
 Xác minh chữ ký số người gửi, mở bao thư số RSA lấy khóa AES, giải mã C Native và lưu tệp.
 
-Cơ chế quản lý bộ nhớ của hàm tuân thủ triệt để các quy tắc lập trình phòng thủ: Toàn bộ các biến tạm thời trên ngăn xếp được xóa sạch trước khi hàm trả về, loại trừ hoàn toàn các nguy cơ rò rỉ dữ liệu nhạy cảm hoặc xung đột con trỏ.
+Bản rõ sau giải mã chỉ nằm trong RAM của phiên làm việc; việc lưu ra đĩa là hành động chủ động do người dùng thực hiện.
 
-| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.DECRYPT\_RECEIVED\_FILE<br>Hàm đảm bảo rằng mọi dữ liệu nhạy cảm đều được bảo vệ trong suốt quá trình xử lý. Bất kỳ sự sai lệch nào về kích thước khối hoặc chữ ký số đều kích hoạt cơ chế tự hủy an toàn. |
+| 📌 BẤT BIẾN AN NINH (SECURITY INVARIANT) CỦA HÀM UI\_APP.DECRYPT\_RECEIVED\_FILE<br>**Bất biến Verify-then-Decrypt và Burn-after-read:** Luồng rút file ký yêu cầu qua `Web3Auth.sign_retrieve_request` (thông điệp gắn `tx_id` + timestamp để chống phát lại), gọi GET `?burn=true`, rồi mới `ECIESEnvelope.unwrap_key` → `CLIAdapter.decrypt_bytes` → giải mã base64. Không tồn tại nhánh nào giải mã dữ liệu khi chữ ký chưa được Broker xác thực (Broker trả 401/403 trước khi trả payload). Cờ `burn=true` khiến Broker xóa payload khỏi RAM ngay sau lần đọc đầu tiên, đảm bảo tính chất dùng-một-lần ở tầng giao thức. |
 | :---- |
 
 **Ca Kiểm Thử Tự Động \#01: test\_invalid\_key\_length**
@@ -4154,7 +4211,7 @@ Kiểm tra kịch bản tải lên gói tin Staging Bundle hợp lệ lên endpo
 
 **2\. Dữ Liệu Đầu Vào, Fixtures và Chiến Lược Mocking**
 
-Gửi gói tin JSON hợp lệ chứa tx\_id, sender\_address, recipient\_address, ciphertext, encrypted\_key, signature, ttl\_seconds.
+Gửi gói tin JSON hợp lệ chứa tx\_id, recipient, iv, wrapped\_key, ciphertext, signature, ttl\_seconds.
 
 **3\. Khẳng Định Assertion và Bất Biến Trạng Thái**
 
@@ -7401,41 +7458,19 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# QUẢN LÝ TÀI KHOẢN & DANH BẠ (BẢO TOÀN TRẠNG THÁI)
+# XÁC THỰC DANH TÍNH & BẢO MẬT KHÓA (AUTH GATE & PBKDF2)
 # ==========================================
-ACCOUNTS_FILE = Path.home() / ".cloakshare" / "accounts.json"
+# Khóa riêng ví Web3 được mã hóa đối xứng bằng Fernet trước khi lưu xuống đĩa (~/.cloakshare/accounts.json).
+# Khóa mã hóa được dẫn xuất từ mật khẩu người dùng thông qua hàm PBKDF2-HMAC-SHA256 (390.000 vòng lặp chuẩn OWASP)
+# kèm muối ngẫu nhiên (salt 16-byte cryptographically secure). Khóa thô giải mã chỉ cư trú tạm thời
+# trong bộ nhớ phiên làm việc (st.session_state) và tự động bị huỷ khi người dùng đăng xuất.
+from engine import accounts
 
-def load_persisted_accounts() -> dict[str, str]:
-    defaults = {
-        "Alice (Seller)": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-        "Bob (Buyer)": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
-    }
-    try:
-        if ACCOUNTS_FILE.exists():
-            with open(ACCOUNTS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if isinstance(data, dict):
-                    defaults.update(data)
-    except Exception:
-        pass
-    return defaults
-
-def save_persisted_account(name: str, pk: str):
-    try:
-        ACCOUNTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        accs = load_persisted_accounts()
-        accs[name] = pk
-        with open(ACCOUNTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(accs, f, indent=2)
-    except Exception:
-        pass
-
-if "accounts" not in st.session_state:
-    st.session_state.accounts = load_persisted_accounts()
-
-# Đảm bảo active_user luôn hợp lệ (chống văng KeyError khi tải lại)
-if "active_user" not in st.session_state or st.session_state.active_user not in st.session_state.accounts:
-    st.session_state.active_user = list(st.session_state.accounts.keys())[0]
+_seed_demo_accounts_once()
+render_auth_gate()  # Dừng render (st.stop) nếu phiên làm việc chưa đăng nhập
+active_user = st.session_state.auth_user
+wallet_private_key = st.session_state.auth_private_key
+my_address = st.session_state.auth_address
 
 if "contacts" not in st.session_state:
     st.session_state.contacts = {
@@ -7943,19 +7978,23 @@ with tab_drop:
 
 
 # ------------------------------------------------------------------ #
-# TAB 3: GIÁM SÁT ZERO-LOG BROKER                                    #
+# TAB 3: DASHBOARD RAM ZERO-LOG BROKER                               #
 # ------------------------------------------------------------------ #
 with tab_monitor:
-    st.subheader("📊 Giám Sát Zero-Log Broker")
-    st.caption("Kiểm chứng thời gian thực nguyên tắc 0 Disk Writes và dung lượng bộ nhớ RAM.")
+    st.subheader("📊 Dashboard RAM Zero-Log Broker")
+    st.caption("Kiểm chứng thời gian thực nguyên tắc 0 Disk Writes, vùng nhớ RAM cấp phát và chu trình ghi đè 0x00 tự hủy.")
 
     stats_data = {}
+    ram_data = {}
     broker_ok = False
     try:
-        r = requests.get(f"{st.session_state.broker_url}/api/v1/stats", timeout=2)
-        if r.status_code == 200:
-            stats_data = r.json()
+        r_stats = requests.get(f"{st.session_state.broker_url}/api/v1/stats", timeout=2)
+        r_ram = requests.get(f"{st.session_state.broker_url}/api/v1/ram", timeout=2)
+        if r_stats.status_code == 200:
+            stats_data = r_stats.json()
             broker_ok = True
+        if r_ram.status_code == 200:
+            ram_data = r_ram.json()
     except Exception:
         broker_ok = False
 
@@ -7964,19 +8003,19 @@ with tab_monitor:
     else:
         st.error(f"🔴 Không thể kết nối Broker tại `{st.session_state.broker_url}`")
 
+    totals = ram_data.get("totals", {})
     m1, m2, m3, m4 = st.columns(4)
     with m1:
-        st.markdown(f'<div class="metric-box"><div class="metric-num">{stats_data.get("active_payloads", 0)}</div><div class="metric-sub">Payloads Trên RAM</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-box"><div class="metric-num">{totals.get("bytes_staged", 0) / 1024:.2f} KB</div><div class="metric-sub">📥 Tổng Đã Lên RAM</div></div>', unsafe_allow_html=True)
     with m2:
-        st.markdown(f'<div class="metric-box"><div class="metric-num">{stats_data.get("total_staged", 0)}</div><div class="metric-sub">Tổng Đã Stage</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-box"><div class="metric-num">{totals.get("bytes_wiped", 0) / 1024:.2f} KB</div><div class="metric-sub">🗑️ Đã Ghi Đè 0x00</div></div>', unsafe_allow_html=True)
     with m3:
-        st.markdown(f'<div class="metric-box"><div class="metric-num">{stats_data.get("total_retrieved", 0)}</div><div class="metric-sub">Tổng Lượt Rút</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-box"><div class="metric-num">{totals.get("active_bytes", 0)} B</div><div class="metric-sub">💾 RAM Đang Giữ</div></div>', unsafe_allow_html=True)
     with m4:
-        st.markdown(f'<div class="metric-box"><div class="metric-num" style="color: #10b981;">{stats_data.get("disk_writes", 0)}</div><div class="metric-sub">Disk Writes (Luôn 0)</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-box"><div class="metric-num" style="color: #10b981;">{totals.get("disk_writes", 0)}</div><div class="metric-sub">⚡ Ghi Đĩa (Luôn 0)</div></div>', unsafe_allow_html=True)
 
-    st.write("")
-    ram_b = stats_data.get("approx_ram_bytes", 0)
-    st.info(f"⚡ RAM cấp phát cho payload: **{ram_b} bytes ({ram_b / 1024:.2f} KB)** | Đã tự hủy hết hạn TTL: **{stats_data.get('total_purged_expired', 0)}**")
+    # Hiển thị trực quan bảng danh sách payload đang chiếm dụng RAM cùng thời gian sống TTL còn lại
+    # và bảng nhật ký sự kiện thời gian thực (STAGE -> WIPE -> EXPIRE) minh chứng không lưu vết trên đĩa
 
 
 # ------------------------------------------------------------------ #

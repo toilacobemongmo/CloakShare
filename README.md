@@ -1,4 +1,4 @@
-# 🛡️ CloakShare | Zero-Log Hybrid E2E Security Platform
+ie# 🛡️ CloakShare | Zero-Log Hybrid E2E Security Platform
 
 **CloakShare** là nền tảng trao đổi dữ liệu, tin nhắn và tệp tin mã hóa lai (Hybrid Cryptography) end-to-end kết hợp danh tính phi tập trung Web3 và máy chủ trung chuyển bộ nhớ đệm tạm thời (Zero-Log In-Memory RAM Broker).
 
@@ -52,7 +52,7 @@ CloakShare/
 ├── scripts/                    # Kịch bản kiểm thử tích hợp mạng & deploy
 │   ├── deploy_dpki.py
 │   └── e2e_network_test.py
-├── tests/                      # Suite kiểm thử tự động (Pytest 35/35 Passed)
+├── tests/                      # Suite kiểm thử tự động (Pytest 36/36 Passed)
 │   ├── test_aes_wrapper.py
 │   ├── test_rsa_envelope.py
 │   ├── test_signer.py
@@ -93,7 +93,7 @@ clang -O3 -dynamiclib core/aes128.c core/padding.c -o core/libaes.dylib
 ```bash
 python -m pytest tests/ -v
 ```
-Toàn bộ 35 bài kiểm thử bao gồm kiểm tra: Lõi C AES, bọc khóa RSA-OAEP, ký số RSA-PSS, Zero-Log RAM Broker, xác thực ví Web3 SIWE, chống Replay Attack, Burn-after-read, và kiểm chứng nghiêm ngặt **0 disk writes**.
+Toàn bộ 36 bài kiểm thử bao gồm kiểm tra: Lõi C AES, bọc khóa RSA-OAEP, ký số RSA-PSS, Zero-Log RAM Broker, xác thực ví Web3 SIWE, chống Replay Attack, Burn-after-read, và kiểm chứng nghiêm ngặt **0 disk writes**.
 
 ---
 

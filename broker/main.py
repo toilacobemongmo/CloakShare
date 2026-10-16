@@ -123,6 +123,18 @@ async def get_stats() -> StatsResponse:
     return StatsResponse(**store.stats())
 
 
+@app.get("/api/v1/ram")
+async def get_ram_snapshot() -> dict:
+    """
+    Ảnh chụp trạng thái RAM cho Dashboard Broker.
+
+    Danh sách các payload đang nằm trên RAM (kích thước + thời hạn còn
+    lại) và nhật ký sự kiện ghi/xoá gần đây. Toàn bộ dữ liệu chỉ nằm
+    trên RAM của tiến trình Broker - endpoint này không ghi gì xuống đĩa.
+    """
+    return store.ram_snapshot()
+
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -272,4 +284,4 @@ async def get_broker_dpki_key(address: str) -> dict[str, str]:
 @app.get("/api/v1/dpki/list")
 async def list_broker_dpki() -> dict[str, list[str]]:
     """Liệt kê danh sách tất cả các địa chỉ ví đã đăng ký trên Broker."""
-    return {"addresses": list(_BROKER_DPKI_REGISTRY.keys())}
+    return {"addresses": list(_BROKER_DPKI_REGISTRY.keys())}
