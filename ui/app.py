@@ -17,6 +17,13 @@ try:
     import qrcode as _qrcode_lib
 except Exception:  # pragma: no cover - thiếu thư viện thì vẫn chạy được (fallback API)
     _qrcode_lib = None
+# Biểu đồ Plotly cho Dashboard admin (fallback: dùng st.line_chart nếu thiếu).
+try:
+    import plotly.express as _px
+    import plotly.graph_objects as _go
+except Exception:  # pragma: no cover
+    _px = None
+    _go = None
 from eth_account import Account
 from eth_account.messages import encode_defunct
 from web3 import Web3
