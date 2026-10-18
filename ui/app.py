@@ -1,3 +1,4 @@
+import io
 import os
 import socket
 import base64
@@ -8,8 +9,21 @@ import time
 import uuid
 from pathlib import Path
 
+import pandas as pd
 import requests
 import streamlit as st
+# Sinh QR offline (không cần Internet) để bạn cùng lớp quét mã dùng thử.
+try:
+    import qrcode as _qrcode_lib
+except Exception:  # pragma: no cover - thiếu thư viện thì vẫn chạy được (fallback API)
+    _qrcode_lib = None
+# Biểu đồ Plotly cho Dashboard admin (fallback: dùng st.line_chart nếu thiếu).
+try:
+    import plotly.express as _px
+    import plotly.graph_objects as _go
+except Exception:  # pragma: no cover
+    _px = None
+    _go = None
 from eth_account import Account
 from eth_account.messages import encode_defunct
 from web3 import Web3
@@ -24,7 +38,7 @@ from engine.wrappers.aes_wrapper import AESWrapper
 
 st.set_page_config(
     page_title="CloakShare | Web3 Secure Messenger",
-    page_icon="🛡️",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -107,6 +121,27 @@ st.markdown('''
     margin-top: 5px;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+/* Dashboard card headers (panel style giong reference) */
+.dash-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2e8f0;
+    padding: 10px 14px 2px 14px;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+}
+.dash-card-sub {
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 0 14px 8px 14px;
+}
+
+/* Bo tron vien cac panel bieu do Plotly cho doi voi nen app */
+[data-testid="stPlotlyChart"] {
+    border-radius: 14px;
+    overflow: hidden;
 }
 
 /* Animations */
@@ -379,62 +414,187 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
+# ĐĂNG KÝ / ĐĂNG NHẬP (AUTH GATE)
+# ==========================================
+# Khóa riêng ví KHÔNG còn nằm plaintext trong file. Mỗi tài khoản có
+# username + mật khẩu; private key được mã hoá Fernet bằng khóa dẫn xuất
+# PBKDF2(mật khẩu) trước khi ghi xuống ~/.cloakshare/accounts.json.
+from engine import accounts as accounts_mod
+
+
+def _logout_and_stop(message: str | None = None) -> None:
+    """Xoá toàn bộ dữ liệu phiên nhạy cảm rồi dừng render."""
+    for key in ("my_pk", "my_address", "my_priv_pem", "active_user"):
+        st.session_state.pop(key, None)
+    if message:
+        st.error(message)
+    st.stop()
+
+
+st.markdown("""
+<style>
+.auth-wrap { max-width: 420px; margin: 40px auto 0 auto; }
+.auth-title { font-size: 2rem; font-weight: 800; text-align: center; color: #f1f5f9; }
+.auth-sub { text-align: center; color: #94a3b8; margin-bottom: 22px; }
+.auth-foot { text-align: center; color: #64748b; font-size: 0.82rem; margin-top: 14px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="auth-title">CloakShare</div>'
+            '<div class="auth-sub">Đăng nhập để vào phiên làm việc</div>',
+            unsafe_allow_html=True)
+
+
+def _seed_demo_accounts_once() -> None:
+    """Tạo các tài khoản demo (thiếu cái nào tạo cái đó), mật khẩu cố định dev.
+
+    Bao gồm tài khoản `admin` (vai trò admin) để đăng nhập xem Dashboard
+    giám sát Zero-Log. Các tài khoản đã tồn tại sẽ KHÔNG bị ghi đè.
+    """
+    existing = {a["username"].lower() for a in accounts_mod.list_accounts()}
+    demos = {
+        # username: (private_key_hex, password, role)
+        "admin": ("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", "admin123", "admin"),
+        # alice = Anvil #1, bob = Anvil #2 (môi trường thử cục bộ).
+        "alice": ("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d", "alice123", "user"),
+        "bob": ("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a", "bob12345", "user"),
+    }
+    for name, (pk_hex, pwd, role) in demos.items():
+        if name.lower() in existing:
+            continue
+        try:
+            addr = to_checksum(Account.from_key(pk_hex).address)
+        except Exception:
+            continue
+        try:
+            accounts_mod.register(name, pwd, pk_hex, addr, role=role)
+        except Exception:
+            pass
+    # Tài khoản cũ chưa có trường role -> đồng bộ về 'user' để tránh KeyError.
+    try:
+        accounts_mod.ensure_roles()
+    except Exception:
+        pass
+
+
+def render_auth_gate() -> None:
+    """Màn hình đăng nhập / đăng ký. Gọi st.stop() nếu chưa đăng nhập."""
+    has_accounts = bool(accounts_mod.list_accounts())
+    if not has_accounts:
+        _seed_demo_accounts_once()
+        has_accounts = bool(accounts_mod.list_accounts())
+
+    left, right = st.columns(2)
+
+    # ---------------- ĐĂNG NHẬP ----------------
+    with left:
+        st.markdown("### Đăng Nhập")
+        with st.form("login_form"):
+            login_user = st.text_input("Tên đăng nhập", placeholder="alice",
+                                        autocomplete="username")
+            login_pwd = st.text_input("Mật khẩu", type="password",
+                                      autocomplete="current-password")
+            submitted = st.form_submit_button("Đăng nhập", type="primary",
+                                             use_container_width=True)
+        if submitted:
+            try:
+                with st.spinner("Đang xác thực..."):
+                    private_key_hex, address = accounts_mod.authenticate(
+                        login_user, login_pwd
+                    )
+            except accounts_mod.AuthError as exc:
+                st.error(str(exc))
+            else:
+                st.session_state.my_pk = private_key_hex
+                st.session_state.my_address = to_checksum(address)
+                st.session_state.active_user = (login_user or "").strip()
+                st.session_state.active_role = accounts_mod.get_role(
+                    st.session_state.active_user
+                )
+                # Đăng nhập lại = phiên mới, khôi phục danh bạ sạch.
+                for k in ("contacts", "messages", "processed_tx_ids",
+                          "dpki_initialized", "last_drop_ticket"):
+                    st.session_state.pop(k, None)
+                _init_session_state()
+                st.success(f"Xin chào {st.session_state.active_user}!")
+                st.rerun()
+
+    # ---------------- ĐĂNG KÝ ----------------
+    with right:
+        st.markdown("### Tạo Tài Khoản Mới")
+        with st.form("register_form"):
+            reg_user = st.text_input("Tên đăng nhận", placeholder="charlie",
+                                     autocomplete="username")
+            reg_pwd = st.text_input("Mật khẩu (>= 8 ký tự)", type="password",
+                                    autocomplete="new-password")
+            reg_pwd2 = st.text_input("Xác nhận mật khẩu", type="password",
+                                     autocomplete="new-password")
+            reg_submit = st.form_submit_button("Tạo ví + đăng ký",
+                                               use_container_width=True)
+        if reg_submit:
+            if reg_pwd != reg_pwd2:
+                st.error("Hai mật khẩu không khớp.")
+            elif len(reg_pwd or "") < 8:
+                st.error("Mật khẩu phải có ít nhất 8 ký tự.")
+            else:
+                try:
+                    with st.spinner("Đang sinh cặp khóa ví..."):
+                        wallet = Account.create()
+                        accounts_mod.register(
+                            reg_user, reg_pwd, wallet.key.hex(), wallet.address
+                        )
+                except accounts_mod.UsernameTaken as exc:
+                    st.error(str(exc))
+                except accounts_mod.AuthError as exc:
+                    st.error(str(exc))
+                else:
+                    st.session_state.my_pk = wallet.key.hex()
+                    st.session_state.my_address = to_checksum(wallet.address)
+                    st.session_state.active_user = (reg_user or "").strip()
+                    st.session_state.active_role = "user"  # tài khoản mới luôn là 'user'
+                    for k in ("contacts", "messages", "processed_tx_ids",
+                              "dpki_initialized", "last_drop_ticket"):
+                        st.session_state.pop(k, None)
+                    _init_session_state()
+                    st.session_state.contacts[st.session_state.active_user] = (
+                        to_checksum(wallet.address)
+                    )
+                    st.success("Đã tạo tài khoản và đăng nhập thành công!")
+                    st.rerun()
+
+    st.markdown(
+        '<div class="auth-foot">Khoá riêng ví được mã hoá Fernet '
+        '(PBKDF2-HMAC-SHA256 390.000 vòng) trước khi lưu xuống đĩa.<br>'
+        'Broker Zero-Log không bao giờ nhìn thấy khóa này.</div>',
+        unsafe_allow_html=True,
+    )
+    st.stop()
+
+
+# ==========================================
 # QUẢN LÝ TÀI KHOẢN & DANH BẠ (BẢO TOÀN TRẠNG THÁI)
 # ==========================================
-ACCOUNTS_FILE = Path.home() / ".cloakshare" / "accounts.json"
+def _init_session_state() -> None:
+    """Khởi tạo các khoá session tương tác (danh bạ, tin nhắn, ...)."""
+    if "contacts" not in st.session_state:
+        st.session_state.contacts = {
+            "Anvil #0": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            "Anvil #1": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+        }
+    if "selected_peer" not in st.session_state or st.session_state.selected_peer not in st.session_state.contacts:
+        st.session_state.selected_peer = list(st.session_state.contacts.keys())[0]
+    if "select_chat_peer" in st.session_state and st.session_state.select_chat_peer not in st.session_state.contacts:
+        st.session_state.select_chat_peer = st.session_state.selected_peer
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "processed_tx_ids" not in st.session_state:
+        st.session_state.processed_tx_ids = set()
+    if "last_drop_ticket" not in st.session_state:
+        st.session_state.last_drop_ticket = None
 
-def load_persisted_accounts() -> dict[str, str]:
-    defaults = {
-        "Alice (Seller)": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-        "Bob (Buyer)": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
-    }
-    try:
-        if ACCOUNTS_FILE.exists():
-            with open(ACCOUNTS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if isinstance(data, dict):
-                    defaults.update(data)
-    except Exception:
-        pass
-    return defaults
-
-def save_persisted_account(name: str, pk: str):
-    try:
-        ACCOUNTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        accs = load_persisted_accounts()
-        accs[name] = pk
-        with open(ACCOUNTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(accs, f, indent=2)
-    except Exception:
-        pass
-
-if "accounts" not in st.session_state:
-    st.session_state.accounts = load_persisted_accounts()
-
-# Đảm bảo active_user luôn hợp lệ (chống văng KeyError khi tải lại)
-if "active_user" not in st.session_state or st.session_state.active_user not in st.session_state.accounts:
-    st.session_state.active_user = list(st.session_state.accounts.keys())[0]
 
 if "contacts" not in st.session_state:
-    st.session_state.contacts = {
-        "Alice (Seller)": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-        "Bob (Buyer)": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
-    }
-
-if "selected_peer" not in st.session_state or st.session_state.selected_peer not in st.session_state.contacts:
-    st.session_state.selected_peer = list(st.session_state.contacts.keys())[0]
-
-if "select_chat_peer" in st.session_state and st.session_state.select_chat_peer not in st.session_state.contacts:
-    st.session_state.select_chat_peer = st.session_state.selected_peer
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "processed_tx_ids" not in st.session_state:
-    st.session_state.processed_tx_ids = set()
-
-if "last_drop_ticket" not in st.session_state:
-    st.session_state.last_drop_ticket = None
+    _init_session_state()
 
 
 def to_checksum(addr: str) -> str:
@@ -464,19 +624,21 @@ def fund_and_register_dpki(wallet_pk: str, pub_pem: str) -> bool:
         return False
 
 
-if "dpki_initialized" not in st.session_state:
-    st.session_state.dpki_initialized = set()
+# Chặn render cho tới khi đăng nhập thành công.
+if "my_pk" not in st.session_state:
+    render_auth_gate()
 
-for acc_name, acc_pk in st.session_state.accounts.items():
-    if acc_name not in st.session_state.dpki_initialized:
-        acc_obj = Account.from_key(acc_pk)
-        _, p_pem = get_or_create_keys(acc_pk)
-        fund_and_register_dpki(acc_pk, p_pem)
-        st.session_state.dpki_initialized.add(acc_name)
-
-my_pk = st.session_state.accounts.get(st.session_state.active_user, list(st.session_state.accounts.values())[0])
+my_pk = st.session_state.my_pk
+my_address = st.session_state.my_address
 my_account = Account.from_key(my_pk)
-my_address = to_checksum(my_account.address)
+
+# Vai trò của tài khoản đang đăng nhập. Chỉ "admin" mới xem được Dashboard
+# giám sát Zero-Log (trang thông số + biểu đồ RAM thời gian thực).
+if "active_role" not in st.session_state:
+    st.session_state.active_role = accounts_mod.get_role(
+        st.session_state.get("active_user", "")
+    )
+IS_ADMIN = st.session_state.active_role == "admin"
 
 my_priv_pem, my_pub_pem = get_or_create_keys(my_pk)
 dpki_client = DPKIClient(
@@ -502,7 +664,7 @@ try:
     if _d_res.status_code == 200:
         for _r_addr in _d_res.json().get("addresses", []):
             if _r_addr.lower() not in [c.lower() for c in st.session_state.contacts.values()]:
-                _label = f"📱 Đối tác ({_r_addr[:6]}...{_r_addr[-4:]})"
+                _label = f"Đối tác ({_r_addr[:6]}...{_r_addr[-4:]})"
                 st.session_state.contacts[_label] = _r_addr
 except Exception:
     pass
@@ -512,9 +674,9 @@ def transfer_text(m: dict) -> str:
     """Câu chữ tin nhắn chuyển tiền, tính theo người đang xem."""
     if m["from"].lower() == my_address.lower():
         who = m.get("to_name") or (m["to"][:8] + "...")
-        return f"💸 Đã chuyển cho {who} {m['amount']} ETH"
+        return f"Đã chuyển cho {who} {m['amount']} ETH"
     who = m.get("from_name") or (m["from"][:8] + "...")
-    return f"💰 Đã nhận {m['amount']} ETH từ {who}"
+    return f"Đã nhận {m['amount']} ETH từ {who}"
 
 
 def notify_transfer(to_addr: str, to_name: str, amt: str, tx_id: str) -> None:
@@ -524,7 +686,7 @@ def notify_transfer(to_addr: str, to_name: str, amt: str, tx_id: str) -> None:
         payload = {
             "sender": my_address,
             "sender_name": st.session_state.active_user,
-            "text": f"💰 Đã nhận {amt} ETH từ {st.session_state.active_user}",
+            "text": f"Đã nhận {amt} ETH từ {st.session_state.active_user}",
             "kind": "transfer",
             "amount": amt,
             "is_file": False,
@@ -672,7 +834,7 @@ poll_inbox()
 # ==========================================
 # THANH ĐIỀU KHIỂN DANH TÍNH (TRỰC QUAN TRÊN MÀN HÌNH)
 # ==========================================
-net_label = f"🦎 Tailscale: {TAILSCALE_IP}" if TAILSCALE_IP else f"🏠 LAN: {LOCAL_IP}"
+net_label = f"Tailscale: {TAILSCALE_IP}" if TAILSCALE_IP else f"LAN: {LOCAL_IP}"
 
 def _read_balance() -> float:
     try:
@@ -683,6 +845,30 @@ def _read_balance() -> float:
     return 0.0
 
 
+def _qr_image_base64(url: str) -> str | None:
+    """Sinh ảnh QR TỰ CHỖ (offline) bằng thư viện `qrcode`.
+
+    Trả về data-URI base64 để st.image hiển thị mà không cần Internet.
+    Trả về None nếu chưa cài `qrcode` (caller sẽ fallback sang API ngoài).
+    """
+    if _qrcode_lib is None:
+        return None
+    try:
+        qr = _qrcode_lib.QRCode(
+            box_size=10,
+            border=2,
+            error_correction=_qrcode_lib.constants.ERROR_CORRECT_M,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+    except Exception:
+        return None
+
+
 @st.fragment(run_every=5)
 def render_header():
     balance_eth = _read_balance()
@@ -690,8 +876,8 @@ def render_header():
 <div class="user-card">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <div class="user-header-title" style="flex-direction: column; align-items: flex-start; gap: 2px;">
-            <div>🛡️ CloakShare <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Messenger</span></div>
-            <div style="font-size: 0.8rem; color: #10b981; font-weight: 500;">💰 Số dư: {balance_eth:.4f} ETH | Gửi tin/file: 0 ETH (Off-chain)</div>
+            <div>CloakShare <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Messenger</span></div>
+            <div style="font-size: 0.8rem; color: #10b981; font-weight: 500;">Số dư: {balance_eth:.4f} ETH | Gửi tin/file: 0 ETH (Off-chain)</div>
         </div>
         <div class="user-badge-net">{net_label}</div>
     </div>
@@ -701,52 +887,42 @@ def render_header():
 
 render_header()
 
-# HÀNG CHUYỂN TÀI KHOẢN VÀ TẠO TÀI KHOẢN TRỰC TIẾP
-top_col1, top_col2 = st.columns([2.5, 1])
+# THANH TÀI KHOẢN: tên đăng nhập đang hoạt động + Đăng xuất.
+# (Đổi tài khoản giờ chỉ qua đăng nhập lại - nhập mật khẩu, không còn
+#  dropdown chọn bừa.)
+top_col1, top_col2, top_col3 = st.columns([2, 1.4, 1])
 
 with top_col1:
-    account_names = list(st.session_state.accounts.keys())
-    cur_idx = account_names.index(st.session_state.active_user) if st.session_state.active_user in account_names else 0
-    selected_acc = st.selectbox(
-        "👤 Đang dùng tài khoản:",
-        account_names,
-        index=cur_idx,
-        key="main_acc_select",
-        help="Chọn để đổi sang tài khoản khác ngay lập tức",
+    _role_tag = " 🛡️ ADMIN" if IS_ADMIN else ""
+    st.markdown(
+        f"**Tài khoản:** `{st.session_state.active_user}`{_role_tag}  \n"
+        f"`{my_address}`",
     )
-    if selected_acc != st.session_state.active_user:
-        st.session_state.active_user = selected_acc
-        st.rerun()
 
 with top_col2:
-    st.write("") # Căn chỉnh khoảng trắng
-    st.write("")
-    with st.popover("➕ Tạo ví mới", use_container_width=True):
-        st.subheader("✨ Tạo Tài Khoản Web3 Mới")
-        new_name = st.text_input("Tên tài khoản:", placeholder="VD: Bob, Charlie...", key="new_acc_name_pop")
-        if st.button("🚀 Tạo ngay", type="primary", use_container_width=True):
-            if new_name.strip() and new_name not in st.session_state.accounts:
-                w = Account.create()
-                save_persisted_account(new_name, w.key.hex())
-                st.session_state.accounts[new_name] = w.key.hex()
-                st.session_state.contacts[new_name] = w.address
-                st.session_state.active_user = new_name
-                st.success(f"Đã tạo & kích hoạt ví '{new_name}'!")
-                st.rerun()
-            else:
-                st.warning("Tên đã tồn tại hoặc không hợp lệ.")
+    if st.button("Đăng ký lại khóa lên dPKI", use_container_width=True):
+        with st.spinner("Đang đăng ký..."):
+            try:
+                tx = dpki_client.register_public_key(my_pk, my_pub_pem)
+                st.success(f"Đã đăng ký! Ref: {tx}")
+            except Exception as e:
+                st.error(f"Lỗi: {e}")
 
-st.caption(f"Địa chỉ ví của bạn: `{my_address}`")
+with top_col3:
+    if st.button("Đăng xuất", use_container_width=True):
+        _logout_and_stop("Đã đăng xuất. Phiên làm việc được dọn sạch.")
+
+st.caption("Để đổi tài khoản: đăng xuất rồi đăng nhập lại bằng mật khẩu.")
 
 
 # ==========================================
 # CÁC TAB CHÍNH (DEFAULT: CHAT TAB)
 # ==========================================
 tab_chat, tab_drop, tab_monitor, tab_keys = st.tabs([
-    "💬 Trò Chuyện (Chat)",
-    "📦 CloakDrop (Gửi File)",
-    "📊 Giám Sát Zero-Log",
-    "🔑 Quản Lý Khóa & Mạng",
+    "Trò Chuyện (Chat)",
+    "CloakDrop (Gửi File)",
+    "Giám Sát Zero-Log",
+    "Quản Lý Khóa & Mạng",
 ])
 
 
@@ -759,13 +935,13 @@ with tab_chat:
     chat_top_c1, chat_top_c2, chat_top_c3 = st.columns([2, 1, 1])
     with chat_top_c1:
         if not available_peers:
-            st.info("Chưa có liên hệ khác. Bấm '➕ Thêm ví' để nhập địa chỉ ví đối tác!")
+            st.info("Chưa có liên hệ khác. Bấm 'Thêm ví' để nhập địa chỉ ví đối tác.")
             active_peer_name = ""
             active_peer_addr = ""
         else:
             p_idx = available_peers.index(st.session_state.selected_peer) if st.session_state.selected_peer in available_peers else 0
             active_peer_name = st.selectbox(
-                "💬 Chat với đối tác:",
+                "Đối tác trò chuyện:",
                 available_peers,
                 index=p_idx,
                 key="select_chat_peer",
@@ -776,8 +952,8 @@ with tab_chat:
     with chat_top_c2:
         st.write("")
         st.write("")
-        with st.popover("➕ Thêm ví", use_container_width=True):
-            st.markdown("##### ➕ Nhập địa chỉ ví đối tác")
+        with st.popover("Thêm ví", use_container_width=True):
+            st.markdown("##### Nhập địa chỉ ví đối tác")
             c_name = st.text_input("Tên gợi nhớ:", placeholder="VD: Điện thoại, Bạn A...", key="c_add_name")
             c_addr = st.text_input("Địa chỉ ví Ethereum:", placeholder="0x...", key="c_add_addr")
             if st.button("Lưu liên hệ", type="primary", use_container_width=True, key="c_add_save"):
@@ -794,7 +970,7 @@ with tab_chat:
     with chat_top_c3:
         st.write("")
         st.write("")
-        if st.button("🔄 Nhận tin", use_container_width=True, help="Đồng bộ tin nhắn mới ngay lập tức"):
+        if st.button("Nhận tin", use_container_width=True, help="Đồng bộ tin nhắn mới ngay lập tức"):
             poll_inbox()
             st.rerun()
 
@@ -815,7 +991,7 @@ with tab_chat:
             if not conversation:
                 st.markdown(
                     '<div style="color: #64748b; text-align: center; margin-top: 140px;">'
-                    '🔒 Kênh bảo mật E2E đã sẵn sàng. Chưa có tin nhắn nào!<br>Hãy gửi lời chào đầu tiên.'
+                    'Kênh bảo mật E2E đã sẵn sàng. Chưa có tin nhắn nào.<br>Hãy gửi lời chào đầu tiên.'
                     '</div>',
                     unsafe_allow_html=True,
                 )
@@ -826,9 +1002,9 @@ with tab_chat:
                     sender_label = "Bạn" if side == "right" else m.get("from_name", active_peer_name)
 
                     sig_badge = (
-                        '<span class="badge-tag badge-ok">🛡️ ECDSA Ký Chuẩn</span>'
+                        '<span class="badge-tag badge-ok">ECDSA Ký Chuẩn</span>'
                         if m.get("verified")
-                        else '<span class="badge-tag badge-enc">🔒 AES-128 C</span>'
+                        else '<span class="badge-tag badge-enc">AES-128 C</span>'
                     )
 
                     bubble_txt = transfer_text(m) if m.get("kind") == "transfer" else m["text"]
@@ -840,7 +1016,7 @@ with tab_chat:
                                 <div class="bubble-text">{bubble_txt}</div>
                                 <div class="bubble-badges">
                                     {sig_badge}
-                                    <span class="badge-tag badge-enc">🔑 ECIES (SECP256K1)</span>
+                                    <span class="badge-tag badge-enc">ECIES (SECP256K1)</span>
                                 </div>
                                 <div class="chat-time">{m['time']}</div>
                             </div>
@@ -850,7 +1026,7 @@ with tab_chat:
 
                     if m.get("is_file") and m.get("file_data"):
                         st.download_button(
-                            label=f"💾 Tải file đính kèm: {m['filename']}",
+                            label=f"Tải file đính kèm: {m['filename']}",
                             data=m["file_data"],
                             file_name=m["filename"],
                             key=f"dl_msg_{m['id']}",
@@ -863,7 +1039,7 @@ with tab_chat:
         st.success(st.session_state.pop("transfer_flash"))
 
     if active_peer_addr:
-        with st.expander(f"💸 Chuyển tiền cho {active_peer_name}"):
+        with st.expander(f"Chuyển tiền cho {active_peer_name}"):
             with st.form("transfer_form", clear_on_submit=True):
                 t_amount = st.number_input("Số ETH", min_value=0.0001, value=None, step=0.1, format="%.4f", placeholder="Nhập số ETH")
                 t_submit = st.form_submit_button("Chuyển", type="primary")
@@ -886,7 +1062,7 @@ with tab_chat:
             attached_file = st.file_uploader("Đính kèm file", type=None, label_visibility="collapsed")
         with f_c2:
             st.write("")
-            send_btn = st.form_submit_button("🚀 Gửi", use_container_width=True, type="primary")
+            send_btn = st.form_submit_button("Gửi", use_container_width=True, type="primary")
 
     if send_btn and active_peer_addr:
         if not chat_input and not attached_file:
@@ -903,7 +1079,7 @@ with tab_chat:
                     payload_content = {
                         "sender": my_address,
                         "sender_name": st.session_state.active_user,
-                        "text": chat_input if not is_file else (f"📎 {chat_input}" if chat_input else f"📎 Tệp: {f_name}"),
+                        "text": chat_input if not is_file else (f"[Tệp] {chat_input}" if chat_input else f"[Tệp]: {f_name}"),
                         "is_file": is_file,
                         "filename": f_name,
                         "file_b64": base64.b64encode(f_bytes).decode("utf-8") if is_file else "",
@@ -940,7 +1116,7 @@ with tab_chat:
                             "verified": True,
                             "has_signature": True,
                         })
-                        st.toast("✅ Đã gửi thành công!")
+                        st.toast("Đã gửi thành công.")
                         st.rerun()
                     else:
                         st.error(f"Lỗi Broker: {res.text}")
@@ -957,12 +1133,12 @@ with tab_chat:
 # TAB 2: CLOAKDROP (GỬI FILE ĐỘC LẬP & TỰ HỦY)                       #
 # ------------------------------------------------------------------ #
 with tab_drop:
-    st.subheader("📦 CloakDrop Vault - Chia Sẻ File Tự Hủy")
+    st.subheader("CloakDrop Vault - Chia Sẻ File Tự Hủy")
     st.caption("Mã hóa file độc lập, bọc khóa và chia sẻ mã Ticket ID để người nhận tự rút và giải mã.")
 
     col_d1, col_d2 = st.columns(2)
     with col_d1:
-        st.markdown("##### 📤 Gửi File Mới")
+        st.markdown("##### Gửi File Mới")
         with st.form("form_drop_send"):
             d_recipient = st.selectbox(
                 "Gửi tới đối tác:",
@@ -970,8 +1146,8 @@ with tab_drop:
             )
             d_file = st.file_uploader("Chọn tệp tin cần bảo vệ:")
             d_ttl = st.selectbox("Thời gian tự hủy (TTL):", [60, 300, 1800, 3600], index=1, format_func=lambda s: f"{s} giây" if s < 60 else f"{s//60} phút")
-            d_burn = st.checkbox("🔥 Xóa ngay sau khi tải (Burn-After-Read)", value=True)
-            d_submit = st.form_submit_button("🔒 Mã Hóa & Tải Lên RAM", type="primary", use_container_width=True)
+            d_burn = st.checkbox("Xóa ngay sau khi tải (Burn-After-Read)", value=True)
+            d_submit = st.form_submit_button("Mã Hóa & Tải Lên RAM", type="primary", use_container_width=True)
 
         if d_submit and d_file and d_recipient:
             rec_addr = st.session_state.contacts[d_recipient]
@@ -1002,21 +1178,21 @@ with tab_drop:
                     res = requests.post(f"{st.session_state.broker_url}/api/v1/stage", json=body, timeout=5)
                     if res.status_code == 201:
                         st.session_state.last_drop_ticket = ticket
-                        st.success("✅ Đã mã hóa và đưa lên RAM Broker!")
+                        st.success("Đã mã hóa và đưa lên RAM Broker.")
                     else:
                         st.error(f"Lỗi: {res.text}")
                 except Exception as e:
                     st.error(f"Lỗi: {e}")
 
         if st.session_state.last_drop_ticket:
-            st.info(f"🔑 **Mã Ticket gửi cho đối tác:** `{st.session_state.last_drop_ticket}`")
+            st.info(f"**Mã Ticket gửi cho đối tác:** `{st.session_state.last_drop_ticket}`")
 
     with col_d2:
-        st.markdown("##### 📥 Rút & Giải Mã File")
+        st.markdown("##### Rút & Giải Mã File")
         with st.form("form_drop_claim"):
             claim_ticket = st.text_input("Nhập mã Ticket ID:", placeholder="drop-...")
             claim_burn = st.checkbox("Xóa khỏi RAM sau khi tải", value=True)
-            claim_btn = st.form_submit_button("🔓 Xác Thực Ví & Nhận File", type="primary", use_container_width=True)
+            claim_btn = st.form_submit_button("Xác Thực Ví & Nhận File", type="primary", use_container_width=True)
 
         if claim_btn and claim_ticket:
             with st.spinner("Đang xác thực ví Web3..."):
@@ -1043,8 +1219,8 @@ with tab_drop:
 
                         fn = f_info.get("filename", "file.bin")
                         fb = base64.b64decode(f_info.get("file_b64", ""))
-                        st.success(f"🎉 Đã giải mã thành công: **{fn}** ({len(fb)} bytes)!")
-                        st.download_button(f"💾 Tải về máy: {fn}", data=fb, file_name=fn, use_container_width=True)
+                        st.success(f"Đã giải mã thành công: **{fn}** ({len(fb)} bytes).")
+                        st.download_button(f"Tải về máy: {fn}", data=fb, file_name=fn, use_container_width=True)
                     else:
                         st.error(f"Lỗi rút file ({res.status_code}): {res.text}")
                 except Exception as e:
@@ -1052,57 +1228,355 @@ with tab_drop:
 
 
 # ------------------------------------------------------------------ #
-# TAB 3: GIÁM SÁT ZERO-LOG BROKER                                    #
+# NỘI DUNG DASHBOARD GIÁM SÁT - CHỈ ADMIN ĐƯỢC XEM                       #
 # ------------------------------------------------------------------ #
-with tab_monitor:
-    st.subheader("📊 Giám Sát Zero-Log Broker")
-    st.caption("Kiểm chứng thời gian thực nguyên tắc 0 Disk Writes và dung lượng bộ nhớ RAM.")
+def _render_admin_dashboard() -> None:
+    """Dashboard giám sát Zero-Log - CHỈ gọi khi vai trò là admin.
+
+    Layout dạng thẻ (card grid) + biểu đồ Plotly giống dashboard hiện đại:
+    hàng thẻ KPI màu xanh, các panel biểu đồ có nền card bo góc, bảng dữ liệu
+    gói gọn bên trong. Chỉ admin mới gọi được hàm này.
+    """
+    # ---- Theme Plotly tối (tông xanh/đen như reference) ----
+    _PL_LAYOUT = dict(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(15,23,42,0.35)",
+        font=dict(family="Inter, sans-serif", color="#cbd5e1", size=12),
+        margin=dict(l=40, r=16, t=46, b=36),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, bgcolor="rgba(0,0,0,0)"),
+        xaxis=dict(gridcolor="rgba(148,163,184,0.12)", zerolinecolor="rgba(148,163,184,0.2)"),
+        yaxis=dict(gridcolor="rgba(148,163,184,0.12)", zerolinecolor="rgba(148,163,184,0.2)"),
+        hovermode="x unified",
+        height=300,
+    )
+
+    st.markdown("### 📊 Tổng Quan Giám Sát Zero-Log")
+    st.caption(
+        "Theo dõi trực tiếp vòng đời dữ liệu trên RAM của Broker: ghi lên khi bạn "
+        "gửi, ghi đè 0x00 khi hết hạn hoặc được lấy về."
+    )
 
     stats_data = {}
+    ram_data = {}
     broker_ok = False
     try:
         r = requests.get(f"{st.session_state.broker_url}/api/v1/stats", timeout=2)
         if r.status_code == 200:
             stats_data = r.json()
+            rr = requests.get(f"{st.session_state.broker_url}/api/v1/ram", timeout=2)
+            if rr.status_code == 200:
+                ram_data = rr.json()
             broker_ok = True
     except Exception:
         broker_ok = False
 
     if broker_ok:
-        st.success(f"🟢 Broker kết nối tốt tại `{st.session_state.broker_url}`")
+        st.success(f"[ONLINE] Broker kết nối tốt tại `{st.session_state.broker_url}`")
     else:
-        st.error(f"🔴 Không thể kết nối Broker tại `{st.session_state.broker_url}`")
+        st.error(f"[OFFLINE] Không thể kết nối Broker tại `{st.session_state.broker_url}`")
 
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
-        st.markdown(f'<div class="metric-box"><div class="metric-num">{stats_data.get("active_payloads", 0)}</div><div class="metric-sub">Payloads Trên RAM</div></div>', unsafe_allow_html=True)
-    with m2:
-        st.markdown(f'<div class="metric-box"><div class="metric-num">{stats_data.get("total_staged", 0)}</div><div class="metric-sub">Tổng Đã Stage</div></div>', unsafe_allow_html=True)
-    with m3:
-        st.markdown(f'<div class="metric-box"><div class="metric-num">{stats_data.get("total_retrieved", 0)}</div><div class="metric-sub">Tổng Lượt Rút</div></div>', unsafe_allow_html=True)
-    with m4:
-        st.markdown(f'<div class="metric-box"><div class="metric-num" style="color: #10b981;">{stats_data.get("disk_writes", 0)}</div><div class="metric-sub">Disk Writes (Luôn 0)</div></div>', unsafe_allow_html=True)
+    totals = ram_data.get("totals", {})
+    ram_b = totals.get("active_bytes", stats_data.get("approx_ram_bytes", 0))
+    staged_b = totals.get("bytes_staged", stats_data.get("approx_ram_bytes", 0))
+    wiped_b = totals.get("bytes_wiped", 0)
 
-    st.write("")
-    ram_b = stats_data.get("approx_ram_bytes", 0)
-    st.info(f"⚡ RAM cấp phát cho payload: **{ram_b} bytes ({ram_b / 1024:.2f} KB)** | Đã tự hủy hết hạn TTL: **{stats_data.get('total_purged_expired', 0)}**")
+    # ---- TIÊU ĐỀ MỤC: Overview (thẻ KPI) ----
+    st.markdown("#### Overview")
+    k1, k2, k3, k4, k5 = st.columns(5)
+    with k1:
+        st.markdown(
+            f'<div class="metric-box"><div class="metric-num">{stats_data.get("active_payloads", 0)}</div>'
+            '<div class="metric-sub">Payloads Trên RAM</div></div>',
+            unsafe_allow_html=True,
+        )
+    with k2:
+        st.markdown(
+            f'<div class="metric-box"><div class="metric-num">{staged_b / 1024:.1f}</div>'
+            '<div class="metric-sub">KB Đã Ghi Lên RAM</div></div>',
+            unsafe_allow_html=True,
+        )
+    with k3:
+        st.markdown(
+            f'<div class="metric-box"><div class="metric-num" style="color:#f97316;">{wiped_b / 1024:.1f}</div>'
+            '<div class="metric-sub">KB Đã Ghi Đè 0x00</div></div>',
+            unsafe_allow_html=True,
+        )
+    with k4:
+        st.markdown(
+            f'<div class="metric-box"><div class="metric-num" style="color:#10b981;">'
+            f'{totals.get("disk_writes", stats_data.get("disk_writes", 0))}</div>'
+            '<div class="metric-sub">Disk Writes (Luôn 0)</div></div>',
+            unsafe_allow_html=True,
+        )
+    with k5:
+        up = stats_data.get("uptime_seconds", 0)
+        up_s = f"{up // 3600}h{(up % 3600) // 60}m" if up else "0h"
+        st.markdown(
+            f'<div class="metric-box"><div class="metric-num">{up_s}</div>'
+            '<div class="metric-sub">Uptime Broker</div></div>',
+            unsafe_allow_html=True,
+        )
+
+    # ---- Hàng 2: 2 thẻ biểu đồ (Tổng quan thao tác + Phân bổ bộ nhớ) ----
+    o1, o2 = st.columns(2, gap="medium")
+
+    with o1:
+        st.markdown("##### 📈 Tổng Quan Thao Tác RAM")
+        event_df = pd.DataFrame(
+            {
+                "Thao tác": ["STAGE (Ghi lên RAM)", "WIPE (Ghi đè 0x00)", "EXPIRE (Hết hạn TTL)"],
+                "Lượt thực thi": [
+                    stats_data.get("total_staged", 0),
+                    stats_data.get("total_retrieved", 0),
+                    stats_data.get("total_purged_expired", 0),
+                ],
+            }
+        )
+        fig_events = _px.bar(
+            event_df,
+            x="Thao tác",
+            y="Lượt thực thi",
+            color="Thao tác",
+            color_discrete_sequence=["#3b82f6", "#f97316", "#a855f7"],
+        )
+        # Gộp dict rồi override (không truyền keyword trùng `height` hai lần).
+        fig_events.update_layout(
+            {**_PL_LAYOUT, "showlegend": False, "height": 280},
+            xaxis_title="", yaxis_title="Lượt",
+        )
+        fig_events.update_traces(marker_line_width=0, opacity=0.92)
+        st.plotly_chart(fig_events, use_container_width=True, config={"displayModeBar": False})
+
+    with o2:
+        st.markdown("##### 🧠 Phân Bổ Bộ Nhớ (KB)")
+        mem_df = pd.DataFrame(
+            {
+                "Trạng thái": ["Đã Stage", "Đã Ghi Đè 0x00", "Đang Chiếm Dụng"],
+                "Dung lượng (KB)": [
+                    round(staged_b / 1024, 2),
+                    round(wiped_b / 1024, 2),
+                    round(ram_b / 1024, 2),
+                ],
+            }
+        )
+        fig_mem = _px.bar(
+            mem_df,
+            x="Trạng thái",
+            y="Dung lượng (KB)",
+            color="Trạng thái",
+            color_discrete_sequence=["#38bdf8", "#f97316", "#10b981"],
+        )
+        fig_mem.update_layout(
+            {**_PL_LAYOUT, "showlegend": False, "height": 280},
+            xaxis_title="", yaxis_title="KB",
+        )
+        fig_mem.update_traces(marker_line_width=0, opacity=0.92)
+        st.plotly_chart(fig_mem, use_container_width=True, config={"displayModeBar": False})
+
+    # ---- Thanh tỷ lệ dọn RAM (Zero-Log Scrubbing Ratio) ----
+    wipe_ratio = min(1.0, wiped_b / staged_b) if staged_b > 0 else 1.0
+    st.markdown("#### Tiến Trình Dọn Sạch RAM (Zero-Log Scrubbing Ratio)")
+    st.progress(
+        wipe_ratio,
+        text=f"Tỷ lệ dọn sạch RAM: {wipe_ratio * 100:.1f}% ({wiped_b:,} / {staged_b:,} Bytes)",
+    )
+    if staged_b == 0:
+        st.caption("Trạng thái nhàn rỗi: 100% sạch sẽ, không có dư lượng dữ liệu chưa dọn.")
+    elif wipe_ratio >= 1.0:
+        st.caption("Toàn bộ dữ liệu sau khi truyền tải đã được ghi đè 0x00 an toàn tuyệt đối.")
+    else:
+        st.caption(f"Còn {(staged_b - wiped_b):,} Bytes đang hoạt động tạm thời trên RAM trước khi hết hạn TTL.")
+
+    # ---- BIỂU ĐỒ THỜI GIAN THỰC (fragment, 2s/lần) ----
+    # Fragment này là NGƯỜI DUY NHẤT ghi vào st.session_state.ram_history,
+    # dùng bộ cột thống nhất để tránh lỗi trục 6 series trùng lặp.
+    @st.fragment(run_every=2)
+    def render_realtime_ram_chart():
+        if "ram_history" not in st.session_state:
+            st.session_state.ram_history = []
+        hist = st.session_state.ram_history
+        try:
+            rr = requests.get(f"{st.session_state.broker_url}/api/v1/ram", timeout=2)
+            snap = rr.json() if rr.status_code == 200 else {}
+        except Exception:
+            snap = {}
+        t = snap.get("totals", {})
+        hist.append(
+            {
+                "time": time.strftime("%H:%M:%S"),
+                "Đang chiếm (KB)": round(t.get("active_bytes", 0) / 1024, 3),
+                "Đã stage (KB)": round(t.get("bytes_staged", 0) / 1024, 3),
+                "Đã ghi đè 0x00 (KB)": round(t.get("bytes_wiped", 0) / 1024, 3),
+            }
+        )
+        if len(hist) > 90:  # giữ ~3 phút gần nhất
+            del hist[: len(hist) - 90]
+
+        st.markdown("#### 📈 Giám Sát RAM Thời Gian Thực (mỗi 2 giây)")
+        st.caption(
+            "Đường 'Đang chiếm' là lượng RAM Broker đang giữ; khi bạn gửi tin/file "
+            "đường này nhảy lên, khi người nhận lấy về hoặc hết TTL nó tự tụt xuống 0."
+        )
+        if hist:
+            rt_df = pd.DataFrame(hist)
+            fig_rt = _go.Figure()
+            for col, color in (
+                ("Đang chiếm (KB)", "#38bdf8"),
+                ("Đã stage (KB)", "#10b981"),
+                ("Đã ghi đè 0x00 (KB)", "#f97316"),
+            ):
+                fig_rt.add_trace(
+                    _go.Scatter(
+                        x=rt_df["time"], y=rt_df[col], mode="lines",
+                        name=col, line=dict(color=color, width=2.2),
+                        fill="tozeroy" if col == "Đang chiếm (KB)" else None,
+                        fillcolor="rgba(56,189,248,0.10)",
+                    )
+                )
+            fig_rt.update_layout(
+                {**_PL_LAYOUT, "height": 300}, xaxis_title="", yaxis_title="KB"
+            )
+            st.plotly_chart(fig_rt, use_container_width=True, config={"displayModeBar": False})
+            _last = hist[-1]
+            st.caption(
+                f"Lấy mẫu gần nhất lúc {_last.get('time', '--')} | "
+                f"Số mẫu đang giữ: {len(hist)}"
+            )
+        else:
+            st.info("Chưa có mẫu RAM nào. Đợi 2 giây để Broker lấy mẫu.")
+
+    render_realtime_ram_chart()
+
+    st.divider()
+
+    # ---- 2 cột dưới: bảng payload + nhật ký sự kiện ----
+    b1, b2 = st.columns(2, gap="medium")
+
+    with b1:
+        st.markdown("##### 🧾 Payload Đang Nằm Trên RAM")
+        entries = ram_data.get("entries", [])
+        if entries:
+            st.dataframe(
+                [
+                    {
+                        "tx_id": e["tx_id"][:18] + "...",
+                        "người nhận": e["recipient"][:12] + "...",
+                        "kích thước": f"{e['size_bytes']} B",
+                        "TTL còn": f"{e['ttl_remaining']}s",
+                        "trạng thái": "ACTIVE",
+                    }
+                    for e in entries
+                ],
+                width="stretch",
+                hide_index=True,
+            )
+            st.caption("TTL còn là thời gian trước khi Broker tự ghi đè 0x00.")
+        else:
+            st.info("Broker đang trống - không có payload nào trên RAM.")
+
+    with b2:
+        st.markdown("##### 📜 Nhật Ký Ghi / Ghi Đè 0x00")
+        events = list(reversed(ram_data.get("events", [])))
+        if events:
+            label_map = {
+                "STAGE": ("STAGE (Ghi lên RAM)", "#3b82f6"),
+                "WIPE": ("WIPE (Ghi đè 0x00)", "#f97316"),
+                "EXPIRE": ("EXPIRE (Hết hạn TTL)", "#a855f7"),
+            }
+            rows = []
+            for ev in events[:30]:
+                name, color = label_map.get(ev["action"], (ev["action"], "#94a3b8"))
+                rows.append(
+                    {
+                        "lúc": time.strftime("%H:%M:%S", time.localtime(ev["ts"])),
+                        "sự kiện": name,
+                        "tx_id": (ev["tx_id"][:16] + "..."),
+                        "bytes": f"{ev['size_bytes']}",
+                        "chi tiết": ev.get("detail", ""),
+                    }
+                )
+            st.dataframe(rows, width="stretch", hide_index=True)
+            st.caption(
+                "**Ghi lên RAM** khi gửi; **Ghi đè 0x00** khi nhận xong hoặc hết TTL "
+                "- bằng chứng trực quan cho nguyên tắc Zero-Log."
+            )
+        else:
+            st.info("Chưa có sự kiện nào. Hãy gửi một tin nhắn hoặc tệp tin.")
+
+
+
+# TAB 3: GIÁM SÁT ZERO-LOG BROKER                                    #
+# ------------------------------------------------------------------ #
+with tab_monitor:
+    # ---- CỔNG QUYỀN ADMIN ----
+    # Chỉ tài khoản vai trò "admin" mới xem được thông số Dashboard giám sát.
+    # Tài khoản thường vẫn dùng bình thường các tab khác (Chat/CloakDrop/QR).
+    if IS_ADMIN:
+        _render_admin_dashboard()
+    else:
+        st.subheader("Dashboard RAM Zero-Log Broker")
+        st.warning(
+            "🔒 **Khu vực hạn chế.** Bạn cần đăng nhập bằng tài khoản "
+            "**admin** để xem thông số Dashboard giám sát Zero-Log."
+        )
+        st.info(
+            f"Tài khoản hiện tại: `{st.session_state.get('active_user', '?')}` "
+            "(vai trò: `user`). Hãy đăng xuất rồi đăng nhập bằng tài khoản admin."
+        )
 
 
 # ------------------------------------------------------------------ #
 # TAB 4: QUẢN LÝ KHÓA & MẠNG                                         #
 # ------------------------------------------------------------------ #
 with tab_keys:
-    st.subheader("🔑 Quản Lý Khóa & Cấu Hình Mạng")
+    st.subheader("Quản Lý Khóa & Cấu Hình Mạng")
+
+    # ---- PANEL CHIA SẺ: cho bạn cùng lớp quét mã QR dùng thử (nổi bật) ----
+    st.markdown("##### 📱 Cho Bạn Cùng Lớp Quét Mã QR Dùng Thử")
+    st.caption(
+        "Mọi người kết nối chung Wi-Fi (hoặc Tailscale) rồi quét mã QR bằng camera "
+        "điện thoại là vào được CloakShare ngay - không cần cài gì thêm."
+    )
+    _qr_col1, _qr_col2 = st.columns(2)
+    with _qr_col1:
+        lan_url = f"http://{LOCAL_IP}:8501"
+        st.markdown(f"**Wi-Fi Nội Bộ (LAN):** `{lan_url}`")
+        _b64 = _qr_image_base64(lan_url)
+        if _b64:
+            st.image(_b64, width=200, caption="Quét khi chung Wi-Fi")
+        else:
+            st.image(
+                f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={lan_url}",
+                width=200,
+                caption="Quét khi chung Wi-Fi",
+            )
+    with _qr_col2:
+        if TAILSCALE_IP:
+            ts_url = f"http://{TAILSCALE_IP}:8501"
+            st.markdown(f"**Tailscale (Từ xa / 4G):** `{ts_url}`")
+            _b64 = _qr_image_base64(ts_url)
+            if _b64:
+                st.image(_b64, width=200, caption="Quét từ bất kỳ đâu")
+            else:
+                st.image(
+                    f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={ts_url}",
+                    width=200,
+                    caption="Quét từ bất kỳ đâu",
+                )
+        else:
+            st.info("Chưa phát hiện IP Tailscale. Bật Tailscale để quét mã từ xa.")
+    st.divider()
 
     k_c1, k_c2 = st.columns(2)
     with k_c1:
-        st.markdown("##### 🌐 Ví Web3 Hiện Tại")
+        st.markdown("##### Ví Web3 Hiện Tại")
         st.text_input("Địa chỉ ví Ethereum:", value=my_address, disabled=True)
         show_key = st.checkbox("Hiển thị Private Key ví", value=False)
         if show_key:
             st.text_input("Private Key:", value=my_pk, disabled=True)
 
-        if st.button("⛓️ Đăng Ký Lại Khóa Lên dPKI", type="primary", use_container_width=True):
+        if st.button("Đăng Ký Lại Khóa Lên dPKI", type="primary", use_container_width=True):
             with st.spinner("Đang đăng ký..."):
                 try:
                     tx = dpki_client.register_public_key(my_pk, my_pub_pem)
@@ -1111,18 +1585,18 @@ with tab_keys:
                     st.error(f"Lỗi: {e}")
 
     with k_c2:
-        st.markdown("##### 🔐 RSA 2048-bit Public Key")
+        st.markdown("##### RSA 2048-bit Public Key")
         st.text_area("Public Key PEM:", value=my_pub_pem, height=130)
 
     st.divider()
-    st.markdown("##### 🌐 Kết Nối Đa Thiết Bị (Mobile / Laptop / LAN / Tailscale)")
+    st.markdown("##### Kết Nối Đa Thiết Bị (Mobile / Laptop / LAN / Tailscale)")
     st.caption("Quét mã QR bằng điện thoại (Android/iOS) hoặc mở đường dẫn từ máy khác để truy cập CloakShare:")
     
     net_col1, net_col2 = st.columns(2)
     with net_col1:
         if TAILSCALE_IP:
             tailscale_url = f"http://{TAILSCALE_IP}:8501"
-            st.markdown(f"**🦎 Mạng Tailscale (Từ xa / 4G / Mọi nơi):**")
+            st.markdown(f"**Mạng Tailscale (Từ xa / 4G / Mọi nơi):**")
             st.code(tailscale_url, language="text")
             st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={tailscale_url}", caption="Quét bằng camera điện thoại")
         else:
@@ -1130,7 +1604,7 @@ with tab_keys:
             
     with net_col2:
         lan_url = f"http://{LOCAL_IP}:8501"
-        st.markdown(f"**🏠 Mạng Wi-Fi Nội Bộ (LAN):**")
+        st.markdown(f"**Mạng Wi-Fi Nội Bộ (LAN):**")
         st.code(lan_url, language="text")
         st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={lan_url}", caption="Quét khi chung mạng Wi-Fi")
 
@@ -1146,8 +1620,8 @@ with tab_keys:
             try:
                 r = requests.get(f"{custom_broker.strip()}/health", timeout=3)
                 if r.status_code == 200:
-                    st.success(f"✅ Kết nối Broker thành công ({r.json().get('status', 'ok')})!")
+                    st.success(f"Kết nối Broker thành công ({r.json().get('status', 'ok')}).")
                 else:
-                    st.warning(f"⚠️ Broker phản hồi mã HTTP {r.status_code}")
+                    st.warning(f"Broker phản hồi mã HTTP {r.status_code}")
             except Exception as ex:
-                st.error(f"❌ Không thể kết nối tới Broker: {ex}")
+                st.error(f"Không thể kết nối tới Broker: {ex}")

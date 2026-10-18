@@ -25,11 +25,15 @@ from __future__ import annotations
 
 import threading
 import time
+from collections import deque
 from typing import Any
 
 
 # Các trường nhạy cảm cần ghi đè bằng 0x00 khi purge.
 _SENSITIVE_FIELDS = ("iv", "wrapped_key", "ciphertext", "signature")
+
+# Số dòng nhật ký sự kiện RAM giữ lại cho Dashboard (vòng tròn, chỉ trên RAM).
+RAM_EVENT_LOG_SIZE = 100
 
 
 def _wipe(value: Any) -> None:
@@ -63,6 +67,81 @@ class InMemoryStore:
         self.total_staged = 0
         self.total_retrieved = 0
         self.total_purged_expired = 0
+
+        # Nhật ký sự kiện RAM cho Dashboard: mỗi lần ghi lên RAM và mỗi
+        # lần ghi đè 0x00 đều được ghi lại để người dùng quan sát được vòng
+        # đời của dữ liệu. Chỉ nằm trên RAM, không ghi xuống đĩa.
+        self._events: deque[dict[str, Any]] = deque(maxlen=RAM_EVENT_LOG_SIZE)
+        self._bytes_staged = 0
+        self._bytes_wiped = 0
+        self._seq = 0
+
+    # ------------------------------------------------------------------ #
+    # Nhật ký RAM (phục vụ Dashboard)                                     #
+    # ------------------------------------------------------------------ #
+
+    def _log_event(
+        self,
+        action: str,
+        tx_id: str,
+        *,
+        size_bytes: int = 0,
+        detail: str = "",
+    ) -> None:
+        """Ghi một dòng nhật ký RAM. Caller phải đang giữ self._lock."""
+        self._seq += 1
+        self._events.append(
+            {
+                "seq": self._seq,
+                "ts": time.time(),
+                "action": action,
+                "tx_id": tx_id,
+                "size_bytes": size_bytes,
+                "detail": detail,
+            }
+        )
+
+    def _entry_size(self, entry: dict[str, Any]) -> int:
+        total = 0
+        for field in _SENSITIVE_FIELDS:
+            val = entry.get(field)
+            if isinstance(val, (bytearray, bytes)):
+                total += len(val)
+        return total
+
+    def ram_snapshot(self) -> dict[str, Any]:
+        """
+        Ảnh chụp trạng thái RAM cho Dashboard Broker.
+
+        Trả về:
+          - entries:  các vùng đang chiếm RAM, kèm thời điểm hết hạn
+          - events:   nhật ký ghi/xoá gần đây (STAGE / WIPE / EXPIRE)
+          - totals:   tổng byte đã lên RAM và tổng byte đã được ghi đè 0x00
+        """
+        now = time.time()
+        with self._lock:
+            entries = []
+            for tx_id, entry in self._data.items():
+                entries.append(
+                    {
+                        "tx_id": tx_id,
+                        "recipient": entry["recipient"],
+                        "size_bytes": self._entry_size(entry),
+                        "ttl_remaining": max(0, int(entry["expires_at"] - now)),
+                    }
+                )
+            entries.sort(key=lambda e: e["ttl_remaining"])
+
+            return {
+                "entries": entries,
+                "events": list(self._events),
+                "totals": {
+                    "bytes_staged": self._bytes_staged,
+                    "bytes_wiped": self._bytes_wiped,
+                    "active_bytes": self.approx_ram_bytes(),
+                    "disk_writes": 0,
+                },
+            }
 
     # ------------------------------------------------------------------ #
     # Ghi / đọc payload                                                   #
@@ -98,6 +177,15 @@ class InMemoryStore:
             }
             self.total_staged += 1
 
+            size = self._entry_size(self._data[tx_id])
+            self._bytes_staged += size
+            self._log_event(
+                "STAGE",
+                tx_id,
+                size_bytes=size,
+                detail=f"Ghi {size} byte lên RAM cho {recipient[:10]}...",
+            )
+
         return expires_at
 
     def retrieve(self, tx_id: str) -> dict[str, str] | None:
@@ -118,7 +206,7 @@ class InMemoryStore:
                 return None
 
             if time.time() >= entry["expires_at"]:
-                self._purge_one(tx_id)
+                self._purge_one(tx_id, reason="EXPIRE")
                 self.total_purged_expired += 1
                 return None
 
@@ -145,19 +233,31 @@ class InMemoryStore:
     # Dọn dẹp                                                             #
     # ------------------------------------------------------------------ #
 
-    def _purge_one(self, tx_id: str) -> bool:
+    def _purge_one(self, tx_id: str, reason: str = "WIPE") -> bool:
         """
         Ghi đè 0x00 lên các trường nhạy cảm rồi xoá khỏi dict.
         Hàm nội bộ - caller phải đang giữ self._lock.
+
+        `reason` chỉ dùng cho nhật ký Dashboard: "WIPE" (chủ động) hoặc
+        "EXPIRE" (do hết TTL). Cả hai đều gọi cùng một cơ chế ghi đè 0x00.
         """
         entry = self._data.pop(tx_id, None)
         if entry is None:
             return False
 
+        size = self._entry_size(entry)
         for field in _SENSITIVE_FIELDS:
             _wipe(entry.get(field))
 
         entry.clear()
+
+        self._bytes_wiped += size
+        self._log_event(
+            reason,
+            tx_id,
+            size_bytes=size,
+            detail=f"Ghi đè {size} byte bằng 0x00 rồi giải phóng",
+        )
         return True
 
     def purge(self, tx_id: str) -> bool:
@@ -178,7 +278,7 @@ class InMemoryStore:
                 if now >= entry["expires_at"]
             ]
             for tx_id in expired:
-                self._purge_one(tx_id)
+                self._purge_one(tx_id, reason="EXPIRE")
 
             self.total_purged_expired += len(expired)
             return len(expired)
