@@ -55,7 +55,10 @@ def main():
         {
             "language": "Solidity",
             "sources": {"dPKIRegistry.sol": {"content": contract_source}},
-            "settings": {"outputSelection": {"*": {"*": ["abi", "evm.bytecode"]}}},
+            "settings": {
+                "optimizer": {"enabled": True, "runs": 200},
+                "outputSelection": {"*": {"*": ["abi", "evm.bytecode"]}},
+            },
         },
         solc_version="0.8.20",
     )
@@ -63,14 +66,32 @@ def main():
     abi = compiled["contracts"]["dPKIRegistry.sol"]["dPKIRegistry"]["abi"]
     bytecode = compiled["contracts"]["dPKIRegistry.sol"]["dPKIRegistry"]["evm"]["bytecode"]["object"]
 
+    # Kich thuoc bytecode (EIP-170 gioi han 24576 bytes)
+    code_size = len(bytecode) // 2
+    print(f"[*] Bytecode size  : {code_size} bytes")
+    if code_size > 24576:
+        print("[-] Bytecode vuot gioi han EIP-170 (24576 bytes). Can bat optimizer hoac tach contract.")
+        sys.exit(1)
+
     # Gửi transaction deploy
     print("[*] Đang gửi transaction deploy contract...")
     Contract = w3.eth.contract(abi=abi, bytecode=bytecode)
+
+    # Uoc luong gas dong: gas trien khai = 21000 + 32000 + 200 * code_size (+constructor)
+    # Dung eth_estimateGas de chinh xac, fallback ve cong thuc thu cong neu node tu choi.
+    deploy_gas = 21000 + 32000 + 200 * code_size + 500_000
+    try:
+        estimated = Contract.constructor().estimate_gas({"from": account.address})
+        deploy_gas = max(estimated, deploy_gas)
+        print(f"[*] Estimated gas  : {estimated:,}")
+    except Exception as e:
+        print(f"[*] estimate_gas that bai ({e}); dung du phong {deploy_gas:,} gas")
+
     tx = Contract.constructor().build_transaction({
         "from": account.address,
         "nonce": w3.eth.get_transaction_count(account.address),
         "chainId": chain_id,
-        "gas": 1_000_000,
+        "gas": deploy_gas,
         "gasPrice": w3.eth.gas_price,
     })
 
@@ -79,6 +100,21 @@ def main():
     print(f"[*] Tx Submitted: {tx_hash.hex()}. Đang chờ xác nhận khối...")
 
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=30)
+
+    if receipt.status != 1:
+        print(f"[-] DEPLOY THAT BAI: receipt.status={receipt.status} (het gas hoac revert)")
+        print(f"    Gas used: {receipt.gasUsed:,} / {deploy_gas:,}")
+        print("    -> Khong co code tai dia chi du kien. Kiem tra lai hop dong.")
+        sys.exit(1)
+
+    if not receipt.contractAddress:
+        print("[-] DEPLOY THAT BAI: receipt khong co contractAddress.")
+        sys.exit(1)
+
+    on_chain_code = w3.eth.get_code(receipt.contractAddress)
+    if len(on_chain_code) == 0:
+        print(f"[-] DEPLOY THAT BAI: khong co bytecode tai {receipt.contractAddress}")
+        sys.exit(1)
 
     print("\n" + "=" * 60)
     print(" 🎉 DEPLOY CONTRACT THÀNH CÔNG!")
