@@ -16,6 +16,16 @@ DPKI_ABI = [
         "type": "function",
     },
     {
+        "inputs": [
+            {"internalType": "string", "name": "publicKeyPem", "type": "string"},
+            {"internalType": "bytes", "name": "signature", "type": "bytes"}
+        ],
+        "name": "registerPublicKeyWithPoP",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
         "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
         "name": "getPublicKey",
         "outputs": [{"internalType": "string", "name": "", "type": "string"}],
@@ -114,10 +124,18 @@ class DPKIClient:
                     raise e
         raise ValueError(f"Ví {wallet_address} chưa đăng ký RSA Public Key trên dPKI.")
 
-    def register_public_key(self, private_key_hex: str, public_key_pem: str) -> str:
+    def register_public_key(self, private_key_hex: str, public_key_pem: str, rsa_private_key_path: Optional[str] = None) -> str:
         """
         Ký và gửi transaction lưu Public Key của ví lên Blockchain.
         Đồng thời đồng bộ lên Broker RAM dPKI để các máy khác trong mạng cùng thấy.
+        
+        Args:
+            private_key_hex: Ethereum private key (hex)
+            public_key_pem: RSA public key (PEM format)
+            rsa_private_key_path: Optional path to RSA private key for PoP validation
+        
+        Returns:
+            Transaction hash hoặc local registration ID
         """
         account = Account.from_key(private_key_hex)
         checksum_addr = Web3.to_checksum_address(account.address)
@@ -136,7 +154,7 @@ class DPKIClient:
         except Exception:
             pass
 
-        # 1. Thử gửi on-chain transaction nếu node hoạt động
+        # 1. Thử gửi on-chain transaction với PoP nếu có RSA private key
         if self.is_live_chain():
             try:
                 try:
@@ -145,7 +163,42 @@ class DPKIClient:
                         return f"0xonchain_{checksum_addr.lower()[2:10]}"
                 except Exception:
                     pass
+                
                 nonce = self.w3.eth.get_transaction_count(account.address)
+                
+                # Nếu có RSA private key, thử gửi với PoP validation
+                if rsa_private_key_path:
+                    try:
+                        from . import pop_helper
+                        with open(rsa_private_key_path, 'rb') as f:
+                            rsa_private_key_pem = f.read()
+                        
+                        pop_signature = pop_helper.generate_pop_signature(
+                            private_key_hex,
+                            rsa_private_key_pem
+                        )
+                        
+                        tx = self.contract.functions.registerPublicKeyWithPoP(
+                            public_key_pem,
+                            pop_signature
+                        ).build_transaction({
+                            "from": account.address,
+                            "nonce": nonce,
+                            "chainId": self.w3.eth.chain_id,
+                            "gas": 2_000_000,  # Tăng gas limit vì PoP validation tốn nhiều gas hơn
+                            "gasPrice": self.w3.eth.gas_price,
+                        })
+                        signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=private_key_hex)
+                        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+                        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=10)
+                        if receipt.status != 1:
+                            raise RuntimeError(f"PoP transaction REVERT (status={receipt.status})! Hash: {tx_hash.hex()}")
+                        logger.info("✓ Registered with Proof-of-Possession validation")
+                        return receipt.transactionHash.hex()
+                    except Exception as pop_err:
+                        logger.warning("PoP registration failed, falling back to legacy: %s", pop_err)
+                
+                # Fallback: Gửi legacy registerPublicKey (không có PoP)
                 tx = self.contract.functions.registerPublicKey(public_key_pem).build_transaction({
                     "from": account.address,
                     "nonce": nonce,
