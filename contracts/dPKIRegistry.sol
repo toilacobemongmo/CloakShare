@@ -125,28 +125,32 @@ contract dPKIRegistry {
             if (em[tStart + i] != SHA256_PREFIX[i]) return false;
         }
 
-        // So khớp Digest (SHA-256 của msg.sender)
+        // So khớp Digest
+        // NOTE: Client code (pop_helper.py) hashes wallet_address một lần với sha256(),
+        // rồi rsa_key.sign() với hashes.SHA256() tạo DigestInfo prefix + hash lần 2.
+        // Contract nhận digest = sha256(msg.sender), cần hash lại để khớp với DigestInfo trong EM.
+        bytes32 expectedHash = sha256(abi.encodePacked(digest));
         uint256 hashStart = tStart + SHA256_PREFIX.length;
         for (uint256 i = 0; i < 32; i++) {
-            if (em[hashStart + i] != digest[i]) return false;
+            if (em[hashStart + i] != expectedHash[i]) return false;
         }
 
         return true;
     }
 
-    function modExp(bytes memory base, bytes memory exp, bytes memory mod) internal view returns (bytes memory output) {
+    function modExp(bytes memory base, bytes memory exp, bytes memory modulus) internal view returns (bytes memory output) {
         bytes memory inputData = abi.encodePacked(
             uint256(base.length),
             uint256(exp.length),
-            uint256(mod.length),
+            uint256(modulus.length),
             base,
             exp,
-            mod
+            modulus
         );
-        output = new bytes(mod.length);
+        output = new bytes(modulus.length);
         bool success;
         assembly {
-            success := staticcall(gas(), 0x05, add(inputData, 0x20), mload(inputData), add(output, 0x20), mload(mod))
+            success := staticcall(gas(), 0x05, add(inputData, 0x20), mload(inputData), add(output, 0x20), mload(modulus))
         }
         if (!success) revert ModExpFailed();
     }
