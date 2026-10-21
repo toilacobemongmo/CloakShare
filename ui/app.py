@@ -45,108 +45,413 @@ st.set_page_config(
 
 st.markdown('''
 <style>
-/* PREMIUM UI/UX: Glassmorphism & Animations */
+/* PRECISION DARK ARCHITECTURE - evondevKit Design System */
+/* Refined glassmorphism: opaque elevation layers + restrained glass budget */
 
-/* Background */
-.stApp {
-    background: radial-gradient(circle at 10% 20%, rgb(18, 20, 29) 0%, rgb(28, 32, 48) 90%);
-    color: #e2e8f0;
-    font-family: 'Inter', sans-serif;
+:root {
+    /* Color Tokens */
+    --bg-canvas: #0B0E14;
+    --bg-surface-1: #151A23;
+    --bg-surface-2: #1A2030;
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.18);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-tertiary: #64748B;
+    --brand-accent: #6366F1;
+    --brand-glow: #A855F7;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    
+    /* Spacing Scale (4px base) */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    
+    /* Typography */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+    
+    /* Easing & Motion */
+    --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
 }
 
-/* Chat Bubbles */
+/* Global Resets */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Base App Background */
+.stApp {
+    background: radial-gradient(circle at 10% 20%, #0B0E14 0%, #1A1F2E 90%);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+/* Streamlit Native Component Overrides */
+[data-testid="stAppViewContainer"] {
+    background: transparent;
+}
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-glow) 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    transition: all var(--duration-base) var(--ease-spring) !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4) !important;
+}
+
+.stButton > button:active {
+    transform: scale(0.96) !important;
+}
+
+.stButton > button:focus:not(:focus-visible) {
+    outline: none !important;
+}
+
+.stButton > button:focus-visible {
+    outline: 2px solid var(--brand-accent) !important;
+    outline-offset: 2px !important;
+}
+
+.stButton > button[kind="secondary"] {
+    background: var(--bg-surface-2) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-default) !important;
+    box-shadow: none !important;
+}
+
+.stButton > button[kind="secondary"]:hover {
+    border-color: var(--border-hover) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Text Inputs & Forms */
+[data-testid="stTextInput"] input,
+[data-testid="stTextArea"] textarea,
+.stSelectbox select {
+    background: var(--bg-surface-1) !important;
+    border: 1px solid var(--border-default) !important;
+    border-radius: 8px !important;
+    color: var(--text-primary) !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    transition: border-color var(--duration-base) ease !important;
+}
+
+[data-testid="stTextInput"] input:focus,
+[data-testid="stTextArea"] textarea:focus,
+.stSelectbox select:focus {
+    border-color: var(--brand-accent) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Metrics (KPI Cards) */
+[data-testid="stMetric"] {
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: var(--space-lg);
+    background-clip: padding-box;
+    transition: all var(--duration-base) var(--ease-spring);
+}
+
+[data-testid="stMetric"]:hover {
+    transform: translateY(-4px) scale(1.01);
+    border-color: var(--border-hover);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(99, 102, 241, 0.1),
+        0 8px 32px rgba(99, 102, 241, 0.15);
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--text-secondary) !important;
+    font-size: 13px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+[data-testid="stMetricValue"] {
+    color: var(--text-primary) !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Chat Messages - Precision Dark with Spring Animation */
+[data-testid="stChatMessage"] {
+    border-radius: 16px;
+    margin-bottom: var(--space-sm);
+    padding: 12px 16px;
+    max-width: 80%;
+    animation-duration: 400ms;
+    animation-timing-function: var(--ease-spring);
+    animation-fill-mode: both;
+}
+
+[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    border: none;
+    color: white;
+    margin-left: auto;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+    animation-name: chatPopRight;
+}
+
+[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    margin-right: auto;
+    animation-name: chatPopLeft;
+}
+
+@keyframes chatPopLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes chatPopRight {
+    0% {
+        opacity: 0;
+        transform: translateX(20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Custom Chat Bubbles (legacy class support) */
 .chat-bubble-user {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
     color: white;
     padding: 12px 18px;
-    border-radius: 20px 20px 0px 20px;
+    border-radius: 16px 16px 4px 16px;
     margin-bottom: 10px;
     max-width: 80%;
     float: right;
     clear: both;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-    animation: fadeInRight 0.3s ease-out;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+    animation: chatPopRight 0.4s var(--ease-spring);
 }
+
 .chat-bubble-peer {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
     padding: 12px 18px;
-    border-radius: 20px 20px 20px 0px;
+    border-radius: 16px 16px 16px 4px;
     margin-bottom: 10px;
     max-width: 80%;
     float: left;
     clear: both;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    animation: fadeInLeft 0.3s ease-out;
+    animation: chatPopLeft 0.4s var(--ease-spring);
 }
 
-/* Clearfix for chat container */
+/* Chat Container - Opaque Elevation (No Blur) */
 .chat-container {
     overflow: hidden;
-    padding: 20px;
-    border-radius: 15px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: var(--space-lg);
+    border-radius: 12px;
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-default);
     height: 50vh;
     overflow-y: auto;
 }
 
-/* Metric Boxes */
+/* Metric Boxes (legacy class support) - Opaque Elevation */
 .metric-box {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 20px;
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: var(--space-lg);
     text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background-clip: padding-box;
+    transition: all var(--duration-base) var(--ease-spring);
 }
+
 .metric-box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    border-color: rgba(59, 130, 246, 0.5);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        0 8px 32px rgba(99, 102, 241, 0.15);
+    border-color: var(--border-hover);
 }
+
 .metric-num {
     font-size: 32px;
     font-weight: 800;
-    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    background: linear-gradient(135deg, #60A5FA, #A78BFA);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-}
-.metric-sub {
-    font-size: 14px;
-    color: #94a3b8;
-    margin-top: 5px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    background-clip: text;
 }
 
-/* Dashboard card headers (panel style giong reference) */
+.metric-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* Dashboard Card Headers */
 .dash-card-title {
     font-size: 15px;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--text-primary);
     padding: 10px 14px 2px 14px;
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
 }
+
 .dash-card-sub {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-secondary);
     padding: 0 14px 8px 14px;
 }
 
-/* Bo tron vien cac panel bieu do Plotly cho doi voi nen app */
+/* Plotly Chart Containers */
 [data-testid="stPlotlyChart"] {
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
+    border: 1px solid var(--border-default);
 }
 
-/* Animations */
-@keyframes fadeInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes fadeInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: var(--space-sm);
+    background: transparent;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: transparent !important;
+    color: var(--text-secondary) !important;
+    border: none !important;
+    padding: 12px 20px !important;
+    font-weight: 500 !important;
+    transition: color var(--duration-fast) ease !important;
+}
+
+.stTabs [aria-selected="true"] {
+    color: var(--brand-accent) !important;
+    border-bottom: 2px solid var(--brand-accent) !important;
+}
+
+/* Expander */
+.streamlit-expanderHeader {
+    background: var(--bg-surface-1) !important;
+    border: 1px solid var(--border-default) !important;
+    border-radius: 8px !important;
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+}
+
+.streamlit-expanderHeader:hover {
+    border-color: var(--border-hover) !important;
+}
+
+/* File Uploader */
+[data-testid="stFileUploader"] {
+    background: var(--bg-surface-1);
+    border: 2px dashed var(--border-default);
+    border-radius: 12px;
+    padding: var(--space-xl);
+    transition: border-color var(--duration-base) ease;
+}
+
+[data-testid="stFileUploader"]:hover {
+    border-color: var(--brand-accent);
+}
+
+/* Spinner Color Override */
+.stSpinner > div {
+    border-top-color: var(--brand-accent) !important;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-surface-1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-hover);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    :root {
+        --space-lg: 16px;
+        --space-xl: 24px;
+    }
+    
+    [data-testid="stMetric"] {
+        padding: var(--space-md);
+    }
+    
+    [data-testid="stMetricValue"] {
+        font-size: 24px !important;
+    }
+    
+    .metric-num {
+        font-size: 28px;
+    }
+    
+    .chat-bubble-user,
+    .chat-bubble-peer {
+        max-width: 90%;
+    }
+}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -208,7 +513,7 @@ st.markdown("""
     .block-container {
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
-        max-width: 1000px !important;
+        max-width: 100% !important;
     }
 
     label[data-testid="stWidgetLabel"] p {
@@ -392,17 +697,35 @@ st.markdown("""
         background: #111827;
         border: 1px solid #1f2937;
         border-radius: 12px;
-        padding: 12px;
+        padding: 16px 14px;
         text-align: center;
+        background-clip: padding-box;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+        min-height: 105px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .metric-box:hover {
+        border-color: #38bdf8;
     }
     .metric-num {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 1.85rem;
+        font-weight: 800;
         color: #38bdf8;
+        line-height: 1.2;
+        margin-bottom: 4px;
     }
     .metric-sub {
-        font-size: 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 600;
         color: #94a3b8;
+        letter-spacing: 0.02em;
+    }
+    .stCaption, [data-testid="stCaptionContainer"] p {
+        font-size: 0.82rem !important;
+        color: #94a3b8 !important;
     }
 
     /* Chống mờ giao diện khi Streamlit cập nhật */
@@ -1230,279 +1553,462 @@ with tab_drop:
 # ------------------------------------------------------------------ #
 # NỘI DUNG DASHBOARD GIÁM SÁT - CHỈ ADMIN ĐƯỢC XEM                       #
 # ------------------------------------------------------------------ #
-def _render_admin_dashboard() -> None:
-    """Dashboard giám sát Zero-Log - CHỈ gọi khi vai trò là admin.
+def _format_bytes_human(b: int) -> str:
+    """Chuyển đổi số bytes sang đơn vị B hoặc KB / MB chuẩn xác."""
+    if b < 1024:
+        return f"{b} B"
+    elif b < 1024 * 1024:
+        return f"{b / 1024:.2f} KB"
+    else:
+        return f"{b / (1024 * 1024):.2f} MB"
 
-    Layout dạng thẻ (card grid) + biểu đồ Plotly giống dashboard hiện đại:
-    hàng thẻ KPI màu xanh, các panel biểu đồ có nền card bo góc, bảng dữ liệu
-    gói gọn bên trong. Chỉ admin mới gọi được hàm này.
+
+@st.fragment(run_every=2)
+def _render_zero_log_dashboard_fragment() -> None:
+    """Dashboard giám sát Zero-Log với cơ chế cập nhật mượt mà 2s/lần qua st.fragment.
+
+    Không làm reload toàn trang, giữ giao diện ổn định và WCAG AA compliant.
     """
-    # ---- Theme Plotly tối (tông xanh/đen như reference) ----
     _PL_LAYOUT = dict(
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(15,23,42,0.35)",
-        font=dict(family="Inter, sans-serif", color="#cbd5e1", size=12),
-        margin=dict(l=40, r=16, t=46, b=36),
+        plot_bgcolor="rgba(15,23,42,0.45)",
+        font=dict(family="Inter, sans-serif", color="#e2e8f0", size=13),
+        margin=dict(l=50, r=20, t=35, b=40),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, bgcolor="rgba(0,0,0,0)"),
-        xaxis=dict(gridcolor="rgba(148,163,184,0.12)", zerolinecolor="rgba(148,163,184,0.2)"),
-        yaxis=dict(gridcolor="rgba(148,163,184,0.12)", zerolinecolor="rgba(148,163,184,0.2)"),
+        xaxis=dict(gridcolor="rgba(148,163,184,0.14)", zerolinecolor="rgba(148,163,184,0.25)"),
+        yaxis=dict(gridcolor="rgba(148,163,184,0.14)", zerolinecolor="rgba(148,163,184,0.25)"),
         hovermode="x unified",
-        height=300,
+        height=260,
     )
 
-    st.markdown("### 📊 Tổng Quan Giám Sát Zero-Log")
+    st.markdown("### 📊 Tổng Quan Giám Sát Zero-Log Broker")
     st.caption(
-        "Theo dõi trực tiếp vòng đời dữ liệu trên RAM của Broker: ghi lên khi bạn "
-        "gửi, ghi đè 0x00 khi hết hạn hoặc được lấy về."
+        "Theo dõi trực tiếp vòng đời dữ liệu trên RAM của Broker: ghi lên RAM khi gửi, "
+        "ghi đè 0x00 khi hết hạn TTL hoặc khi đối tác rút gói tin (cam kết Zero-Log 0 ghi đĩa)."
     )
 
     stats_data = {}
     ram_data = {}
     broker_ok = False
+
     try:
-        r = requests.get(f"{st.session_state.broker_url}/api/v1/stats", timeout=2)
+        r = requests.get(f"{st.session_state.broker_url}/api/v1/stats", timeout=1.5)
         if r.status_code == 200:
             stats_data = r.json()
-            rr = requests.get(f"{st.session_state.broker_url}/api/v1/ram", timeout=2)
+            rr = requests.get(f"{st.session_state.broker_url}/api/v1/ram", timeout=1.5)
             if rr.status_code == 200:
                 ram_data = rr.json()
             broker_ok = True
+            st.session_state["cached_stats_data"] = stats_data
+            st.session_state["cached_ram_data"] = ram_data
     except Exception:
         broker_ok = False
 
-    if broker_ok:
-        st.success(f"[ONLINE] Broker kết nối tốt tại `{st.session_state.broker_url}`")
+    if not broker_ok:
+        st.error(
+            f"🚨 **[BROKER NGOẠI TUYẾN]** Không thể kết nối tới Broker tại `{st.session_state.broker_url}`. "
+            "Đang hiển thị bản chụp dữ liệu gần nhất đã lưu trong bộ nhớ tạm."
+        )
+        stats_data = st.session_state.get("cached_stats_data", {})
+        ram_data = st.session_state.get("cached_ram_data", {})
     else:
-        st.error(f"[OFFLINE] Không thể kết nối Broker tại `{st.session_state.broker_url}`")
+        st.success(f"🟢 **[TRỰC TUYẾN]** Broker kết nối ổn định tại `{st.session_state.broker_url}` (Cập nhật mỗi 2 giây)")
 
     totals = ram_data.get("totals", {})
     ram_b = totals.get("active_bytes", stats_data.get("approx_ram_bytes", 0))
     staged_b = totals.get("bytes_staged", stats_data.get("approx_ram_bytes", 0))
     wiped_b = totals.get("bytes_wiped", 0)
+    disk_writes = totals.get("disk_writes", stats_data.get("disk_writes", 0))
+    entries = ram_data.get("entries", [])
+    raw_events = ram_data.get("events", [])
 
-    # ---- TIÊU ĐỀ MỤC: Overview (thẻ KPI) ----
-    st.markdown("#### Overview")
-    k1, k2, k3, k4, k5 = st.columns(5)
+    # Theo dõi đỉnh bộ nhớ trong phiên (Peak Memory High-Watermark)
+    if "peak_ram_bytes" not in st.session_state:
+        st.session_state.peak_ram_bytes = 0
+    st.session_state.peak_ram_bytes = max(st.session_state.peak_ram_bytes, ram_b)
+    peak_b = st.session_state.peak_ram_bytes
+
+    # Tính toán TTL ngắn nhất còn lại
+    if entries:
+        min_ttl = min(e.get("ttl_remaining", 0) for e in entries)
+        min_ttl_str = f"{min_ttl // 60:02d}:{min_ttl % 60:02d}"
+        min_ttl_sub = f"{min_ttl} giây còn lại"
+    else:
+        min_ttl_str = "--:--"
+        min_ttl_sub = "Không có payload chờ"
+
+    # Lớp phủ mờ nếu Broker bị ngắt kết nối
+    opacity_style = "opacity: 0.65; filter: grayscale(20%); pointer-events: none;" if not broker_ok else ""
+
+    if opacity_style:
+        st.markdown(f'<div style="{opacity_style}">', unsafe_allow_html=True)
+
+    # ==========================================
+    # 1. HÀNG 5 THẺ KPI CHUẨN ĐƠN VỊ & WCAG AA
+    # ==========================================
+    k1, k2, k3, k4, k5 = st.columns(5, gap="medium")
+
     with k1:
         st.markdown(
-            f'<div class="metric-box"><div class="metric-num">{stats_data.get("active_payloads", 0)}</div>'
-            '<div class="metric-sub">Payloads Trên RAM</div></div>',
-            unsafe_allow_html=True,
-        )
-    with k2:
-        st.markdown(
-            f'<div class="metric-box"><div class="metric-num">{staged_b / 1024:.1f}</div>'
-            '<div class="metric-sub">KB Đã Ghi Lên RAM</div></div>',
-            unsafe_allow_html=True,
-        )
-    with k3:
-        st.markdown(
-            f'<div class="metric-box"><div class="metric-num" style="color:#f97316;">{wiped_b / 1024:.1f}</div>'
-            '<div class="metric-sub">KB Đã Ghi Đè 0x00</div></div>',
-            unsafe_allow_html=True,
-        )
-    with k4:
-        st.markdown(
-            f'<div class="metric-box"><div class="metric-num" style="color:#10b981;">'
-            f'{totals.get("disk_writes", stats_data.get("disk_writes", 0))}</div>'
-            '<div class="metric-sub">Disk Writes (Luôn 0)</div></div>',
-            unsafe_allow_html=True,
-        )
-    with k5:
-        up = stats_data.get("uptime_seconds", 0)
-        up_s = f"{up // 3600}h{(up % 3600) // 60}m" if up else "0h"
-        st.markdown(
-            f'<div class="metric-box"><div class="metric-num">{up_s}</div>'
-            '<div class="metric-sub">Uptime Broker</div></div>',
+            f'<div class="metric-box">'
+            f'<div class="metric-num" style="color: #38bdf8;">{_format_bytes_human(ram_b)}</div>'
+            f'<div class="metric-sub">RAM Đang Chiếm ({stats_data.get("active_payloads", len(entries))} gói)</div>'
+            '</div>',
             unsafe_allow_html=True,
         )
 
-    # ---- Hàng 2: 2 thẻ biểu đồ (Tổng quan thao tác + Phân bổ bộ nhớ) ----
+    with k2:
+        st.markdown(
+            f'<div class="metric-box">'
+            f'<div class="metric-num" style="color: #60a5fa;">{_format_bytes_human(peak_b)}</div>'
+            '<div class="metric-sub">Đỉnh Trong Phiên (Peak)</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+    with k3:
+        st.markdown(
+            f'<div class="metric-box">'
+            f'<div class="metric-num" style="color: #fbbf24;">{min_ttl_str}</div>'
+            f'<div class="metric-sub">TTL Ngắn Nhất ({min_ttl_sub})</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+    with k4:
+        disk_color = "#10b981" if disk_writes == 0 else "#ef4444"
+        disk_label = "Disk Writes (Chuẩn Zero-Log)" if disk_writes == 0 else "Cảnh Báo Ghi Đĩa!"
+        st.markdown(
+            f'<div class="metric-box">'
+            f'<div class="metric-num" style="color: {disk_color};">{disk_writes}</div>'
+            f'<div class="metric-sub">{disk_label}</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+    with k5:
+        st.markdown(
+            f'<div class="metric-box">'
+            f'<div class="metric-num" style="color: #f97316;">{_format_bytes_human(wiped_b)}</div>'
+            f'<div class="metric-sub">Đã Ghi Đè 0x00 (Gốc: {_format_bytes_human(staged_b)})</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.write("")
+
+    # ==========================================
+    # 2. HAI BIỂU ĐỒ TỔNG QUAN THANH NGANG + TOOLTIP
+    # ==========================================
     o1, o2 = st.columns(2, gap="medium")
 
     with o1:
         st.markdown("##### 📈 Tổng Quan Thao Tác RAM")
-        event_df = pd.DataFrame(
-            {
-                "Thao tác": ["STAGE (Ghi lên RAM)", "WIPE (Ghi đè 0x00)", "EXPIRE (Hết hạn TTL)"],
-                "Lượt thực thi": [
-                    stats_data.get("total_staged", 0),
-                    stats_data.get("total_retrieved", 0),
-                    stats_data.get("total_purged_expired", 0),
-                ],
-            }
+        staged_cnt = stats_data.get("total_staged", 0)
+        wipe_cnt = stats_data.get("total_retrieved", 0)
+        expire_cnt = stats_data.get("total_purged_expired", 0)
+
+        fig_ops = _go.Figure(
+            data=[
+                _go.Bar(
+                    x=[expire_cnt, wipe_cnt, staged_cnt],
+                    y=["EXPIRE", "WIPE", "STAGE"],
+                    orientation="h",
+                    marker=dict(color=["#a855f7", "#f97316", "#3b82f6"]),
+                    text=[f"{expire_cnt:,} lần", f"{wipe_cnt:,} lần", f"{staged_cnt:,} lần"],
+                    textposition="auto",
+                    hovertemplate="<b>Thao tác %{y}</b><br>Số lần thực thi: %{x:,} lượt<extra></extra>",
+                )
+            ]
         )
-        fig_events = _px.bar(
-            event_df,
-            x="Thao tác",
-            y="Lượt thực thi",
-            color="Thao tác",
-            color_discrete_sequence=["#3b82f6", "#f97316", "#a855f7"],
+        fig_ops.update_layout(
+            {**_PL_LAYOUT, "height": 220},
+            xaxis=dict(title="Số lượt thực hiện", gridcolor="rgba(148,163,184,0.12)"),
+            yaxis=dict(title="", tickfont=dict(size=13, color="#f8fafc")),
         )
-        # Gộp dict rồi override (không truyền keyword trùng `height` hai lần).
-        fig_events.update_layout(
-            {**_PL_LAYOUT, "showlegend": False, "height": 280},
-            xaxis_title="", yaxis_title="Lượt",
-        )
-        fig_events.update_traces(marker_line_width=0, opacity=0.92)
-        st.plotly_chart(fig_events, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_ops, use_container_width=True, config={"displayModeBar": False})
 
     with o2:
-        st.markdown("##### 🧠 Phân Bổ Bộ Nhớ (KB)")
-        mem_df = pd.DataFrame(
-            {
-                "Trạng thái": ["Đã Stage", "Đã Ghi Đè 0x00", "Đang Chiếm Dụng"],
-                "Dung lượng (KB)": [
-                    round(staged_b / 1024, 2),
-                    round(wiped_b / 1024, 2),
-                    round(ram_b / 1024, 2),
-                ],
-            }
-        )
-        fig_mem = _px.bar(
-            mem_df,
-            x="Trạng thái",
-            y="Dung lượng (KB)",
-            color="Trạng thái",
-            color_discrete_sequence=["#38bdf8", "#f97316", "#10b981"],
-        )
-        fig_mem.update_layout(
-            {**_PL_LAYOUT, "showlegend": False, "height": 280},
-            xaxis_title="", yaxis_title="KB",
-        )
-        fig_mem.update_traces(marker_line_width=0, opacity=0.92)
-        st.plotly_chart(fig_mem, use_container_width=True, config={"displayModeBar": False})
+        st.markdown("##### 🧠 Phân Bố Bộ Nhớ RAM")
+        # Tự động chuyển đổi đơn vị B / KB theo dữ liệu thực tế
+        max_mem = max(staged_b, wiped_b, ram_b, 1)
+        use_kb_dist = max_mem >= 2048
+        scale_div = 1024.0 if use_kb_dist else 1.0
+        unit_str = "KB" if use_kb_dist else "Bytes"
 
-    # ---- Thanh tỷ lệ dọn RAM (Zero-Log Scrubbing Ratio) ----
-    wipe_ratio = min(1.0, wiped_b / staged_b) if staged_b > 0 else 1.0
-    st.markdown("#### Tiến Trình Dọn Sạch RAM (Zero-Log Scrubbing Ratio)")
-    st.progress(
-        wipe_ratio,
-        text=f"Tỷ lệ dọn sạch RAM: {wipe_ratio * 100:.1f}% ({wiped_b:,} / {staged_b:,} Bytes)",
-    )
-    if staged_b == 0:
-        st.caption("Trạng thái nhàn rỗi: 100% sạch sẽ, không có dư lượng dữ liệu chưa dọn.")
-    elif wipe_ratio >= 1.0:
-        st.caption("Toàn bộ dữ liệu sau khi truyền tải đã được ghi đè 0x00 an toàn tuyệt đối.")
-    else:
-        st.caption(f"Còn {(staged_b - wiped_b):,} Bytes đang hoạt động tạm thời trên RAM trước khi hết hạn TTL.")
+        vals = [ram_b / scale_div, wiped_b / scale_div, staged_b / scale_div]
+        raw_b_list = [f"{ram_b:,} Bytes", f"{wiped_b:,} Bytes", f"{staged_b:,} Bytes"]
+        text_labels = [f"{v:.1f} {unit_str}" if use_kb_dist else f"{int(v):,} B" for v in vals]
 
-    # ---- BIỂU ĐỒ THỜI GIAN THỰC (fragment, 2s/lần) ----
-    # Fragment này là NGƯỜI DUY NHẤT ghi vào st.session_state.ram_history,
-    # dùng bộ cột thống nhất để tránh lỗi trục 6 series trùng lặp.
-    @st.fragment(run_every=2)
-    def render_realtime_ram_chart():
-        if "ram_history" not in st.session_state:
-            st.session_state.ram_history = []
-        hist = st.session_state.ram_history
-        try:
-            rr = requests.get(f"{st.session_state.broker_url}/api/v1/ram", timeout=2)
-            snap = rr.json() if rr.status_code == 200 else {}
-        except Exception:
-            snap = {}
-        t = snap.get("totals", {})
-        hist.append(
-            {
-                "time": time.strftime("%H:%M:%S"),
-                "Đang chiếm (KB)": round(t.get("active_bytes", 0) / 1024, 3),
-                "Đã stage (KB)": round(t.get("bytes_staged", 0) / 1024, 3),
-                "Đã ghi đè 0x00 (KB)": round(t.get("bytes_wiped", 0) / 1024, 3),
-            }
-        )
-        if len(hist) > 90:  # giữ ~3 phút gần nhất
-            del hist[: len(hist) - 90]
-
-        st.markdown("#### 📈 Giám Sát RAM Thời Gian Thực (mỗi 2 giây)")
-        st.caption(
-            "Đường 'Đang chiếm' là lượng RAM Broker đang giữ; khi bạn gửi tin/file "
-            "đường này nhảy lên, khi người nhận lấy về hoặc hết TTL nó tự tụt xuống 0."
-        )
-        if hist:
-            rt_df = pd.DataFrame(hist)
-            fig_rt = _go.Figure()
-            for col, color in (
-                ("Đang chiếm (KB)", "#38bdf8"),
-                ("Đã stage (KB)", "#10b981"),
-                ("Đã ghi đè 0x00 (KB)", "#f97316"),
-            ):
-                fig_rt.add_trace(
-                    _go.Scatter(
-                        x=rt_df["time"], y=rt_df[col], mode="lines",
-                        name=col, line=dict(color=color, width=2.2),
-                        fill="tozeroy" if col == "Đang chiếm (KB)" else None,
-                        fillcolor="rgba(56,189,248,0.10)",
-                    )
+        fig_dist = _go.Figure(
+            data=[
+                _go.Bar(
+                    x=vals,
+                    y=["Đang Chiếm", "Đã Ghi Đè 0x00", "Đã Stage"],
+                    orientation="h",
+                    marker=dict(color=["#38bdf8", "#f97316", "#10b981"]),
+                    text=text_labels,
+                    textposition="auto",
+                    customdata=raw_b_list,
+                    hovertemplate="<b>%{y}</b><br>Dung lượng: %{x:.2f} " + unit_str + "<br>Chính xác: %{customdata}<extra></extra>",
                 )
-            fig_rt.update_layout(
-                {**_PL_LAYOUT, "height": 300}, xaxis_title="", yaxis_title="KB"
-            )
-            st.plotly_chart(fig_rt, use_container_width=True, config={"displayModeBar": False})
-            _last = hist[-1]
-            st.caption(
-                f"Lấy mẫu gần nhất lúc {_last.get('time', '--')} | "
-                f"Số mẫu đang giữ: {len(hist)}"
-            )
+            ]
+        )
+        fig_dist.update_layout(
+            {**_PL_LAYOUT, "height": 220},
+            xaxis=dict(title=f"Dung lượng ({unit_str})", gridcolor="rgba(148,163,184,0.12)"),
+            yaxis=dict(title="", tickfont=dict(size=13, color="#f8fafc")),
+        )
+        st.plotly_chart(fig_dist, use_container_width=True, config={"displayModeBar": False})
+
+    # ==========================================
+    # 3. TIẾN TRÌNH DỌN SẠCH RAM (ZERO-LOG SCRUBBING RATIO)
+    # ==========================================
+    st.markdown("##### 🧹 Tiến Trình Dọn Sạch RAM (Zero-Log Scrubbing)")
+    if staged_b == 0:
+        st.progress(1.0, text="Không có dữ liệu cần dọn (RAM 100% sạch, 0 byte tồn dư)")
+        st.caption("Trạng thái nhàn rỗi: 100% sạch sẽ, chưa phát sinh gói tin lưu trữ tạm thời.")
+    else:
+        wipe_ratio = min(1.0, wiped_b / staged_b)
+        pct = wipe_ratio * 100.0
+        bar_text = f"Tỷ lệ dọn sạch RAM: {pct:.1f}% ({_format_bytes_human(wiped_b)} / {_format_bytes_human(staged_b)})"
+        st.progress(wipe_ratio, text=bar_text)
+        if wipe_ratio >= 1.0:
+            st.caption("✅ Toàn bộ dữ liệu sau khi truyền tải đã được ghi đè 0x00 an toàn tuyệt đối.")
         else:
-            st.info("Chưa có mẫu RAM nào. Đợi 2 giây để Broker lấy mẫu.")
+            diff_b = staged_b - wiped_b
+            st.caption(
+                f"⏳ Còn {_format_bytes_human(diff_b)} đang lưu tạm trên RAM, "
+                "sẽ tự động hủy bằng 0x00 ngay khi người nhận đọc hoặc hết hạn TTL."
+            )
 
-    render_realtime_ram_chart()
+    st.write("")
 
-    st.divider()
+    # ==========================================
+    # 4. BIỂU ĐỒ REALTIME VÙNG TÔ + TỰ CO GIÃN + ĐÁNH DẤU SỰ KIỆN
+    # ==========================================
+    st.markdown("##### ⚡ Giám Sát RAM Thời Gian Thực (Cửa sổ 60 mẫu - Cập nhật 2s)")
+    if "ram_history" not in st.session_state:
+        st.session_state.ram_history = []
 
-    # ---- 2 cột dưới: bảng payload + nhật ký sự kiện ----
+    now_str = time.strftime("%H:%M:%S")
+    now_ts = time.time()
+
+    # Thêm mẫu mới vào lịch sử
+    st.session_state.ram_history.append(
+        {
+            "time": now_str,
+            "ts": now_ts,
+            "active_bytes": ram_b,
+            "staged_bytes": staged_b,
+            "wiped_bytes": wiped_b,
+        }
+    )
+
+    # Giới hạn cửa sổ trượt 60 mẫu gần nhất (~2 phút)
+    if len(st.session_state.ram_history) > 60:
+        st.session_state.ram_history = st.session_state.ram_history[-60:]
+
+    hist = st.session_state.ram_history
+    if hist:
+        rt_df = pd.DataFrame(hist)
+        max_active = rt_df["active_bytes"].max()
+        
+        # Tự động co giãn trục Y: Dùng Bytes nếu dữ liệu nhỏ (< 2048 B), KB nếu lớn
+        use_kb_rt = max_active >= 2048 or staged_b >= 4096
+        y_div = 1024.0 if use_kb_rt else 1.0
+        rt_unit = "KB" if use_kb_rt else "Bytes"
+
+        rt_df["plot_active"] = rt_df["active_bytes"] / y_div
+        rt_df["plot_staged"] = rt_df["staged_bytes"] / y_div
+        rt_df["plot_wiped"] = rt_df["wiped_bytes"] / y_div
+
+        fig_rt = _go.Figure()
+
+        # Vùng tô (area fill) cho 'Đang chiếm'
+        fig_rt.add_trace(
+            _go.Scatter(
+                x=rt_df["time"],
+                y=rt_df["plot_active"],
+                mode="lines",
+                name="Đang chiếm trên RAM",
+                line=dict(color="#38bdf8", width=2.8),
+                fill="tozeroy",
+                fillcolor="rgba(56, 189, 248, 0.20)",
+                customdata=rt_df["active_bytes"],
+                hovertemplate="<b>Đang chiếm</b>: %{y:.2f} " + rt_unit + " (%{customdata:,} B)<extra></extra>",
+            )
+        )
+
+        # Đường tham chiếu Đã Stage & Đã Ghi Đè 0x00
+        fig_rt.add_trace(
+            _go.Scatter(
+                x=rt_df["time"],
+                y=rt_df["plot_staged"],
+                mode="lines",
+                name="Tổng Đã Stage",
+                line=dict(color="#10b981", width=1.8, dash="dot"),
+                customdata=rt_df["staged_bytes"],
+                hovertemplate="<b>Đã Stage</b>: %{y:.2f} " + rt_unit + " (%{customdata:,} B)<extra></extra>",
+            )
+        )
+
+        fig_rt.add_trace(
+            _go.Scatter(
+                x=rt_df["time"],
+                y=rt_df["plot_wiped"],
+                mode="lines",
+                name="Tổng Đã Ghi Đè 0x00",
+                line=dict(color="#f97316", width=1.8, dash="dash"),
+                customdata=rt_df["wiped_bytes"],
+                hovertemplate="<b>Đã Ghi Đè 0x00</b>: %{y:.2f} " + rt_unit + " (%{customdata:,} B)<extra></extra>",
+            )
+        )
+
+        # Chấm đánh dấu sự kiện STAGE / WIPE / EXPIRE trên dòng thời gian
+        earliest_ts = hist[0]["ts"]
+        window_events = [ev for ev in raw_events if ev.get("ts", 0) >= earliest_ts - 2]
+        if window_events:
+            ev_times = []
+            ev_y = []
+            ev_text = []
+            ev_colors = []
+            ev_symbols = []
+
+            color_map = {"STAGE": "#38bdf8", "WIPE": "#f97316", "EXPIRE": "#a855f7"}
+            sym_map = {"STAGE": "circle", "WIPE": "square", "EXPIRE": "diamond"}
+
+            for ev in window_events:
+                ev_t_str = time.strftime("%H:%M:%S", time.localtime(ev["ts"]))
+                # Tìm điểm Y tương ứng trong df hoặc nội suy
+                matching = rt_df[rt_df["time"] == ev_t_str]
+                y_val = matching["plot_active"].values[0] if not matching.empty else (ev.get("size_bytes", 0) / y_div)
+                
+                act = ev.get("action", "EVENT")
+                ev_times.append(ev_t_str)
+                ev_y.append(y_val)
+                ev_colors.append(color_map.get(act, "#94a3b8"))
+                ev_symbols.append(sym_map.get(act, "circle"))
+                ev_text.append(f"<b>{act}</b> ({ev.get('size_bytes', 0)} B)<br>{ev.get('detail', '')}")
+
+            fig_rt.add_trace(
+                _go.Scatter(
+                    x=ev_times,
+                    y=ev_y,
+                    mode="markers",
+                    name="Sự Kiện RAM",
+                    marker=dict(size=10, color=ev_colors, symbol=ev_symbols, line=dict(color="#ffffff", width=1.5)),
+                    hoverinfo="text",
+                    hovertext=ev_text,
+                )
+            )
+
+        # Tính toán trần trục Y tự động để đường không bao giờ bị phẳng dẹt
+        max_y_plot = max(rt_df["plot_active"].max(), rt_df["plot_staged"].max(), 0.1)
+        y_upper = max(max_y_plot * 1.25, 10.0 if not use_kb_rt else 0.5)
+
+        fig_rt.update_layout(
+            {**_PL_LAYOUT, "height": 280},
+            xaxis=dict(title="Mốc thời gian", gridcolor="rgba(148,163,184,0.12)", tickfont=dict(size=11)),
+            yaxis=dict(
+                title=f"Dung lượng ({rt_unit})",
+                range=[0, y_upper],
+                gridcolor="rgba(148,163,184,0.12)",
+                zeroline=True,
+            ),
+        )
+        st.plotly_chart(fig_rt, use_container_width=True, config={"displayModeBar": False})
+        st.caption(f"Đang hiển thị {len(hist)} mẫu gần nhất. Mẫu mới nhất lúc {hist[-1]['time']}.")
+
+    st.write("")
+
+    # ==========================================
+    # 5. HAI BẢNG DỮ LIỆU ĐẦY ĐỦ CHUỖI & COPYABLE
+    # ==========================================
     b1, b2 = st.columns(2, gap="medium")
 
     with b1:
-        st.markdown("##### 🧾 Payload Đang Nằm Trên RAM")
-        entries = ram_data.get("entries", [])
+        st.markdown("##### 🧾 Danh Sách Payload Đang Nằm Trên RAM")
         if entries:
-            st.dataframe(
-                [
+            payload_rows = []
+            for e in entries:
+                ttl = e.get("ttl_remaining", 0)
+                ttl_fmt = f"{ttl // 60:02d}:{ttl % 60:02d} ({ttl}s)"
+                payload_rows.append(
                     {
-                        "tx_id": e["tx_id"][:18] + "...",
-                        "người nhận": e["recipient"][:12] + "...",
-                        "kích thước": f"{e['size_bytes']} B",
-                        "TTL còn": f"{e['ttl_remaining']}s",
-                        "trạng thái": "ACTIVE",
-                    }
-                    for e in entries
-                ],
-                width="stretch",
-                hide_index=True,
-            )
-            st.caption("TTL còn là thời gian trước khi Broker tự ghi đè 0x00.")
-        else:
-            st.info("Broker đang trống - không có payload nào trên RAM.")
-
-    with b2:
-        st.markdown("##### 📜 Nhật Ký Ghi / Ghi Đè 0x00")
-        events = list(reversed(ram_data.get("events", [])))
-        if events:
-            label_map = {
-                "STAGE": ("STAGE (Ghi lên RAM)", "#3b82f6"),
-                "WIPE": ("WIPE (Ghi đè 0x00)", "#f97316"),
-                "EXPIRE": ("EXPIRE (Hết hạn TTL)", "#a855f7"),
-            }
-            rows = []
-            for ev in events[:30]:
-                name, color = label_map.get(ev["action"], (ev["action"], "#94a3b8"))
-                rows.append(
-                    {
-                        "lúc": time.strftime("%H:%M:%S", time.localtime(ev["ts"])),
-                        "sự kiện": name,
-                        "tx_id": (ev["tx_id"][:16] + "..."),
-                        "bytes": f"{ev['size_bytes']}",
-                        "chi tiết": ev.get("detail", ""),
+                        "Mã Gói (tx_id)": e.get("tx_id", ""),
+                        "Người Nhận": e.get("recipient", ""),
+                        "Kích Thước": _format_bytes_human(e.get("size_bytes", 0)),
+                        "TTL Đếm Ngược": ttl_fmt,
+                        "Trạng Thái": "🟢 ACTIVE (Trên RAM)",
                     }
                 )
-            st.dataframe(rows, width="stretch", hide_index=True)
-            st.caption(
-                "**Ghi lên RAM** khi gửi; **Ghi đè 0x00** khi nhận xong hoặc hết TTL "
-                "- bằng chứng trực quan cho nguyên tắc Zero-Log."
+            st.dataframe(
+                payload_rows,
+                column_config={
+                    "Mã Gói (tx_id)": st.column_config.TextColumn("Mã Gói (tx_id)", help="Click đúp hoặc chọn để sao chép toàn bộ chuỗi"),
+                    "Người Nhận": st.column_config.TextColumn("Người Nhận (Địa Chỉ Ví)", help="Địa chỉ ví nhận E2E"),
+                    "Kích Thước": st.column_config.TextColumn("Kích Thước", width="small"),
+                    "TTL Đếm Ngược": st.column_config.TextColumn("TTL Đếm Ngược (mm:ss)", width="medium"),
+                    "Trạng Thái": st.column_config.TextColumn("Trạng Thái", width="medium"),
+                },
+                hide_index=True,
+                use_container_width=True,
             )
+            st.caption("Payload được giải phóng và ghi đè 0x00 ngay khi người nhận rút hoặc khi bộ đếm TTL về 00:00.")
         else:
-            st.info("Chưa có sự kiện nào. Hãy gửi một tin nhắn hoặc tệp tin.")
+            st.info("ℹ️ Broker hiện đang trống - không có gói tin nào lưu giữ trên RAM.")
+
+    with b2:
+        st.markdown("##### 📜 Nhật Ký Sự Kiện Ghi & Ghi Đè 0x00")
+        if raw_events:
+            events_reversed = list(reversed(raw_events))
+            event_rows = []
+            for ev in events_reversed[:40]:
+                action = ev.get("action", "")
+                if action == "STAGE":
+                    badge = "🔵 STAGE (Ghi RAM)"
+                elif action == "WIPE":
+                    badge = "🟠 WIPE (Ghi đè 0x00)"
+                elif action == "EXPIRE":
+                    badge = "🟣 EXPIRE (Hết hạn)"
+                else:
+                    badge = f"⚪ {action}"
+
+                ev_time_str = time.strftime("%H:%M:%S", time.localtime(ev.get("ts", time.time())))
+                event_rows.append(
+                    {
+                        "Thời Gian": ev_time_str,
+                        "Sự Kiện": badge,
+                        "Mã Gói (tx_id)": ev.get("tx_id", ""),
+                        "Dung Lượng": _format_bytes_human(ev.get("size_bytes", 0)),
+                        "Chi Tiết Thao Tác": ev.get("detail", ""),
+                    }
+                )
+            st.dataframe(
+                event_rows,
+                column_config={
+                    "Thời Gian": st.column_config.TextColumn("Thời Gian", width="small"),
+                    "Sự Kiện": st.column_config.TextColumn("Sự Kiện", width="medium"),
+                    "Mã Gói (tx_id)": st.column_config.TextColumn("Mã Gói (tx_id)", help="Click đúp hoặc chọn để sao chép"),
+                    "Dung Lượng": st.column_config.TextColumn("Dung Lượng", width="small"),
+                    "Chi Tiết Thao Tác": st.column_config.TextColumn("Chi Tiết Thao Tác", width="large"),
+                },
+                hide_index=True,
+                use_container_width=True,
+            )
+            st.caption("Minh chứng minh bạch nguyên tắc Zero-Log: Ghi nhận đầy đủ thao tác xóa sạch 0x00.")
+        else:
+            st.info("ℹ️ Chưa có sự kiện RAM nào được ghi nhận. Hãy thực hiện gửi tin nhắn hoặc file để quan sát.")
+
+    if opacity_style:
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _render_admin_dashboard() -> None:
+    """Dashboard giám sát Zero-Log - CHỈ gọi khi vai trò là admin."""
+    _render_zero_log_dashboard_fragment()
 
 
 
