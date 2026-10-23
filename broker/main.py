@@ -3,6 +3,11 @@ broker/main.py
 
 Zero-Log In-Memory Staging API (Issue #7).
 
+VÁ #3: Endpoint /api/v1/dpki/register từng KHÔNG có xác thực. Nay bắt buộc
+chữ ký EIP-191 của chính `address` được khai báo. Broker không còn là nơi
+"ai cũng ghi được" — nó chỉ còn là RELAY, và mọi khoá ở đây bị đánh dấu
+`unverified` cho tới khi có mặt on-chain.
+
 Endpoints:
     POST /api/v1/stage            -> 201 Created
     GET  /api/v1/retrieve/{tx_id} -> 200 OK (toàn bộ payload)
@@ -43,6 +48,11 @@ from broker.schemas import (
 
 # Chu kỳ chạy background task dọn payload hết hạn (giây).
 PURGE_INTERVAL_SECONDS = 5
+
+# Logger dùng cho sự kiện bảo mật (xoay khoá dPKI, từ chối đăng ký...).
+# LƯU Ý: logger này CHỈ ghi metadata (địa chỉ ví, thời điểm) — tuyệt đối
+# không được log payload hay tx_id, nếu không sẽ phá cam kết Zero-Log.
+logger = logging.getLogger(__name__)
 
 # Tắt access log của Uvicorn: tx_id nằm trên URL của endpoint retrieve,
 # nếu để mặc định thì tx_id sẽ bị ghi ra log -> vi phạm Zero-Log.
@@ -261,24 +271,87 @@ async def get_inbox(
 
 _BROKER_DPKI_REGISTRY: dict[str, str] = {}
 
+# VÁ #3: cửa sổ thời gian chống replay cho yêu cầu đăng ký khoá.
+DPKI_REGISTER_MAX_SKEW_SECONDS = 300
+
+
+def _dpki_register_message(address: str, pem: str, ts: int) -> str:
+    """Thông điệp chuẩn mà chủ ví phải ký (EIP-191) để được đăng ký khoá.
+
+    Ràng buộc cả PEM (qua sha256) lẫn timestamp -> không thể tái dùng chữ ký
+    cho một khoá khác, và không thể replay sau cửa sổ thời gian.
+    """
+    import hashlib
+
+    pem_digest = hashlib.sha256(pem.encode("utf-8")).hexdigest()
+    return (
+        "CloakShare dPKI Register\n"
+        f"address: {address.lower()}\n"
+        f"ts: {ts}\n"
+        f"pem_sha256: {pem_digest}"
+    )
+
 
 @app.post("/api/v1/dpki/register", response_model=DPKIRegisterResponse)
 async def register_broker_dpki(payload: DPKIRegisterRequest) -> DPKIRegisterResponse:
-    """Đăng ký Public Key lên bảng danh bạ RAM của Broker."""
-    _BROKER_DPKI_REGISTRY[payload.address.lower()] = payload.public_key_pem
-    return DPKIRegisterResponse(address=payload.address, status="registered")
+    """Đăng ký Public Key lên bảng danh bạ RAM của Broker.
+
+    VÁ #3: BẮT BUỘC chữ ký EIP-191 của chính `payload.address`.
+    Trước đây endpoint này không xác thực gì: ai cũng ghi đè được khoá của
+    bất kỳ địa chỉ nào -> đầu độc danh bạ khi chain offline.
+    """
+    import time as _time
+
+    # 1. Chống replay theo thời gian
+    now = int(_time.time())
+    if abs(now - payload.timestamp) > DPKI_REGISTER_MAX_SKEW_SECONDS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Timestamp qua cu (ngoai cua so +-300s) - tu choi dang ky khoa.",
+        )
+
+    # 2. Xác thực chữ ký ví trên thông điệp ràng buộc address + PEM + ts
+    msg = _dpki_register_message(payload.address, payload.public_key_pem, payload.timestamp)
+    if not Web3Auth.verify_signature(payload.address, msg, payload.signature):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Chu ky vi khong hop le - tu choi dang ky khoa cho dia chi nay.",
+        )
+
+    # 3. Ghi nhận (có audit khi xoay khoá)
+    addr = payload.address.lower()
+    previous = _BROKER_DPKI_REGISTRY.get(addr)
+    if previous and previous != payload.public_key_pem:
+        logger.warning(
+            "dPKI KEY ROTATION cho %s (khoa cu -> khoa moi). Nguon: broker (unverified).",
+            addr,
+        )
+    _BROKER_DPKI_REGISTRY[addr] = payload.public_key_pem
+
+    # status="registered_unverified": client KHÔNG được nhầm broker là chain.
+    return DPKIRegisterResponse(address=payload.address, status="registered_unverified")
 
 
 @app.get("/api/v1/dpki/keys/{address}")
-async def get_broker_dpki_key(address: str) -> dict[str, str]:
-    """Tra cứu Public Key của địa chỉ ví qua bảng danh bạ RAM của Broker."""
+async def get_broker_dpki_key(address: str) -> dict[str, object]:
+    """Tra cứu Public Key của địa chỉ ví qua bảng danh bạ RAM của Broker.
+
+    VÁ #3/#4: response LUÔN kèm `"verified": false` + `"source": "broker"`
+    để client buộc phải biết khoá này CHƯA được chain xác thực. Trước đây
+    response chỉ có `public_key_pem`, khiến caller dễ hiểu nhầm là đã xác thực.
+    """
     pem = _BROKER_DPKI_REGISTRY.get(address.lower())
     if not pem:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Dia chi {address} chua dang ky khoa tren Broker dPKI.",
         )
-    return {"address": address, "public_key_pem": pem}
+    return {
+        "address": address,
+        "public_key_pem": pem,
+        "verified": False,
+        "source": "broker",
+    }
 
 
 @app.get("/api/v1/dpki/list")

@@ -139,7 +139,8 @@ class InMemoryStore:
                     "bytes_staged": self._bytes_staged,
                     "bytes_wiped": self._bytes_wiped,
                     "active_bytes": self.approx_ram_bytes(),
-                    "disk_writes": 0,
+                    # VÁ #6: lấy từ backend, không phải hằng số.
+                    "disk_writes": self.disk_write_count(),
                 },
             }
 
@@ -314,6 +315,17 @@ class InMemoryStore:
                         total += len(val)
         return total
 
+    def disk_write_count(self) -> int:
+        """VÁ #6: số lần thực sự ghi payload xuống ổ cứng.
+
+        Với InMemoryStore con số này LUÔN bằng 0 — và đó là sự thật kiểm chứng
+        được: toàn bộ lớp này chỉ dùng dict/bytearray trên heap, không có một
+        lời gọi open()/write() nào. Trước đây `disk_writes: 0` là hằng số viết
+        cứng trong `stats()` nên nếu ai đổi backend sang Redis thì Dashboard
+        VẪN báo 0 — tức là "nói dối bằng thiết kế". Nay mỗi store tự khai báo.
+        """
+        return 0
+
     def stats(self) -> dict[str, int]:
         """Số liệu cho Dashboard Broker."""
         with self._lock:
@@ -322,7 +334,8 @@ class InMemoryStore:
                 "total_staged": self.total_staged,
                 "total_retrieved": self.total_retrieved,
                 "total_purged_expired": self.total_purged_expired,
-                "disk_writes": 0,
+                # VÁ #6: lấy từ backend thật, không phải hằng số.
+                "disk_writes": self.disk_write_count(),
                 "approx_ram_bytes": self.approx_ram_bytes(),
                 "uptime_seconds": int(time.time() - self.start_time),
             }
@@ -356,12 +369,29 @@ except ImportError:
     redis = None
 
 class RedisStore:
+    """Backend lưu payload trên Redis — GHI XUỐNG Ổ CỨNG.
+
+    VÁ #6: backend này TỒN TẠI để demo tính sẵn sàng đa máy, nhưng nó MẶC ĐỊNH
+    BỊ CHẶN. Lý do: CloakShare cam kết Zero-Log (payload chỉ sống trên RAM).
+    Redis persist data ra disk (RDB/AOF) nên nó vi phạm trực tiếp cam kết đó.
+    Trước đây chỉ cần set `REDIS_URL` là app âm thầm chuyển sang Redis — không
+    hỏi, không cảnh báo, và Dashboard vẫn báo `disk_writes: 0` trong khi
+    toàn bộ payload đã nằm trên ổ cứng. Nay phải set THÊM
+    `ALLOW_REDIS_STORE=1` và phải đọc được cảnh báo rõ ràng.
+    """
+
     def __init__(self, url: str):
         self.client = redis.Redis.from_url(url, decode_responses=True)
         self.start_time = time.time()
         self.total_staged = 0
         self.total_retrieved = 0
         self.total_purged_expired = 0
+        # VÁ #6: đếm thật số lần ghi xuống disk. KHÔNG phải hằng số 0.
+        self._disk_writes = 0
+
+    def disk_write_count(self) -> int:
+        """Số payload đã thực sự được Redis persist xuống ổ cứng."""
+        return self._disk_writes
 
     def stage(self, tx_id: str, recipient: str, iv: str, wrapped_key: str, ciphertext: str, signature: str, ttl_seconds: int) -> float:
         expires_at = time.time() + ttl_seconds
@@ -375,6 +405,8 @@ class RedisStore:
         }
         self.client.setex(f"cloakshare:tx:{tx_id}", ttl_seconds, json.dumps(payload))
         self.total_staged += 1
+        # VÁ #6: mỗi lần setex là một lần ghi xuống ổ cứng của Redis.
+        self._disk_writes += 1
         return expires_at
 
     def retrieve(self, tx_id: str) -> dict | None:
@@ -425,7 +457,7 @@ class RedisStore:
             "total_staged": self.total_staged,
             "total_retrieved": self.total_retrieved,
             "total_purged_expired": self.total_purged_expired,
-            "disk_writes": 0,
+            "disk_writes": self.disk_write_count(),
             "approx_ram_bytes": self.approx_ram_bytes(),
             "uptime_seconds": int(time.time() - self.start_time),
         }
@@ -449,10 +481,57 @@ class RedisStore:
         return inbox_items
 
 
-# Khởi tạo store: Ưu tiên Redis nếu có REDIS_URL (Giải quyết Nút thắt cổ chai và tính sẵn sàng)
+# VÁ #6: Redis chỉ được bật khi TỰ NGUYỆN khai báo rõ ràng.
+# Có REDIS_URL nhưng KHÔNG có ALLOW_REDIS_STORE=1 -> CRASH ngay lúc import
+# (fail-fast) thay vì âm thầm hạ cấp Zero-Log. Một lỗi cấu hình chuyển backend
+# từ RAM sang ổ cứng là vi phạm cam kết bảo mật cốt lõi, phải được phát hiện
+# ngay, không thể im lặng.
+ALLOW_REDIS_STORE = os.environ.get("ALLOW_REDIS_STORE", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
+# Khởi tạo store: MẶC ĐỊNH InMemory (Zero-Log). Redis chỉ dùng khi được cho phép.
+#
+# Thứ tự kiểm tra là CÓ CHỦ Ý: kill switch được xét TRƯỚC khi kiểm tra thư viện
+# `redis` có cài hay không. Nếu đảo lại, một máy thiếu thư viện `redis` sẽ khiến
+# app "chạy được" bằng InMemoryStore trong khi người vận hành tưởng là đang chạy
+# Redis -> cấu hình sai bị che giấu. Mọi cấu hình động tới ổ cứng phải FAIL-FAST.
 redis_url = os.environ.get("REDIS_URL")
-if redis_url and redis:
+if redis_url and not ALLOW_REDIS_STORE:
+    raise RuntimeError(
+        "\n"
+        "=" * 72 + "\n"
+        "  TỪ CHỐI KHỞI ĐỘNG: REDIS_URL được set nhưng chưa bật ALLOW_REDIS_STORE.\n"
+        "\n"
+        "  Redis persist payload xuống Ổ CỨNG (RDB/AOF), điều này vi phạm\n"
+        "  cam kết Zero-Log của CloakShare. Nếu bạn thực sự hiểu và chấp nhận\n"
+        "  rủi ro đó, hãy khai báo tường minh:\n"
+        "      set ALLOW_REDIS_STORE=1\n"
+        "\n"
+        "  Ngược lại, hãy bỏ REDIS_URL để Broker chạy chế độ Zero-Log thuần.\n"
+        "=" * 72
+    )
+elif redis_url and not redis:
+    raise RuntimeError(
+        "\n"
+        "=" * 72 + "\n"
+        "  TỪ CHỐI KHỞI ĐỘNG: đã bật ALLOW_REDIS_STORE=1 nhưng thư viện 'redis'\n"
+        "  chưa được cài (pip install redis).\n"
+        "\n"
+        "  KHÔNG tự động hạ cấp về InMemoryStore: làm vậy sẽ khiến bạn tưởng\n"
+        "  payload đang nằm trên Redis trong khi thực tế chỉ nằm trên RAM.\n"
+        "  Hãy cài 'redis' hoặc bỏ cả REDIS_URL và ALLOW_REDIS_STORE.\n"
+        "=" * 72
+    )
+elif redis_url:
     print(f"[i] Đang kết nối tới Redis Store tại: {redis_url}")
+    print(
+        "[!] CẢNH BÁO: Redis GHI PAYLOAD XUỐNG Ổ CỨNG. Chế độ này KHÔNG còn là "
+        "Zero-Log thuần túy. Số lần ghi disk được đếm và hiển thị tại /api/v1/stats."
+    )
     store = RedisStore(redis_url)
 else:
     store = InMemoryStore()

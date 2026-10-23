@@ -83,9 +83,19 @@ class StatsResponse(BaseModel):
     total_staged: int
     total_retrieved: int
     total_purged_expired: int
+    # VÁ #6: TRƯỚC ĐÂY trường này là `default=0` viết cứng kèm mô tả "Luôn bằng 0".
+    # Đó là một lời khẳng định về bảo mật được in ra cho người dùng đọc, nhưng
+    # KHÔNG hề kiểm tra backend thật. Khi REDIS_URL được set, payload thực sự
+    # nằm trên ổ cứng mà Dashboard vẫn hiển thị 0 -> "nói dối bằng thiết kế".
+    # Nay giá trị này do chính store cung cấp qua `disk_write_count()`, nên
+    # nó luôn phản ánh đúng backend đang chạy.
     disk_writes: int = Field(
-        default=0,
-        description="Luôn bằng 0 - Broker không bao giờ ghi payload xuống ổ cứng.",
+        ...,
+        description=(
+            "Số lần payload thực sự được ghi xuống ổ cứng, do backend tự báo cáo. "
+            "InMemoryStore luôn trả 0 (Zero-Log thuần); RedisStore trả số lần "
+            "setex thật -> nếu khác 0 nghĩa là cam kết Zero-Log ĐANG BỊ VI PHẠM."
+        ),
     )
     approx_ram_bytes: int = Field(
         default=0,
@@ -98,10 +108,28 @@ class StatsResponse(BaseModel):
 
 
 class DPKIRegisterRequest(BaseModel):
+    """VÁ #3: đăng ký khoá lên Broker BẮT BUỘC phải có chữ ký EIP-191.
+
+    Trước đây endpoint này không có bất kỳ xác thực nào: bất kỳ ai cũng POST
+    được khoá công khai cho BẤT KỲ địa chỉ nào. Khi chain offline, kẻ tấn công
+    đầu độc được cả danh bạ khoá -> che mất khoá thật trên chain.
+    """
+
     address: str = Field(..., min_length=42, max_length=42, description="Địa chỉ ví Ethereum (0x...)")
     public_key_pem: str = Field(..., min_length=10, description="RSA Public Key dạng PEM")
+    timestamp: int = Field(
+        ...,
+        description="Unix seconds tại thời điểm ký. Chống replay (cửa sổ ±300s).",
+    )
+    signature: str = Field(
+        ...,
+        min_length=132,
+        max_length=132,
+        description="Chữ ký EIP-191 (65 byte hex, 0x...) của CHÍNH `address` trên thông điệp chuẩn.",
+    )
 
 
 class DPKIRegisterResponse(BaseModel):
     address: str
-    status: str = "registered"
+    # VÁ #3: đổi mặc định để client KHÔNG THỂ nhầm broker với chain.
+    status: str = "registered_unverified"

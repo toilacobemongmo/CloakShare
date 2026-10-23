@@ -25,6 +25,7 @@ from unittest.mock import patch
 import pytest
 from eth_account import Account
 from fastapi.testclient import TestClient
+from web3 import Web3
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -45,10 +46,101 @@ def client():
     store.purge_all()
 
 
-def test_complete_e2e_hybrid_security_pipeline(client):
+# Anvil account #0 — public, deterministic, unlocked.
+ANVIL_FUNDER_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+ANVIL_FUNDER = Account.from_key(ANVIL_FUNDER_KEY).address
+
+RPC_URL = "http://127.0.0.1:8545"
+
+
+def _parse_contract_address(text: str) -> str | None:
+    """Tìm địa chỉ contract trong stdout/stderr của scripts/deploy_dpki.py."""
+    import re
+
+    m = re.search(r"Contract Address\s*:\s*(0x[0-9a-fA-F]{40})", text)
+    if m:
+        return Web3.to_checksum_address(m.group(1))
+    for tok in text.replace(":", " ").replace("=", " ").split():
+        tok = tok.strip(".,;'\"")
+        if tok.startswith("0x") and len(tok) == 42:
+            return Web3.to_checksum_address(tok)
+    return None
+
+
+@pytest.fixture(scope="module")
+def anvil():
+    """Deploy dPKIRegistry mới TỨC THÌ và trả về (w3, contract_address).
+
+    BUG ĐÃ SỬA: test cũ dùng địa chỉ contract HARD-CODE trong
+    `DPKIClient.__init__`. Anvil là node in-memory — mỗi lần khởi động lại là
+    toàn bộ state (kể cả contract đã deploy) mất sạch. Hệ quả: chỉ cần restart
+    Anvil là test đứng ở `getKeyRecord` với lỗi "Could not transact with/call
+    contract function". Giờ test tự deploy, không phụ thuộc state cũ.
+    """
+    import subprocess
+
+    w3 = Web3(Web3.HTTPProvider(RPC_URL, request_kwargs={"timeout": 30}))
+    try:
+        if not w3.is_connected():
+            yield None
+            return
+        if w3.eth.get_balance(ANVIL_FUNDER) == 0:
+            yield None
+            return
+
+        result = subprocess.run(
+            [sys.executable, "scripts/deploy_dpki.py", "--rpc", RPC_URL],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(Path(__file__).resolve().parent.parent),
+            timeout=180,
+        )
+        if result.returncode != 0:
+            print(f"\n[!] Deploy thất bại:\n{result.stdout}\n{result.stderr}")
+            yield None
+            return
+
+        address = _parse_contract_address(result.stdout + "\n" + result.stderr)
+        if not address:
+            print(f"\n[!] Không parse được địa chỉ contract:\n{result.stdout}")
+            yield None
+            return
+
+        # Xác nhận contract thật sự có bytecode on-chain trước khi dùng.
+        if len(w3.eth.get_code(address)) == 0:
+            print(f"\n[!] Không có bytecode tại {address}")
+            yield None
+            return
+
+        print(f"\n[dPKI] Contract deployed for E2E: {address}")
+        yield w3, address
+    finally:
+        pass
+
+
+def _fund_if_available(anvil_ctx, address: str, amount_wei: int = 50 * 10**18) -> None:
+    """Nạp gas cho ví; bỏ qua nếu không có node (test sẽ chạy chế độ degraded)."""
+    if anvil_ctx is None:
+        return
+    w3, _addr = anvil_ctx
+    w3.eth.send_transaction({"from": ANVIL_FUNDER, "to": address, "value": amount_wei})
+
+
+def _write_priv_pem(tmp_path: Path, name: str, pem: str) -> str:
+    """Ghi RSA Private Key ra file tạm để test đăng ký kèm PoP (VÁ #5)."""
+    path = tmp_path / name
+    path.write_text(pem, encoding="utf-8")
+    return str(path)
+
+
+def test_complete_e2e_hybrid_security_pipeline(client, anvil, tmp_path):
     # 1. Danh tính Web3 & Cặp khóa RSA cho Alice (Seller) và Bob (Buyer)
     alice_wallet = Account.create()
     bob_wallet = Account.create()
+    _fund_if_available(anvil, alice_wallet.address)
+    _fund_if_available(anvil, bob_wallet.address)
 
     alice_priv_bytes, alice_pub_bytes = generate_rsa_key_pair()
     bob_priv_bytes, bob_pub_bytes = generate_rsa_key_pair()
@@ -58,10 +150,24 @@ def test_complete_e2e_hybrid_security_pipeline(client):
     bob_priv_pem = bob_priv_bytes.decode("utf-8")
     bob_pub_pem = bob_pub_bytes.decode("utf-8")
 
-    # 2. Đăng ký Public Key lên dPKI
-    dpki = DPKIClient()
-    dpki.register_public_key(alice_wallet.key.hex(), alice_pub_pem)
-    dpki.register_public_key(bob_wallet.key.hex(), bob_pub_pem)
+    # 2. Đăng ký Public Key lên dPKI — VÁ #5: PoP là đường duy nhất nên bắt buộc
+    #    phải truyền RSA Private Key để tạo chữ ký chứng minh sở hữu.
+    #    Contract address lấy từ fixture `anvil` (deploy mới), KHÔNG hard-code.
+    if anvil is not None:
+        _w3, contract_address = anvil
+        dpki = DPKIClient(contract_address=contract_address)
+    else:
+        dpki = DPKIClient()
+    dpki.register_public_key(
+        alice_wallet.key.hex(),
+        alice_pub_pem,
+        rsa_private_key_path=_write_priv_pem(tmp_path, "alice_priv.pem", alice_priv_pem),
+    )
+    dpki.register_public_key(
+        bob_wallet.key.hex(),
+        bob_pub_pem,
+        rsa_private_key_path=_write_priv_pem(tmp_path, "bob_priv.pem", bob_priv_pem),
+    )
 
     # Alice tra cứu Public Key của Bob từ dPKI
     resolved_bob_pub = dpki.get_public_key(bob_wallet.address)

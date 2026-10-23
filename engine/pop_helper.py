@@ -9,6 +9,13 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
+try:  # cryptography >= 2.5
+    from cryptography.hazmat.primitives.asymmetric.utils import Prehashed
+except ImportError:  # pragma: no cover
+    from cryptography.hazmat.primitives.asymmetric.utils import (  # type: ignore
+        Prehashed,
+    )
+
 
 def generate_pop_signature(
     eth_private_key_hex: str,
@@ -34,9 +41,9 @@ def generate_pop_signature(
     account = Account.from_key(eth_private_key_hex)
     wallet_address_bytes = bytes.fromhex(account.address[2:])  # 20 raw bytes
 
-    # 2. Tính sha256(wallet_address)
+    # 2. Tính sha256(wallet_address) — ĐÂY LÀ HASH DUY NHẤT ĐƯỢC KÝ.
     import hashlib
-    message_to_sign = hashlib.sha256(wallet_address_bytes).digest()
+    message_digest = hashlib.sha256(wallet_address_bytes).digest()
 
     # 3. Load RSA Private Key từ PEM
     pem_bytes = (
@@ -46,11 +53,17 @@ def generate_pop_signature(
     )
     rsa_key = load_pem_private_key(pem_bytes, password=None)
 
-    # 4. Ký message theo chuẩn RFC 8017 (RSASSA-PKCS1-v1_5 với SHA-256)
+    # 4. Ký theo RFC 8017 (RSASSA-PKCS1-v1_5 + SHA-256).
+    #    VÁ #5: Dùng Prehashed để báo cho OpenSSL rằng `message_digest` ĐÃ là
+    #    SHA-256 digest rồi — nó chỉ cần bọc DigestInfo + padding, KHÔNG hash
+    #    thêm lần nữa. Trước đây truyền thẳng hashes.SHA256() khiến OpenSSL
+    #    hash lần 2 -> chữ ký thực chất trên sha256(sha256(address)), buộc
+    #    smart contract phải "bù" bằng sha256(digest) và làm chữ ký không thể
+    #    verify được bằng bất kỳ thư viện RSA chuẩn nào bên ngoài.
     signature: bytes = rsa_key.sign(
-        message_to_sign,
+        message_digest,
         padding.PKCS1v15(),
-        hashes.SHA256(),
+        Prehashed(hashes.SHA256()),
     )
 
     return signature

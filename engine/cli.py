@@ -75,6 +75,7 @@ def main():
     parser_reg = subparsers.add_parser("register", help="Đăng ký Public Key lên dPKI Smart Contract")
     parser_reg.add_argument("--pub", required=True, help="Đường dẫn file Public Key (.pem)")
     parser_reg.add_argument("--private-key", default=None, help="Private Key ví Ethereum (hoặc nhập qua prompt/env CLOAKSHARE_PRIVATE_KEY)")
+    parser_reg.add_argument("--priv", default="my_keys/private.pem", help="Đường dẫn RSA Private Key để tạo chữ ký Proof-of-Possession (BẮT BUỘC)")
     parser_reg.add_argument("--contract", default=DEFAULT_CONTRACT, help="Địa chỉ Smart Contract")
     parser_reg.add_argument("--rpc", default=DEFAULT_RPC, help="URL RPC Blockchain (mặc định: http://127.0.0.1:8545)")
 
@@ -116,12 +117,23 @@ def main():
             priv_key = getpass.getpass("Nhập Private Key ví Ethereum: ")
             
         pub_text = Path(args.pub).read_text(encoding="utf-8")
+
+        # VÁ #5: PoP là đường duy nhất — bắt buộc có RSA private key.
+        rsa_priv_path = Path(args.priv)
+        if not rsa_priv_path.exists():
+            print(f"[-] Thiếu RSA Private Key: {rsa_priv_path}")
+            print("    Proof-of-Possession là BẮT BUỘC để đăng ký on-chain.")
+            print("    Tạo cặp khoá: python engine/cli.py keygen --out my_keys")
+            sys.exit(1)
+
         dpki = DPKIClient(contract_address=args.contract, rpc_url=args.rpc)
         account = Account.from_key(priv_key)
         print(f"[*] Đang đăng ký Public Key cho ví {account.address}...")
+        print(f"[*] Ký Proof-of-Possession bằng: {rsa_priv_path}")
         tx_hash_hex = dpki.register_public_key(
             private_key_hex=priv_key,
             public_key_pem=pub_text,
+            rsa_private_key_path=str(rsa_priv_path),
         )
         print(f"[+] Đăng ký thành công! Tx Hash / Ref: {tx_hash_hex}")
 

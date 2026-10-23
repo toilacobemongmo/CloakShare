@@ -14,10 +14,21 @@ contract dPKIRegistry {
     error InvalidSignatureLength();
     error ModExpFailed();
     error InvalidPoPSignature();
+    /// @notice VÁ #5: đường đăng ký legacy (không PoP) đã bị vô hiệu hoá.
+    error LegacyFunctionDisabled();
 
     // --- EVENTS ---
     event PublicKeyRegistered(address indexed user, string publicKeyPem);
     event PublicKeyRegisteredWithPoP(address indexed user, string publicKeyPem, bytes signature);
+    /// @notice VÁ #5: mọi lần THAY ĐỔI khoá đều để lại dấu vết bất biến on-chain.
+    /// @dev Nhờ event này, việc "âm thầm tráo khoá" trở thành hành vi KHÔNG THỂ
+    ///      che giấu: bất kỳ ai replay chain đều thấy oldPem -> newPem và thời điểm.
+    event KeyRotated(
+        address indexed user,
+        string oldPem,
+        string newPem,
+        uint256 at
+    );
 
     // --- STORAGE ---
     struct KeyRecord {
@@ -36,15 +47,17 @@ contract dPKIRegistry {
     // =========================================================================
 
     /**
-     * @notice Hàm legacy: Giữ tương thích ngược (không yêu cầu PoP).
+     * @notice Hàm legacy ĐÃ BỊ VÔ HIỆU HOÁ (VÁ #5).
+     * @dev Trước đây hàm này cho phép đăng ký khoá KHÔNG cần Proof-of-Possession,
+     *      tức là bất kỳ ai cũng có thể gán một khoá RSA công khai bất kỳ cho
+     *      địa chỉ của chính mình (hoặc ghi đè khoá đã có PoP bằng khoá rác),
+     *      làm mất hoàn toàn ý nghĩa của "chứng minh sở hữu khoá riêng".
+     *      Nay mọi đường đăng ký đều BUỘC đi qua `registerPublicKeyWithPoP`.
+     *      Giữ hàm (thay vì xoá) để ABI không đổi và để ai gọi nhầm nhận lỗi
+     *      tường minh thay vì im lặng thành công.
      */
-    function registerPublicKey(string calldata publicKeyPem) external {
-        registry[msg.sender] = KeyRecord({
-            publicKeyPem: publicKeyPem,
-            hasPoP: false,
-            registeredAt: block.timestamp
-        });
-        emit PublicKeyRegistered(msg.sender, publicKeyPem);
+    function registerPublicKey(string calldata) external pure {
+        revert LegacyFunctionDisabled();
     }
 
     /**
@@ -60,13 +73,22 @@ contract dPKIRegistry {
         if (signature.length != modulus.length) revert InvalidSignatureLength();
 
         // 3. Tính SHA-256 digest của msg.sender
+        //    VÁ #5: digest này là hash DUY NHẤT được ký. Client dùng
+        //    utils.Prehashed(SHA256) để ký đúng 32 byte này, không hash lần 2.
         bytes32 messageHash = sha256(abi.encodePacked(msg.sender));
 
         // 4. Verify chữ ký RSA-PKCS1-v1_5 on-chain
         bool isValid = verifyRsaPkcs1v15(modulus, exponent, signature, messageHash);
         if (!isValid) revert InvalidPoPSignature();
 
-        // 5. Lưu trữ và emit event
+        // 5. VÁ #5: ghi nhận xoay khoá TRƯỚC khi ghi đè, để event mang cả
+        //    giá trị cũ và mới. Nếu chưa từng có khoá thì không emit KeyRotated.
+        KeyRecord memory old = registry[msg.sender];
+        if (bytes(old.publicKeyPem).length != 0 && keccak256(bytes(old.publicKeyPem)) != keccak256(bytes(publicKeyPem))) {
+            emit KeyRotated(msg.sender, old.publicKeyPem, publicKeyPem, block.timestamp);
+        }
+
+        // 6. Lưu trữ và emit event
         registry[msg.sender] = KeyRecord({
             publicKeyPem: publicKeyPem,
             hasPoP: true,
@@ -81,6 +103,24 @@ contract dPKIRegistry {
      */
     function getPublicKey(address user) external view returns (string memory) {
         return registry[user].publicKeyPem;
+    }
+
+    /**
+     * @notice VÁ #5: trả về TOÀN BỘ bản ghi khoá kèm metadata tin cậy.
+     * @dev Client cần `hasPoP` để biết khoá này đã thực sự chứng minh sở hữu
+     *      khoá riêng hay chưa. Trước đây client chỉ đọc được `publicKeyPem`
+     *      và KHÔNG THỂ phân biệt khoá có PoP với khoá rác đăng ký legacy.
+     * @return publicKeyPem Chuỗi PEM (rỗng nếu chưa đăng ký).
+     * @return hasPoP true nếu khoá đã qua kiểm chứng RSA trên chain.
+     * @return registeredAt Thời điểm ghi nhận gần nhất (unix seconds).
+     */
+    function getKeyRecord(address user)
+        external
+        view
+        returns (string memory publicKeyPem, bool hasPoP, uint256 registeredAt)
+    {
+        KeyRecord memory rec = registry[user];
+        return (rec.publicKeyPem, rec.hasPoP, rec.registeredAt);
     }
 
     // =========================================================================
@@ -126,10 +166,14 @@ contract dPKIRegistry {
         }
 
         // So khớp Digest
-        // NOTE: Client code (pop_helper.py) hashes wallet_address một lần với sha256(),
-        // rồi rsa_key.sign() với hashes.SHA256() tạo DigestInfo prefix + hash lần 2.
-        // Contract nhận digest = sha256(msg.sender), cần hash lại để khớp với DigestInfo trong EM.
-        bytes32 expectedHash = sha256(abi.encodePacked(digest));
+        // VÁ #5: HẾT double-hash. Trước đây pop_helper.py hash wallet_address bằng
+        // sha256(), rồi rsa_key.sign(..., hashes.SHA256()) hash LẦN NỮA -> chữ ký
+        // thực chất là trên sha256(sha256(address)), buộc contract phải bù bằng cách
+        // hash thêm một lần nữa ở đây. Điều đó khiến chữ ký PoP KHÔNG còn khớp với
+        // bất kỳ chuẩn RSA-PKCS1-v1_5 nào (không thể verify bằng thư viện ngoài,
+        // không thể kiểm toán độc lập). Nay client dùng utils.Prehashed nên chỉ có
+        // ĐÚNG MỘT lần hash: digest == sha256(msg.sender) == nội dung được ký.
+        bytes32 expectedHash = digest;
         uint256 hashStart = tStart + SHA256_PREFIX.length;
         for (uint256 i = 0; i < 32; i++) {
             if (em[hashStart + i] != expectedHash[i]) return false;

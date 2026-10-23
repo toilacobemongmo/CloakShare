@@ -936,13 +936,22 @@ def get_or_create_keys(wallet_pk: str) -> tuple[str, str]:
 
 
 def fund_and_register_dpki(wallet_pk: str, pub_pem: str) -> bool:
+    """Đăng ký khoá RSA của tôi lên dPKI.
+
+    VÁ #4: UI cho phép chạy degraded (allow_offline=True) để demo được khi
+    không có Anvil — nhưng BẮT BUỘC hiển thị banner cảnh báo (xem
+    `render_trust_banner()` bên dưới). Trước đây hàm này còn THIẾU `return True`
+    nên luôn trả None dù thành công.
+    """
     try:
         dpki = DPKIClient(
             contract_address=DEFAULT_CONTRACT,
             rpc_url=DEFAULT_RPC,
             broker_url=st.session_state.broker_url,
+            allow_offline=True,
         )
         dpki.register_public_key(wallet_pk, pub_pem)
+        return True
     except Exception:
         return False
 
@@ -968,7 +977,48 @@ dpki_client = DPKIClient(
     contract_address=DEFAULT_CONTRACT,
     rpc_url=DEFAULT_RPC,
     broker_url=st.session_state.broker_url,
+    # VÁ #4: UI được phép chạy degraded để demo, NHƯNG phải hiện banner.
+    allow_offline=True,
 )
+
+
+def render_trust_banner() -> None:
+    """VÁ #4: KHAI BÁO mức tin cậy hiện tại — không bao giờ im lặng hạ cấp.
+
+    Người dùng phải biết: khoá đang dùng có được blockchain xác thực hay không.
+    Im lặng chuyển sang nguồn yếu chính là lỗ hổng cũ.
+    """
+    try:
+        stt = dpki_client.get_status()
+    except Exception:
+        return
+
+    mode = stt.get("mode", "unknown")
+    if mode == "on-chain":
+        st.success(
+            "🔒 **dPKI: ON-CHAIN** — Khoá công khai được xác thực bởi smart contract. "
+            f"Mức tin cậy: **{stt.get('trust_level', 'trustless')}**."
+        )
+        return
+
+    # Degraded hoặc unavailable -> cảnh báo đỏ, KHÔNG được im lặng.
+    st.error(
+        "⚠️ **CẢNH BÁO MỨC TIN CẬY** — Chế độ hiện tại: "
+        f"`{mode}` · Mức tin cậy: `{stt.get('trust_level', 'degraded')}`.\n\n"
+        "Khoá công khai **CHƯA được xác thực on-chain**. Trong chế độ này, "
+        "máy chủ trung gian (Broker) là nguồn cung cấp khoá — nghĩa là **không có "
+        "bảo đảm trustless**. Chỉ dùng để demo. Khi gửi dữ liệu thật, hãy bật "
+        "Anvil/EVM node và deploy dPKIRegistry."
+    )
+    unverified = stt.get("unverified_keys_count", 0)
+    if unverified:
+        st.warning(
+            f"Hiện có **{unverified}** khoá trong bộ đệm ở trạng thái "
+            "`broker-unverified` (chưa có chứng thực on-chain)."
+        )
+
+
+render_trust_banner()
 
 # Fetch balance
 balance_eth = 0.0
