@@ -7,6 +7,8 @@ __pycache__/
 *.dll
 *.bak
 ~$*
+*.md
+*.docx
 
 # C object files
 *.o
